@@ -93,7 +93,7 @@
                         <p class="text-xs text-amber-300">Una experiencia especial del Pacífico de Mazatlán</p>
                     </div>
                 </div>
-                <span class="inline-flex items-center gap-2 self-start sm:self-auto rounded-full bg-amber-400 text-slate-950 text-[11px] font-black uppercase tracking-wider px-4 py-2 shadow-lg shadow-amber-500/20"><i class="fa-solid fa-star"></i> Experiencia de temporada</span>
+                <span class="inline-flex w-full sm:w-auto items-center justify-center gap-2 self-stretch sm:self-auto rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] text-center leading-tight font-black uppercase tracking-wide sm:tracking-wider px-3 sm:px-4 py-2 shadow-lg shadow-amber-500/20"><i class="fa-solid fa-star shrink-0"></i><span>Experiencia de temporada</span></span>
             </div>
             <div id="seasonalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -373,7 +373,7 @@
                 <div class="${/ballena/i.test(item.name) ? 'bg-slate-950 border-2 border-amber-400 ring-2 ring-amber-400/20' : 'bg-slate-950/80 border border-amber-500/30'} rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group ${/ballena/i.test(item.name) ? 'md:col-span-2 lg:col-span-2' : ''}">
                     <div class="h-56 relative overflow-hidden">
                         ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
-                        <span class="absolute top-3 left-3 bg-amber-400 text-slate-950 font-black text-[10px] px-3 py-1.5 rounded-full uppercase tracking-wider shadow">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
+                        <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
                         ${/ballena/i.test(item.name) ? '<span class="absolute bottom-3 left-3 bg-slate-950/85 text-white text-xs font-bold px-3 py-2 rounded-xl border border-amber-300/60">Avistamiento en el Pacífico</span>' : ''}
                         <span class="absolute bottom-3 right-3 bg-amber-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${item.price}</span>
                     </div>
