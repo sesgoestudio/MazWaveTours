@@ -12,6 +12,7 @@
     <meta property="og:locale" content="es_MX">
     <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -272,7 +273,14 @@
             ]
         };
 
-        let db = JSON.parse(localStorage.getItem('mazwave_db')) || defaultData;
+        const supabaseClient = window.supabase.createClient("https://vwtthqywcuzjvzzbzzps.supabase.co", "sb_publishable_FsIs5klj7rHso_P8o4yOBQ_J_cRu-5D");
+        let db = defaultData;
+        async function loadCentralCatalog() {
+            try {
+                const { data, error } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
+                if (!error && data && data.data && Array.isArray(data.data.items)) db = data.data;
+            } catch (error) { console.warn('Catálogo remoto no disponible; se muestran los datos de respaldo.', error); }
+        }
         let selectedItemForBooking = null;
 
         let introDismissed = false;
@@ -479,7 +487,8 @@
             window.location.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
         }
 
-        window.onload = () => {
+        window.onload = async () => {
+            await loadCentralCatalog();
             renderSite();
             const dateInput = document.getElementById('clientDate');
             const today = new Date();
