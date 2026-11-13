@@ -290,7 +290,7 @@
             try {
                 const { data, error } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
                 if (!error && data && data.data && Array.isArray(data.data.items) && data.data.items.length > 0) {
-                    db = { ...defaultData, ...data.data, items: data.data.items.map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) })) };
+                    db = { ...defaultData, ...data.data, items: data.data.items.map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: /ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase()), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) })) };
                 } else {
                     console.warn('Supabase devolvió un catálogo vacío; se muestran las experiencias de respaldo.');
                     db = JSON.parse(JSON.stringify(defaultData));
@@ -346,7 +346,7 @@
         }
 
         function renderSeasonal() {
-            const seasonalItems = db.items.filter(i => i.isSeasonal).sort((a, b) => {
+            const seasonalItems = db.items.filter(i => /ballena/i.test(String(i.name || '')) || i.isSeasonal === true || i.is_seasonal === true || i.seasonal === true || i.temporada === true || ['true','1','si','sí','temporada'].includes(String(i.isSeasonal ?? i.is_seasonal ?? i.seasonal ?? i.temporada ?? '').toLowerCase())).sort((a, b) => {
                 const priority = item => /ballena/i.test(item.name) ? 0 : 1;
                 return priority(a) - priority(b);
             });
