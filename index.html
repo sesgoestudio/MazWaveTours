@@ -346,7 +346,7 @@
         }
 
         function renderSeasonal() {
-            const seasonalItems = db.items.filter(i => /ballena/i.test(String(i.name || '')) || (i.isSeasonal === false ? false : (i.isSeasonal === true || i.is_seasonal === true || i.seasonal === true || i.temporada === true || ['true','1','si','sí','temporada'].includes(String(i.isSeasonal ?? i.is_seasonal ?? i.seasonal ?? i.temporada ?? '').toLowerCase())));
+            const seasonalItems = db.items.filter(i => /ballena/i.test(String(i.name || '')) || (i.isSeasonal === false ? false : (i.isSeasonal === true || i.is_seasonal === true || i.seasonal === true || i.temporada === true || ['true','1','si','sí','temporada'].includes(String(i.isSeasonal ?? i.is_seasonal ?? i.seasonal ?? i.temporada ?? '').toLowerCase()))));
             // Si Supabase no trae el tour de ballenas, usar el registro local como destacado visible.
             const whaleTour = seasonalItems.find(i => /ballena/i.test(String(i.name || ''))) || defaultData.items.find(i => /ballena/i.test(String(i.name || ''))) || {
                 id: 'whale-season-feature',
