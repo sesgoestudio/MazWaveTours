@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MazWaveTours | Tu paraíso marítimo en Mazatlán</title>
+    <title>MazWaveTours | Yates, trimaranes y tours en Mazatlán</title>
+    <meta name="description" content="Descubre y cotiza yates, trimaranes y experiencias en Mazatlán. Explora la flota, compara opciones y solicita tu reservación por WhatsApp.">
+    <meta name="theme-color" content="#020617">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="MazWaveTours | Vive Mazatlán desde el mar">
+    <meta property="og:description" content="Explora y cotiza yates, trimaranes y experiencias en Mazatlán. Tu próxima aventura comienza aquí.">
+    <meta property="og:locale" content="es_MX">
+    <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -45,7 +52,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="https://instagram.com/mazwavetours" target="_blank" class="text-slate-400 hover:text-cyan-400 transition text-xl p-2"><i class="fa-brands fa-instagram"></i></a>
+                <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-cyan-400 transition text-xl p-2"><i class="fa-brands fa-instagram"></i></a>
                 <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
                     <i class="fa-solid fa-lock text-cyan-400"></i>
                     <span>Admin</span>
@@ -62,7 +69,7 @@
             <p id="heroSubtitle" class="text-base md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
                 <a href="#catalogo" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-2xl shadow-xl shadow-cyan-500/20 transition transform hover:-translate-y-0.5">Ver Embarcaciones</a>
-                <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" class="bg-slate-900/90 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-2xl border border-slate-700 transition flex items-center justify-center space-x-2">
+                <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" rel="noopener noreferrer" class="bg-slate-900/90 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-2xl border border-slate-700 transition flex items-center justify-center space-x-2">
                     <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
                     <span>Cotizar por WhatsApp</span>
                 </a>
@@ -83,6 +90,39 @@
                 </div>
             </div>
             <div id="seasonalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+
+    <!-- Booking guide / conversion section -->
+    <section class="max-w-7xl mx-auto px-4 py-10" aria-labelledby="bookingGuideTitle">
+        <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-7 md:p-10">
+            <div class="max-w-2xl mb-8">
+                <span class="text-cyan-400 text-xs font-bold uppercase tracking-[.2em]">Tu experiencia comienza aquí</span>
+                <h2 id="bookingGuideTitle" class="text-2xl md:text-3xl font-extrabold text-white mt-2">Encuentra el plan ideal para tu día en el mar</h2>
+                <p class="text-slate-400 mt-3 leading-relaxed">Explora las opciones disponibles y cuéntanos qué tienes en mente. Te ayudamos a elegir la experiencia que mejor se adapte a tu grupo.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <article class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4"><i class="fa-solid fa-compass"></i></div>
+                    <h3 class="font-bold text-white mb-2">1. Explora la flota</h3>
+                    <p class="text-sm text-slate-400">Compara embarcaciones, capacidad y precios publicados en el catálogo.</p>
+                </article>
+                <article class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3 class="font-bold text-white mb-2">2. Cuéntanos tu plan</h3>
+                    <p class="text-sm text-slate-400">Indica fecha tentativa, número de personas y la experiencia que buscas.</p>
+                </article>
+                <article class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4"><i class="fa-brands fa-whatsapp"></i></div>
+                    <h3 class="font-bold text-white mb-2">3. Confirma por WhatsApp</h3>
+                    <p class="text-sm text-slate-400">Recibe atención directa para revisar disponibilidad, detalles y condiciones.</p>
+                </article>
+            </div>
+            <div class="mt-7 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800 pt-6">
+                <p class="text-xs text-slate-500">La disponibilidad y las condiciones se confirman directamente al cotizar.</p>
+                <a href="https://wa.me/526693285696?text=Hola%20MazWaveTours%2C%20quiero%20ayuda%20para%20elegir%20una%20experiencia." target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto text-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-600/20"><i class="fa-brands fa-whatsapp mr-2"></i>Ayúdame a elegir</a>
+            </div>
         </div>
     </section>
 
