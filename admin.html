@@ -133,9 +133,9 @@
             if (!email || !password) { alert('Ingresa tu correo y contraseña.'); return; }
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) { alert('No se pudo iniciar sesión: ' + error.message); return; }
-            const { data: row, error: readError } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
+            const { data: row, error: readError } = await supabaseClient.from('site_config').select('data').eq('id', 1).maybeSingle();
             if (readError) { alert('No se pudo cargar el catálogo de Supabase: ' + readError.message); return; }
-            db = row.data;
+            db = row && row.data ? row.data : defaultData;
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             loadAdminData();
