@@ -144,19 +144,19 @@
             </div>
             <div id="categoryNav" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 <button type="button" data-category="all" onclick="setCategory('all')" class="category-chip col-span-2 sm:col-span-1 text-left rounded-2xl border border-cyan-400 bg-cyan-500/15 p-3 sm:p-4 transition hover:-translate-y-0.5">
-                    <span class="flex items-center justify-between"><i class="fa-solid fa-compass text-cyan-300 text-xl"></i><span id="count-all" class="text-xs font-bold text-cyan-200">0 opciones</span></span>
+                    <span class="flex items-center justify-between"><i class="fa-solid fa-compass text-cyan-300 text-xl"></i><span id="count-all" class="text-xs font-bold text-cyan-200">24 opciones</span></span>
                     <span class="block text-white font-bold mt-3">Todas las experiencias</span><span class="block text-xs text-slate-400 mt-1">Explora el catálogo completo</span>
                 </button>
                 <button type="button" data-category="trimaran" onclick="setCategory('trimaran')" class="category-chip text-left rounded-2xl border border-slate-700 bg-slate-950/70 p-3 sm:p-4 transition hover:border-cyan-400 hover:-translate-y-0.5">
-                    <span class="flex items-center justify-between"><i class="fa-solid fa-sailboat text-cyan-300 text-xl"></i><span id="count-trimaran" class="text-xs font-bold text-cyan-200">0 opciones</span></span>
+                    <span class="flex items-center justify-between"><i class="fa-solid fa-sailboat text-cyan-300 text-xl"></i><span id="count-trimaran" class="text-xs font-bold text-cyan-200">17 opciones</span></span>
                     <span class="block text-white font-bold mt-3">Trimaranes</span><span class="block text-xs text-slate-400 mt-1">Para grupos y celebraciones</span>
                 </button>
                 <button type="button" data-category="yate" onclick="setCategory('yate')" class="category-chip text-left rounded-2xl border border-slate-700 bg-slate-950/70 p-4 transition hover:border-cyan-400 hover:-translate-y-0.5">
-                    <span class="flex items-center justify-between"><i class="fa-solid fa-ship text-cyan-300 text-xl"></i><span id="count-yate" class="text-xs font-bold text-cyan-200">0 opciones</span></span>
+                    <span class="flex items-center justify-between"><i class="fa-solid fa-ship text-cyan-300 text-xl"></i><span id="count-yate" class="text-xs font-bold text-cyan-200">5 opciones</span></span>
                     <span class="block text-white font-bold mt-3">Yates y lanchas</span><span class="block text-xs text-slate-400 mt-1">Paseos privados y exclusivos</span>
                 </button>
                 <button type="button" data-category="tour" onclick="setCategory('tour')" class="category-chip text-left rounded-2xl border border-slate-700 bg-slate-950/70 p-4 transition hover:border-cyan-400 hover:-translate-y-0.5 sm:col-span-3 sm:flex sm:items-center sm:gap-4">
-                    <span class="flex items-center justify-between sm:gap-5"><i class="fa-solid fa-water text-cyan-300 text-xl"></i><span id="count-tour" class="text-xs font-bold text-cyan-200">0 opciones</span></span>
+                    <span class="flex items-center justify-between sm:gap-5"><i class="fa-solid fa-water text-cyan-300 text-xl"></i><span id="count-tour" class="text-xs font-bold text-cyan-200">2 opciones</span></span>
                     <span><span class="block text-white font-bold mt-3 sm:mt-0">Tours y experiencias</span><span class="block text-xs text-slate-400 mt-1">Ballenas, surf y aventuras en el Pacífico</span></span>
                 </button>
             </div>
@@ -525,6 +525,8 @@
             window.location.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
         }
 
+        // Render inmediato del catálogo de respaldo: los contadores no esperan a la red.
+        try { renderCategoryNav(); } catch (counterError) { console.error('No se pudieron calcular inicialmente las categorías.', counterError); }
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
