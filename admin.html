@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel | MazWaveTours</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -21,7 +22,8 @@
             </div>
             <h2 class="text-xl font-bold text-white mb-1">Panel Administrativo</h2>
             <p class="text-slate-400 text-xs mb-6">MazWaveTours • Marina Mazatlán</p>
-            <input type="password" id="adminPassInput" placeholder="Contraseña" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-white text-sm mb-4 focus:outline-none focus:border-cyan-500 text-center tracking-widest transition">
+            <input type="email" id="adminEmailInput" placeholder="Correo de administrador" autocomplete="username" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-white text-sm mb-3 focus:outline-none focus:border-cyan-500 text-center transition">
+            <input type="password" id="adminPassInput" placeholder="Contraseña" autocomplete="current-password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-white text-sm mb-4 focus:outline-none focus:border-cyan-500 text-center tracking-widest transition">
             <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg shadow-cyan-500/20 active:scale-[0.98]">Ingresar</button>
             <a href="index.html" class="block mt-5 text-xs text-slate-500 hover:text-slate-300 transition">← Volver al sitio web</a>
         </div>
@@ -49,6 +51,7 @@
                     <span>Guardar y publicar</span>
                 </button>
             </div>
+        <span id="saveStatus" class="text-xs text-emerald-300 ml-2" aria-live="polite"></span>
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
@@ -119,18 +122,23 @@
             ]
         };
 
-        let db = JSON.parse(localStorage.getItem('mazwave_db')) || defaultData;
-        const ADMIN_PASS = "mazwave2026";
+        const SUPABASE_URL = "https://vwtthqywcuzjvzzbzzps.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_FsIs5klj7rHso_P8o4yOBQ_J_cRu-5D";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let db = defaultData;
 
-        function checkLogin() {
-            const val = document.getElementById('adminPassInput').value;
-            if (val === ADMIN_PASS) {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                loadAdminData();
-            } else {
-                alert('Contraseña incorrecta. (Por defecto: mazwave2026)');
-            }
+        async function checkLogin() {
+            const email = document.getElementById('adminEmailInput').value.trim();
+            const password = document.getElementById('adminPassInput').value;
+            if (!email || !password) { alert('Ingresa tu correo y contraseña.'); return; }
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) { alert('No se pudo iniciar sesión: ' + error.message); return; }
+            const { data: row, error: readError } = await supabaseClient.from('site_config').select('data').eq('id', 1).maybeSingle();
+            if (readError) { alert('No se pudo cargar el catálogo de Supabase: ' + readError.message); return; }
+            db = row && row.data ? row.data : defaultData;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            loadAdminData();
         }
 
         function loadAdminData() {
@@ -198,18 +206,23 @@
             }
         }
 
-        function publishSiteChanges() {
-            localStorage.setItem('mazwave_db', JSON.stringify(db));
-            alert('Cambios guardados en este navegador. La publicación automática en GitHub aún requiere configurar un flujo seguro de servidor.');
-        }
+        let saveTimer = null;
         function scheduleAutoPublish() {
-            localStorage.setItem('mazwave_db', JSON.stringify(db));
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(publishSiteChanges, 900);
+        }
+        async function publishSiteChanges() {
+            const button = document.querySelector('button[onclick="publishSiteChanges()"]');
+            if (button) { button.disabled = true; button.querySelector('span').textContent = 'Guardando…'; }
+            const { error } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
+            if (button) { button.disabled = false; button.querySelector('span').textContent = 'Guardar y publicar'; }
+            if (error) { alert('No se pudieron guardar los cambios: ' + error.message); return; }
+            const status = document.getElementById('saveStatus');
+            if (status) status.textContent = 'Guardado en la nube';
         }
         function updateGeneralField(field, value) { db[field] = value; scheduleAutoPublish(); }
         document.getElementById('adminPassInput').addEventListener('keydown', function(event) { if (event.key === 'Enter') checkLogin(); });
-        document.getElementById('adminPassInput').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') checkLogin();
-        });
+        document.getElementById('adminEmailInput').addEventListener('keydown', function(event) { if (event.key === 'Enter') checkLogin(); });
     </script>
 </body>
 </html>
