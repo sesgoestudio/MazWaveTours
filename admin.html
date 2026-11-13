@@ -52,11 +52,7 @@
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
-<section class="bg-slate-900/70 border border-cyan-800/60 rounded-2xl p-5 space-y-3">
-<div class="flex items-center justify-between gap-3"><div><h2 class="font-bold text-white"><i class="fa-brands fa-github text-cyan-400 mr-2"></i>Publicación automática en GitHub</h2><p class="text-xs text-slate-400 mt-1">Conecta un token limitado a este repositorio. Al editar, los cambios se publicarán automáticamente.</p></div><span id="githubConnectionStatus" class="text-xs rounded-full px-3 py-1 bg-amber-500/10 text-amber-300">Sin conectar</span></div>
-<div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3"><input type="password" id="githubTokenInput" autocomplete="off" placeholder="GitHub fine-grained token (github_pat_…)" class="min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500"><button id="githubConnectButton" onclick="connectGitHub()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm px-5 py-3 rounded-xl">Conectar GitHub</button><button onclick="disconnectGitHub()" class="text-xs text-slate-400 hover:text-white px-2 py-2">Desconectar</button></div>
-<p id="githubPublishStatus" aria-live="polite" class="text-xs text-slate-400">El token se guarda solo en esta sesión del navegador; nunca se guarda en el repositorio.</p>
-<p class="text-[11px] text-amber-200/80">Permiso requerido: Contents — Read and write, únicamente para sesgoestudio/MazWaveTours.</p></section>            <!-- General Settings -->
+<!-- General Settings -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 class="text-base font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i> Ajustes Generales y WhatsApp</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,7 +137,6 @@
             document.getElementById('cfgBrand').value = db.brand;
             document.getElementById('cfgPhone').value = db.phone;
             renderAdminItems();
-            setConnectionStatus(!!githubToken());
         }
 
         function renderAdminItems() {
@@ -203,103 +198,12 @@
             }
         }
 
-        const GITHUB_REPO = 'sesgoestudio/MazWaveTours';
-        const GITHUB_BRANCH = 'main';
-        let publishTimer = null;
-        let publishInProgress = false;
-        let publishAgain = false;
-
-        function githubToken() { return sessionStorage.getItem('mazwave_github_token') || ''; }
-        function setPublishStatus(message, tone = 'muted') {
-            const el = document.getElementById('githubPublishStatus');
-            const colors = {muted:'text-slate-400',success:'text-emerald-300',error:'text-rose-300',busy:'text-cyan-300'};
-            el.className = 'text-xs ' + (colors[tone] || colors.muted);
-            el.textContent = message;
-        }
-        function setConnectionStatus(connected) {
-            const el = document.getElementById('githubConnectionStatus');
-            el.textContent = connected ? 'Conectado' : 'Sin conectar';
-            el.className = connected ? 'text-xs rounded-full px-3 py-1 bg-emerald-500/10 text-emerald-300' : 'text-xs rounded-full px-3 py-1 bg-amber-500/10 text-amber-300';
-        }
-        async function githubRequest(path, options = {}) {
-            const response = await fetch('https://api.github.com' + path, {
-                ...options,
-                headers: {'Accept':'application/vnd.github+json','Authorization':'Bearer ' + githubToken(),'X-GitHub-Api-Version':'2022-11-28',...(options.headers || {})}
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
-            return data;
-        }
-        function disconnectGitHub() {
-            sessionStorage.removeItem('mazwave_github_token');
-            setConnectionStatus(false);
-            setPublishStatus('GitHub desconectado. Tus cambios quedarán solo en este navegador hasta volver a conectar.', 'muted');
-        }
-
-        async function connectGitHub() {
-            const input = document.getElementById('githubTokenInput');
-            const token = input.value.trim();
-            if (!token) { setPublishStatus('Pega tu token de GitHub para conectar.', 'error'); input.focus(); return; }
-            const button = document.getElementById('githubConnectButton');
-            button.disabled = true; button.textContent = 'Verificando…';
-            try {
-                sessionStorage.setItem('mazwave_github_token', token);
-                const file = await githubRequest('/repos/' + GITHUB_REPO + '/contents/index.html?ref=' + GITHUB_BRANCH);
-                if (!file.sha) throw new Error('GitHub no devolvió index.html.');
-                input.value = '';
-                setConnectionStatus(true);
-                setPublishStatus('Conexión correcta. Los cambios se publicarán automáticamente al editar.', 'success');
-            } catch (error) {
-                sessionStorage.removeItem('mazwave_github_token');
-                setConnectionStatus(false);
-                setPublishStatus('No se pudo conectar: ' + error.message + '. Verifica Contents: Read and write y acceso solo a este repositorio.', 'error');
-            } finally { button.disabled = false; button.textContent = 'Conectar GitHub'; }
-        }
-        function encodeBase64Utf8(value) {
-            const bytes = new TextEncoder().encode(value);
-            let binary = '';
-            for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-            return btoa(binary);
-        }
-        async function publishSiteChanges() {
-            if (!githubToken()) { setPublishStatus('Primero conecta GitHub con un token limitado.', 'error'); document.getElementById('githubTokenInput').focus(); return; }
-            if (publishInProgress) { publishAgain = true; return; }
-            clearTimeout(publishTimer); publishInProgress = true;
-            const button = document.querySelector('button[onclick="publishSiteChanges()"]');
-            const original = button ? button.innerHTML : '';
-            if (button) { button.disabled = true; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Publicando…</span>'; }
-            try {
-                db.brand = document.getElementById('cfgBrand').value.trim() || 'MazWaveTours';
-                db.phone = document.getElementById('cfgPhone').value.replace(/\D/g, '');
-                localStorage.setItem('mazwave_db', JSON.stringify(db));
-                const file = await githubRequest('/repos/' + GITHUB_REPO + '/contents/index.html?ref=' + GITHUB_BRANCH);
-                const bytes = Uint8Array.from(atob(file.content.replace(/\s/g, '')), c => c.charCodeAt(0));
-                let html = new TextDecoder().decode(bytes);
-                const pattern = /const defaultData = \{[\s\S]*?\n        \};/;
-                if (!pattern.test(html)) throw new Error('No se encontró el bloque de catálogo; no se publicó ningún cambio.');
-                html = html.replace(pattern, 'const defaultData = ' + JSON.stringify(db, null, 4) + ';');
-                await githubRequest('/repos/' + GITHUB_REPO + '/contents/index.html', {
-                    method:'PUT',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({message:'Actualizar catálogo desde MazWaveTours Admin',content:encodeBase64Utf8(html),sha:file.sha,branch:GITHUB_BRANCH})
-                });
-                setPublishStatus('¡Publicado en GitHub! GitHub Pages actualizará el sitio automáticamente.', 'success');
-                setConnectionStatus(true);
-            } catch (error) {
-                if (/401|403|Bad credentials|Resource not accessible/i.test(error.message)) { sessionStorage.removeItem('mazwave_github_token'); setConnectionStatus(false); }
-                setPublishStatus('No se pudo publicar: ' + error.message, 'error');
-            } finally {
-                publishInProgress = false;
-                if (button) { button.disabled = false; button.innerHTML = original; }
-                if (publishAgain) { publishAgain = false; scheduleAutoPublish(); }
-            }
+        function publishSiteChanges() {
+            localStorage.setItem('mazwave_db', JSON.stringify(db));
+            alert('Cambios guardados en este navegador. La publicación automática en GitHub aún requiere configurar un flujo seguro de servidor.');
         }
         function scheduleAutoPublish() {
             localStorage.setItem('mazwave_db', JSON.stringify(db));
-            if (!githubToken()) { setPublishStatus('Guardado localmente. Conecta GitHub para publicar automáticamente.', 'muted'); return; }
-            clearTimeout(publishTimer);
-            setPublishStatus('Cambios guardados. Publicación automática en 2 segundos…', 'busy');
-            publishTimer = setTimeout(publishSiteChanges, 2000);
         }
         function updateGeneralField(field, value) { db[field] = value; scheduleAutoPublish(); }
         document.getElementById('adminPassInput').addEventListener('keydown', function(event) { if (event.key === 'Enter') checkLogin(); });
