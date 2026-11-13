@@ -25,16 +25,16 @@ function findObjectEnd(source, start) {
   for(let i=start;i<source.length;i++){
     const ch=source[i];
     if(quote){ if(escaped) escaped=false; else if(ch==="\\") escaped=true; else if(ch===quote) quote=null; continue; }
-    if(ch==='"' || ch==="'" || ch backtick) { quote=ch; continue; }
+    if(ch==='"' || ch==="'" || ch==="`") { quote=ch; continue; }
     if(ch==="{") depth++;
     if(ch==="}" && --depth===0) return i+1;
   }
   throw new Error("No se pudo identificar el bloque de datos del sitio");
 }
-async function github(path, init={}) {
+async function github(path, env, init={}) {
   const response=await fetch("https://api.github.com"+path, {
     ...init,
-    headers: {Authorization:"Bearer "+GITHUB_TOKEN, Accept:"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28", ...(init.headers||{})}
+    headers: {Authorization:"Bearer "+env.GITHUB_TOKEN, Accept:"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28", ...(init.headers||{})}
   });
   const body=await response.json();
   if(!response.ok) throw new Error(body.message || "Error de GitHub");
@@ -55,7 +55,7 @@ export default {
     const data=body.data;
     if(!data || typeof data!=="object" || !Array.isArray(data.items) || data.items.length>200) return json({error:"Datos del catálogo inválidos"},400,origin);
     try {
-      const current=await github(`/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`);
+      const current=await github(`/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, env);
       const decoded=Uint8Array.from(atob(current.content.replace(/\\n/g,"")),c=>c.charCodeAt(0));
       const source=new TextDecoder().decode(decoded);
       const marker="const defaultData =";
@@ -67,7 +67,7 @@ export default {
       const updated=source.slice(0,objectStart)+JSON.stringify(data,null,4)+source.slice(objectEnd);
       const bytes=new TextEncoder().encode(updated);
       let binary=""; for(const byte of bytes) binary+=String.fromCharCode(byte);
-      await github(`/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`,{
+      await github(`/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, env, {
         method:"PUT",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({message:"Actualizar catálogo desde el administrador",content:btoa(binary),sha:current.sha,branch:BRANCH})
