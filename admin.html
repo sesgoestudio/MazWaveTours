@@ -204,7 +204,7 @@
 
         async function downloadUpdatedIndex() {
             db.brand = document.getElementById('cfgBrand').value.trim() || 'MazWaveTours';
-            db.phone = document.getElementById('cfgPhone').value.replace(/\\D/g, '');
+            db.phone = document.getElementById('cfgPhone').value.replace(/\D/g, '');
             localStorage.setItem('mazwave_db', JSON.stringify(db));
 
             const button = document.querySelector('button[onclick="downloadUpdatedIndex()"]');
@@ -219,7 +219,7 @@
                 if (!response.ok) throw new Error('No se pudo leer index.html (' + response.status + ').');
                 let updatedHtml = await response.text();
 
-                const dataPattern = /const defaultData = \\{[\\s\\S]*?\\n        \\};/;
+                const dataPattern = /const defaultData = \{[\s\S]*?\n        \};/;
                 if (!dataPattern.test(updatedHtml)) {
                     throw new Error('La estructura de datos del sitio cambió. No se generó un archivo incompleto.');
                 }
