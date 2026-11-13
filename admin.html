@@ -21,7 +21,7 @@
                 <i class="fa-solid fa-lock text-2xl"></i>
             </div>
             <h2 class="text-xl font-bold text-white mb-1">Panel Administrativo</h2>
-            <p class="text-slate-400 text-xs mb-6">MazWaveTours • Marina Mazatlán</p>
+            <p class="text-slate-400 text-xs mb-6">MazWaveTours • Mazatlán, Sinaloa</p>
             <input type="email" id="adminEmailInput" placeholder="Correo de administrador" autocomplete="username" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-white text-sm mb-3 focus:outline-none focus:border-cyan-500 text-center transition">
             <input type="password" id="adminPassInput" placeholder="Contraseña" autocomplete="current-password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-white text-sm mb-4 focus:outline-none focus:border-cyan-500 text-center tracking-widest transition">
             <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg shadow-cyan-500/20 active:scale-[0.98]">Ingresar</button>
@@ -117,7 +117,7 @@
                 { id: 10, name: "Balú", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Sonido de alta potencia y hielera lista para tus bebidas favoritas.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
                 { id: 11, name: "Hakuna", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Sin preocupaciones, disfruta del avistamiento de fauna marina y atardeceres.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
                 { id: 12, name: "Kahlia", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño elegante con acabados modernos para grupos exigentes.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", isSeasonal: false, desc: "Navegación suave y placentera saliendo directamente desde Marina Mazatlán.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", isSeasonal: false, desc: "Navegación suave y placentera con salida desde Mazatlán, Sinaloa.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 14, name: "Mar y Sol", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "Ideal para disfrutar el sol del Pacífico con amigos o familia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
                 { id: 15, name: "Matata", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", isSeasonal: false, desc: "Diversión asegurada y espacios amplios de convivencia a bordo.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
                 { id: 16, name: "Tambaran", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Uno de los preferidos para eventos privados y corporativos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
@@ -158,7 +158,15 @@
             loadAdminData();
         }
 
+        function cleanLocationReferences(value) {
+            if (typeof value === 'string') return value.replace(/Marina\\s+Mazatl[aá]n(?:,\\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
+            if (Array.isArray(value)) return value.map(cleanLocationReferences);
+            if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cleanLocationReferences(entry)]));
+            return value;
+        }
+
         function loadAdminData() {
+            db = cleanLocationReferences(db);
             document.getElementById('cfgBrand').value = db.brand;
             document.getElementById('cfgPhone').value = db.phone || '';
             document.getElementById('cfgSlogan').value = db.slogan || '';
