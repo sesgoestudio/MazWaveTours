@@ -56,7 +56,7 @@ export default {
     if(!data || typeof data!=="object" || !Array.isArray(data.items) || data.items.length>200) return json({error:"Datos del catálogo inválidos"},400,origin);
     try {
       const current=await github(`/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, env);
-      const decoded=Uint8Array.from(atob(current.content.replace(/\\n/g,"")),c=>c.charCodeAt(0));
+      const decoded=Uint8Array.from(atob(current.content.replace(/\n/g,"")),c=>c.charCodeAt(0));
       const source=new TextDecoder().decode(decoded);
       const marker="const defaultData =";
       const markerAt=source.indexOf(marker);
