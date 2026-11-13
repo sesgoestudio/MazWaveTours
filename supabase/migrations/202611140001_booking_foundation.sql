@@ -51,8 +51,7 @@ create table public.booking_requests (
   status public.booking_request_status not null default 'pending',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint booking_request_valid_period check (requested_end > requested_start),
-  constraint booking_request_future check (requested_start > now())
+  constraint booking_request_valid_period check (requested_end > requested_start)
 );
 
 create table public.availability_blocks (
