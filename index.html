@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,33 +10,33 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .hero-bg {
-            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.85)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
+            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
 
     <!-- Splash Screen Intro -->
-    <div id="splashScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-700">
+    <div id="splashScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="text-center px-4 max-w-lg">
-            <div class="w-24 h-24 bg-cyan-500/10 border-2 border-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-cyan-500/20 animate-pulse">
+            <div class="w-24 h-24 bg-cyan-500/10 border-2 border-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-cyan-500/20 animate-pulse">
                 <i class="fa-solid fa-water text-cyan-400 text-4xl"></i>
             </div>
             <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-3">MAZ WAVE TOURS</h1>
             <p id="splashSlogan" class="text-cyan-300 font-medium text-lg mb-8">Haciendo de Mazatlán tu paraíso marítimo</p>
-            <button onclick="enterSite()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-10 rounded-full shadow-xl transition transform hover:scale-105">
+            <button onclick="enterSite()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-10 rounded-full shadow-2xl transition transform hover:scale-105 active:scale-95">
                 Explorar Experiencias <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </div>
     </div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-cyan-500/20 border border-cyan-400 rounded-lg flex items-center justify-center text-cyan-400">
+                <div class="w-10 h-10 bg-cyan-500/20 border border-cyan-400/40 rounded-xl flex items-center justify-center text-cyan-400">
                     <i class="fa-solid fa-water text-xl"></i>
                 </div>
                 <div>
@@ -44,9 +44,9 @@
                     <span class="block text-xs text-cyan-400 font-medium">Marina Mazatlán</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <a href="https://instagram.com/mazwavetours" target="_blank" class="text-slate-400 hover:text-cyan-400 transition text-xl"><i class="fa-brands fa-instagram"></i></a>
-                <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-1.5">
+            <div class="flex items-center space-x-3">
+                <a href="https://instagram.com/mazwavetours" target="_blank" class="text-slate-400 hover:text-cyan-400 transition text-xl p-2"><i class="fa-brands fa-instagram"></i></a>
+                <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
                     <i class="fa-solid fa-lock text-cyan-400"></i>
                     <span>Admin</span>
                 </a>
@@ -55,14 +55,14 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="hero-bg py-24 md:py-32 px-4 text-center relative">
-        <div class="max-w-4xl mx-auto">
-            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-3.5 py-1.5 rounded-full uppercase tracking-wider mb-6">Marina Mazatlán, Sinaloa</span>
-            <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6">Vive el Mar de Mazatlán al Máximo</h1>
-            <p id="heroSubtitle" class="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10">Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.</p>
+    <section class="hero-bg py-24 md:py-36 px-4 text-center relative overflow-hidden">
+        <div class="max-w-4xl mx-auto relative z-10">
+            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Marina Mazatlán, Sinaloa</span>
+            <h1 id="heroTitle" class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
+            <p id="heroSubtitle" class="text-base md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#catalogo" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-xl shadow-lg transition">Ver Embarcaciones</a>
-                <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" class="bg-slate-900/80 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-2">
+                <a href="#catalogo" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-2xl shadow-xl shadow-cyan-500/20 transition transform hover:-translate-y-0.5">Ver Embarcaciones</a>
+                <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" class="bg-slate-900/90 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-2xl border border-slate-700 transition flex items-center justify-center space-x-2">
                     <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
                     <span>Cotizar por WhatsApp</span>
                 </a>
@@ -70,19 +70,35 @@
         </div>
     </section>
 
+    <!-- Seasonal Section -->
+    <section id="seasonalSection" class="max-w-7xl mx-auto px-4 -mt-10 relative z-20 mb-12 hidden">
+        <div class="bg-gradient-to-r from-amber-500/10 via-slate-900 to-amber-500/10 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-amber-500/20 border border-amber-400 rounded-xl flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-fire text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Destacados de Temporada ⭐</h2>
+                    <p class="text-xs text-amber-300">Experiencias y avistamientos con alta demanda actual</p>
+                </div>
+            </div>
+            <div id="seasonalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
     <!-- Catálogo Completo -->
-    <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 py-16 w-full">
+    <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 py-12 w-full">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-white tracking-tight">Nuestra Flota y Experiencias</h2>
-                <p class="text-slate-400 mt-1">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
+                <p class="text-slate-400 mt-1 text-sm">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="relative">
-                    <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-500"></i>
-                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar yate, trimarán..." class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 w-full sm:w-64">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-500"></i>
+                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar yate, trimarán..." class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-cyan-500 w-full sm:w-64 transition">
                 </div>
-                <select id="categoryFilter" onchange="filterItems()" class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                <select id="categoryFilter" onchange="filterItems()" class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 transition">
                     <option value="all">Todas las categorías</option>
                     <option value="trimaran">Trimaranes</option>
                     <option value="yate">Yates y Lanchas</option>
@@ -95,36 +111,43 @@
     </main>
 
     <!-- Modal Reserva WhatsApp -->
-    <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 relative">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
-            <h3 id="modalTitle" class="text-xl font-bold text-white mb-2">Reservar Experiencia</h3>
-            <p class="text-slate-400 text-sm mb-6">Completa los datos para coordinar tu salida directamente por WhatsApp.</p>
+    <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="modalTitle" class="text-xl font-bold text-white mb-1">Reservar Experiencia</h3>
+            <p class="text-slate-400 text-xs mb-6">Completa tus datos para coordinar la salida por WhatsApp.</p>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Tu Nombre</label>
-                    <input type="text" id="clientName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Ej. Carlos Mendoza">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tu Nombre</label>
+                    <input type="text" id="clientName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="Ej. Carlos Mendoza">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Fecha Tentativa</label>
-                        <input type="date" id="clientDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Fecha Tentativa</label>
+                        <input type="date" id="clientDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nº de Personas</label>
-                        <input type="number" id="clientGuests" min="1" value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nº de Personas</label>
+                        <input type="number" id="clientGuests" min="1" value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Comentarios o Dudas</label>
-                    <textarea id="clientNotes" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="¿Algún requerimiento especial?"></textarea>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Comentarios o Dudas</label>
+                    <textarea id="clientNotes" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="¿Algún requerimiento especial?"></textarea>
                 </div>
-                <button onclick="sendWhatsAppReservation()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg">
+                <button onclick="sendWhatsAppReservation()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 active:scale-[0.98]">
                     <i class="fa-brands fa-whatsapp text-xl"></i>
                     <span>Enviar Solicitud por WhatsApp</span>
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Mobile Sticky Bar -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 p-3 flex items-center justify-around">
+        <a href="#catalogo" class="text-xs text-slate-300 flex flex-col items-center"><i class="fa-solid fa-sailboat text-cyan-400 text-base mb-0.5"></i> Flota</a>
+        <a id="mobileWpBar" href="https://wa.me/526693285696" target="_blank" class="bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-full flex items-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Cotizar Rápido</span></a>
+        <a href="https://instagram.com/mazwavetours" target="_blank" class="text-xs text-slate-300 flex flex-col items-center"><i class="fa-brands fa-instagram text-cyan-400 text-base mb-0.5"></i> Instagram</a>
     </div>
 
     <!-- Footer -->
@@ -135,14 +158,13 @@
                 <p class="text-slate-400 text-sm mt-1">Marina Mazatlán, Sinaloa, México.</p>
             </div>
             <div class="flex items-center space-x-6 text-slate-400">
-                <a href="https://instagram.com/mazwavetours" target="_blank" class="hover:text-cyan-400 text-xl"><i class="fa-brands fa-instagram"></i></a>
-                <a id="footerWp" href="https://wa.me/526693285696" target="_blank" class="hover:text-cyan-400 text-xl"><i class="fa-brands fa-whatsapp"></i></a>
+                <a href="https://instagram.com/mazwavetours" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-instagram"></i></a>
+                <a id="footerWp" href="https://wa.me/526693285696" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-whatsapp"></i></a>
             </div>
             <div class="text-xs text-slate-500">© 2026 MazWaveTours. Todos los derechos reservados.</div>
         </div>
     </footer>
 
-    <!-- Lógica y base de datos con los 24 elementos -->
     <script>
         const defaultData = {
             brand: "MazWaveTours",
@@ -151,30 +173,30 @@
             heroTitle: "Vive el Mar de Mazatlán al Máximo",
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
             items: [
-                { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
-                { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
-                { id: 3, name: "Revenant", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", desc: "Estabilidad y confort garantizados para recorridos largos por la bahía.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
-                { id: 4, name: "Pata Salada 1", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Ambiente festivo y tradicional mazatleco para disfrutar con amigos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 5, name: "Pata Salada 2", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Segundo trimarán de la flota Pata Salada equipado con sonido Bluetooth.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
-                { id: 6, name: "Bimba", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Espacios cómodos en proa y popa para tomar el sol y relajarse.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
-                { id: 7, name: "Lola", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Excelente distribución para celebraciones, cumpleaños y despedidas.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
-                { id: 8, name: "Paradise", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", desc: "Vive un día paradisíaco recorriendo las Tres Islas de Mazatlán.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 9, name: "Aloha", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Estilo acogedor y atención personalizada por parte de la tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
-                { id: 10, name: "Balú", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Sonido de alta potencia y hielera lista para tus bebidas favoritas.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
-                { id: 11, name: "Hakuna", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", desc: "Sin preocupaciones, disfruta del avistamiento de fauna marina y atardeceres.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
-                { id: 12, name: "Kahlia", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", desc: "Diseño elegante con acabados modernos para grupos exigentes.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", desc: "Navegación suave y placentera saliendo directamente desde Marina Mazatlán.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
-                { id: 14, name: "Mar y Sol", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Ideal para disfrutar el sol del Pacífico con amigos o familia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
-                { id: 15, name: "Matata", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", desc: "Diversión asegurada y espacios amplios de convivencia a bordo.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
-                { id: 16, name: "Tambaran", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", desc: "Uno de los preferidos para eventos privados y corporativos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 17, name: "Vikinga", category: "trimaran", price: "$8,000 MXN", capacity: "Hasta 35 pax", desc: "El trimarán de mayor capacidad para grandes celebraciones en el mar.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
-                { id: 18, name: "Yate Mi Sueño", category: "yate", price: "$9,000 MXN", capacity: "Hasta 15 pax", desc: "Yate privado de lujo con camarote, aire acondicionado y confort total.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 19, name: "Lobo de Mar", category: "yate", price: "$8,500 MXN", capacity: "Hasta 12 pax", desc: "Embarcación deportiva ideal para pesca deportiva y paseos privados.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
-                { id: 20, name: "The Good Life", category: "yate", price: "$11,000 MXN", capacity: "Hasta 18 pax", desc: "Lujo exclusivo en alta mar con amenidades prémium y capitán certificado.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
-                { id: 21, name: "Leda 2", category: "yate", price: "$8,000 MXN", capacity: "Hasta 12 pax", desc: "Confort y velocidad para recorrer la costa mazatleca.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
-                { id: 22, name: "Black Pearl", category: "yate", price: "$12,000 MXN", capacity: "Hasta 20 pax", desc: "El yate insignia para los recorridos más exclusivos de la bahía.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 23, name: "Avistamiento de Ballenas", category: "tour", price: "$750 MXN por pax", capacity: "Salidas diarias", desc: "Vive la majestuosidad de las ballenas jorobadas en la bahía de Mazatlán con guía biólogo.", image: "https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&w=800&q=80" },
-                { id: 24, name: "Surf Camp Surf Soul", category: "tour", price: "$1,200 MXN", capacity: "Grupos y Privados", desc: "Clases de surf profesionales en las mejores rompientes de Mazatlán con equipo incluido.", image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=800&q=80" }
+                { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: true, desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 3, name: "Revenant", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Estabilidad y confort garantizados para recorridos largos por la bahía.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 4, name: "Pata Salada 1", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "Ambiente festivo y tradicional mazatleco para disfrutar con amigos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 5, name: "Pata Salada 2", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "Segundo trimarán de la flota Pata Salada equipado con sonido Bluetooth.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 6, name: "Bimba", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Espacios cómodos en proa y popa para tomar el sol y relajarse.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 7, name: "Lola", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Excelente distribución para celebraciones, cumpleaños y despedidas.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 8, name: "Paradise", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", isSeasonal: false, desc: "Vive un día paradisíaco recorriendo las Tres Islas de Mazatlán.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 9, name: "Aloha", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "Estilo acogedor y atención personalizada por parte de la tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 10, name: "Balú", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Sonido de alta potencia y hielera lista para tus bebidas favoritas.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 11, name: "Hakuna", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Sin preocupaciones, disfruta del avistamiento de fauna marina y atardeceres.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 12, name: "Kahlia", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño elegante con acabados modernos para grupos exigentes.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", isSeasonal: false, desc: "Navegación suave y placentera saliendo directamente desde Marina Mazatlán.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 14, name: "Mar y Sol", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "Ideal para disfrutar el sol del Pacífico con amigos o familia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 15, name: "Matata", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", isSeasonal: false, desc: "Diversión asegurada y espacios amplios de convivencia a bordo.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 16, name: "Tambaran", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Uno de los preferidos para eventos privados y corporativos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 17, name: "Vikinga", category: "trimaran", price: "$8,000 MXN", capacity: "Hasta 35 pax", isSeasonal: false, desc: "El trimarán de mayor capacidad para grandes celebraciones en el mar.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 18, name: "Yate Mi Sueño", category: "yate", price: "$9,000 MXN", capacity: "Hasta 15 pax", isSeasonal: false, desc: "Yate privado de lujo con camarote, aire acondicionado y confort total.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 19, name: "Lobo de Mar", category: "yate", price: "$8,500 MXN", capacity: "Hasta 12 pax", isSeasonal: false, desc: "Embarcación deportiva ideal para pesca deportiva y paseos privados.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 20, name: "The Good Life", category: "yate", price: "$11,000 MXN", capacity: "Hasta 18 pax", isSeasonal: false, desc: "Lujo exclusivo en alta mar con amenidades prémium y capitán certificado.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 21, name: "Leda 2", category: "yate", price: "$8,000 MXN", capacity: "Hasta 12 pax", isSeasonal: false, desc: "Confort y velocidad para recorrer la costa mazatleca.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 22, name: "Black Pearl", category: "yate", price: "$12,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "El yate insignia para los recorridos más exclusivos de la bahía.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 23, name: "Avistamiento de Ballenas", category: "tour", price: "$750 MXN por pax", capacity: "Salidas diarias", isSeasonal: true, desc: "Vive la majestuosidad de las ballenas jorobadas en la bahía de Mazatlán con guía biólogo.", image: "https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&w=800&q=80" },
+                { id: 24, name: "Surf Camp Surf Soul", category: "tour", price: "$1,200 MXN", capacity: "Grupos y Privados", isSeasonal: false, desc: "Clases de surf profesionales en las mejores rompientes de Mazatlán con equipo incluido.", image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=800&q=80" }
             ]
         };
 
@@ -184,7 +206,7 @@
         function enterSite() {
             const splash = document.getElementById('splashScreen');
             splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 700);
+            setTimeout(() => splash.style.display = 'none', 500);
         }
 
         function renderSite() {
@@ -194,8 +216,43 @@
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
+            document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
 
+            renderSeasonal();
             renderCards(db.items);
+        }
+
+        function renderSeasonal() {
+            const seasonalItems = db.items.filter(i => i.isSeasonal);
+            const section = document.getElementById('seasonalSection');
+            const grid = document.getElementById('seasonalGrid');
+
+            if (seasonalItems.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            grid.innerHTML = seasonalItems.map(item => `
+                <div class="bg-slate-950/80 border border-amber-500/30 rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group">
+                    <div class="h-48 relative overflow-hidden">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        <span class="absolute top-3 left-3 bg-amber-500 text-slate-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow">⭐ Temporada</span>
+                        <span class="absolute bottom-3 right-3 bg-amber-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${item.price}</span>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-bold text-white">${item.name}</h3>
+                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-amber-400 mr-1.5"></i>${item.capacity}</span>
+                        </div>
+                        <p class="text-slate-400 text-xs mb-5 flex-grow">${item.desc}</p>
+                        <button onclick="openModal('${item.name}')" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span>Reservar Temporada</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function renderCards(itemsToRender) {
@@ -206,9 +263,9 @@
             }
 
             grid.innerHTML = itemsToRender.map(item => `
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col group">
                     <div class="h-60 relative overflow-hidden">
-                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 hover:scale-105">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
                         <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">${item.category}</span>
                         <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${item.price}</span>
                     </div>
