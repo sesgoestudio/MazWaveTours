@@ -101,6 +101,16 @@
         @media (max-width: 640px) { .scroll-reveal { transform: translate3d(0,14px,0); transition-duration: .5s; } }
         @media (prefers-reduced-motion: reduce) { .scroll-reveal, .scroll-reveal.is-visible { opacity: 1; transform: none; transition: none; } #scrollProgress { display:none; } }
 
+    
+        @media (max-width: 640px) {
+            #bookingModal { align-items: flex-start !important; justify-content: center !important; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important; overflow-y: auto; }
+            #bookingModal .booking-modal-card { width: 100%; max-width: 430px; max-height: calc(100dvh - 24px); overflow-y: auto; box-sizing: border-box; padding: 20px 16px 18px !important; margin: auto 0; border-radius: 22px; }
+            #bookingModal .booking-modal-card h3 { padding-right: 38px; font-size: 1.15rem; line-height: 1.35; }
+            #bookingModal #clientDate, #bookingModal #clientGuests, #bookingModal #clientName, #bookingModal #clientNotes { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; font-size: 16px !important; }
+            #bookingModal #clientGuests { display: block; }
+            #bookingModal label { line-height: 1.35; }
+        }
+
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
@@ -267,7 +277,7 @@
     </div>
     <!-- Modal Reserva WhatsApp -->
     <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
+        <div class="booking-modal-card bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
             <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
             <h3 id="modalTitle" class="text-xl font-bold text-white mb-1">Reservar Experiencia</h3>
             <p class="text-slate-400 text-xs mb-6">Completa tus datos para coordinar la salida por WhatsApp.</p>
@@ -276,13 +286,13 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tu Nombre</label>
                     <input type="text" id="clientName" required minlength="2" maxlength="120" autocomplete="name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="Ej. Carlos Mendoza">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="min-w-0">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Fecha Tentativa</label>
                         <input type="date" id="clientDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nº de Personas</label>
+                    <div class="min-w-0 w-full">
+                        <label for="clientGuests" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Número de personas</label>
                         <input type="number" id="clientGuests" min="1" max="100" step="1" required value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
                 </div>
