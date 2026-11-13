@@ -81,7 +81,7 @@
     </section>
 
     <!-- Seasonal Section -->
-    <section id="seasonalSection" class="max-w-7xl mx-auto px-4 -mt-10 relative z-20 mb-12 hidden">
+    <section id="seasonalSection" class="max-w-7xl mx-auto px-4 -mt-10 relative z-20 mb-12">
         <div class="bg-gradient-to-r from-amber-500/10 via-slate-900 to-amber-500/10 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div class="flex items-center space-x-3">
@@ -542,7 +542,7 @@
         }
 
         // Render inmediato del catálogo de respaldo: los contadores no esperan a la red.
-        try { renderCategoryNav(); } catch (counterError) { console.error('No se pudieron calcular inicialmente las categorías.', counterError); }
+        try { renderCategoryNav(); renderSeasonal(); } catch (counterError) { console.error('No se pudo renderizar inicialmente el catálogo o la sección de temporada.', counterError); }
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
