@@ -213,6 +213,8 @@
 
         function updateItemField(index, field, value) {
             db.items[index][field] = value;
+            if (field === 'image') { db.items[index].images = [value, ...(db.items[index].images || []).slice(1)]; }
+            if (field === 'images' && Array.isArray(value) && value.length) { db.items[index].image = value[0]; }
             scheduleAutoPublish();
         }
 
@@ -267,6 +269,7 @@
             if (error) { alert('No se pudo subir la imagen: ' + error.message + '. Verifica que ejecutaste el SQL actualizado.'); if (status) status.textContent=''; input.value=''; return; }
             const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
             db.items[index].image = publicData.publicUrl;
+            db.items[index].images = [publicData.publicUrl, ...(db.items[index].images || []).slice(1)];
             const preview = document.getElementById('item-image-preview-' + index);
             if (preview) preview.src = publicData.publicUrl;
             const urlInput = input.parentElement.querySelector('input[type="text"]');
