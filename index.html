@@ -67,7 +67,7 @@
     <!-- Hero Section -->
     <section class="hero-bg py-16 sm:py-20 md:py-36 px-4 text-center relative overflow-hidden">
         <div class="max-w-4xl mx-auto relative z-10">
-            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Marina Mazatlán, Sinaloa</span>
+            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
             <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
             <p id="heroSubtitle" class="text-sm sm:text-base md:text-xl text-slate-300 max-w-2xl mx-auto mb-7 md:mb-10 leading-relaxed">Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
@@ -231,7 +231,7 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
             <div>
                 <span class="text-lg font-bold text-white">MazWaveTours</span>
-                <p class="text-slate-400 text-sm mt-1">Marina Mazatlán, Sinaloa, México.</p>
+                <p class="text-slate-400 text-sm mt-1">Mazatlán, Sinaloa, México.</p>
             </div>
             <div class="flex items-center space-x-6 text-slate-400">
                 <a href="https://instagram.com/mazwavetours" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-instagram"></i></a>
@@ -261,7 +261,7 @@
                 { id: 10, name: "Balú", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Sonido de alta potencia y hielera lista para tus bebidas favoritas.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
                 { id: 11, name: "Hakuna", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Sin preocupaciones, disfruta del avistamiento de fauna marina y atardeceres.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
                 { id: 12, name: "Kahlia", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño elegante con acabados modernos para grupos exigentes.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
-                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", isSeasonal: false, desc: "Navegación suave y placentera saliendo directamente desde Marina Mazatlán.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", isSeasonal: false, desc: "Navegación suave y placentera con salida desde Mazatlán, Sinaloa.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 14, name: "Mar y Sol", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", isSeasonal: false, desc: "Ideal para disfrutar el sol del Pacífico con amigos o familia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
                 { id: 15, name: "Matata", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", isSeasonal: false, desc: "Diversión asegurada y espacios amplios de convivencia a bordo.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
                 { id: 16, name: "Tambaran", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Uno de los preferidos para eventos privados y corporativos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
@@ -299,6 +299,12 @@
                 console.warn('Catálogo remoto no disponible; se muestran los datos de respaldo.', error);
                 db = JSON.parse(JSON.stringify(defaultData));
             }
+        }
+        function cleanLocationReferences(value) {
+            if (typeof value === 'string') return value.replace(/Marina\\s+Mazatl[aá]n(?:,\\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
+            if (Array.isArray(value)) return value.map(cleanLocationReferences);
+            if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cleanLocationReferences(entry)]));
+            return value;
         }
         let selectedItemForBooking = null;
 
@@ -531,6 +537,7 @@
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
             finally {
+                db = cleanLocationReferences(db);
                 renderSite();
                 const dateInput = document.getElementById('clientDate');
                 if (dateInput) {
