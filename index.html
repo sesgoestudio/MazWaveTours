@@ -301,7 +301,7 @@
             }
         }
         function cleanLocationReferences(value) {
-            if (typeof value === 'string') return value.replace(/Marina\\s+Mazatl[aá]n(?:,\\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
+            if (typeof value === 'string') return value.replace(/Marina\s+Mazatl[aá]n(?:,\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
             if (Array.isArray(value)) return value.map(cleanLocationReferences);
             if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cleanLocationReferences(entry)]));
             return value;
