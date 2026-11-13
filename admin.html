@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | MazWaveTours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-sm w-full shadow-2xl text-center">
+            <div class="w-16 h-16 bg-cyan-500/10 border border-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 text-cyan-400">
+                <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-2">Panel Administrativo</h2>
+            <p class="text-slate-400 text-xs mb-6">Ingresa la contraseña de administrador</p>
+            <input type="password" id="adminPassInput" placeholder="Contraseña" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm mb-4 focus:outline-none focus:border-cyan-500 text-center tracking-widest">
+            <button onclick="checkLogin()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition">Ingresar</button>
+            <a href="index.html" class="block mt-4 text-xs text-slate-500 hover:text-slate-300">← Volver al sitio web</a>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden flex-grow flex flex-col">
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 bg-cyan-500/20 border border-cyan-400 rounded-lg flex items-center justify-center text-cyan-400">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-white">Administrador MazWaveTours</h1>
+                    <span class="text-xs text-cyan-400">Modo Edición Activo</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="index.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>Ver Sitio</span>
+                </a>
+                <button onclick="downloadUpdatedIndex()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-lg">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Guardar y Descargar index.html</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-4 py-10 w-full flex-grow space-y-10">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i> Ajustes Generales y WhatsApp</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">WhatsApp de Contacto (con código de país)</label>
+                        <input type="text" id="cfgPhone" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="526693285696">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nombre de la Marca</label>
+                        <input type="text" id="cfgBrand" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-bold text-white flex items-center"><i class="fa-solid fa-sailboat text-cyan-400 mr-2"></i> Embarcaciones y Tours Registrados (24 items)</h3>
+                    <button onclick="addNewItem()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Agregar Nuevo Tour / Yate</span>
+                    </button>
+                </div>
+                <div id="adminItemsList" class="space-y-4"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const defaultData = {
+            brand: "MazWaveTours",
+            phone: "526693285696",
+            slogan: "Haciendo de Mazatlán tu paraíso marítimo",
+            heroTitle: "Vive el Mar de Mazatlán al Máximo",
+            heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
+            items: [
+                { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 3, name: "Revenant", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", desc: "Estabilidad y confort garantizados para recorridos largos por la bahía.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 4, name: "Pata Salada 1", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Ambiente festivo y tradicional mazatleco para disfrutar con amigos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 5, name: "Pata Salada 2", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Segundo trimarán de la flota Pata Salada equipado con sonido Bluetooth.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 6, name: "Bimba", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Espacios cómodos en proa y popa para tomar el sol y relajarse.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 7, name: "Lola", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Excelente distribución para celebraciones, cumpleaños y despedidas.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 8, name: "Paradise", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", desc: "Vive un día paradisíaco recorriendo las Tres Islas de Mazatlán.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 9, name: "Aloha", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Estilo acogedor y atención personalizada por parte de la tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 10, name: "Balú", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", desc: "Sonido de alta potencia y hielera lista para tus bebidas favoritas.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 11, name: "Hakuna", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", desc: "Sin preocupaciones, disfruta del avistamiento de fauna marina y atardeceres.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 12, name: "Kahlia", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", desc: "Diseño elegante con acabados modernos para grupos exigentes.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 13, name: "Mar Sail", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 22 pax", desc: "Navegación suave y placentera saliendo directamente desde Marina Mazatlán.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 14, name: "Mar y Sol", category: "trimaran", price: "$6,000 MXN", capacity: "Hasta 20 pax", desc: "Ideal para disfrutar el sol del Pacífico con amigos o familia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 15, name: "Matata", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 28 pax", desc: "Diversión asegurada y espacios amplios de convivencia a bordo.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 16, name: "Tambaran", category: "trimaran", price: "$7,500 MXN", capacity: "Hasta 30 pax", desc: "Uno de los preferidos para eventos privados y corporativos.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 17, name: "Vikinga", category: "trimaran", price: "$8,000 MXN", capacity: "Hasta 35 pax", desc: "El trimarán de mayor capacidad para grandes celebraciones en el mar.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 18, name: "Yate Mi Sueño", category: "yate", price: "$9,000 MXN", capacity: "Hasta 15 pax", desc: "Yate privado de lujo con camarote, aire acondicionado y confort total.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 19, name: "Lobo de Mar", category: "yate", price: "$8,500 MXN", capacity: "Hasta 12 pax", desc: "Embarcación deportiva ideal para pesca deportiva y paseos privados.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
+                { id: 20, name: "The Good Life", category: "yate", price: "$11,000 MXN", capacity: "Hasta 18 pax", desc: "Lujo exclusivo en alta mar con amenidades prémium y capitán certificado.", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80" },
+                { id: 21, name: "Leda 2", category: "yate", price: "$8,000 MXN", capacity: "Hasta 12 pax", desc: "Confort y velocidad para recorrer la costa mazatleca.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
+                { id: 22, name: "Black Pearl", category: "yate", price: "$12,000 MXN", capacity: "Hasta 20 pax", desc: "El yate insignia para los recorridos más exclusivos de la bahía.", image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=800&q=80" },
+                { id: 23, name: "Avistamiento de Ballenas", category: "tour", price: "$750 MXN por pax", capacity: "Salidas diarias", desc: "Vive la majestuosidad de las ballenas jorobadas en la bahía de Mazatlán con guía biólogo.", image: "https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&w=800&q=80" },
+                { id: 24, name: "Surf Camp Surf Soul", category: "tour", price: "$1,200 MXN", capacity: "Grupos y Privados", desc: "Clases de surf profesionales en las mejores rompientes de Mazatlán con equipo incluido.", image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=800&q=80" }
+            ]
+        };
+
+        let db = JSON.parse(localStorage.getItem('mazwave_db')) || defaultData;
+        const ADMIN_PASS = "mazwave2026";
+
+        function checkLogin() {
+            const val = document.getElementById('adminPassInput').value;
+            if (val === ADMIN_PASS) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadAdminData();
+            } else {
+                alert('Contraseña incorrecta. (Por defecto: mazwave2026)');
+            }
+        }
+
+        function loadAdminData() {
+            document.getElementById('cfgBrand').value = db.brand;
+            document.getElementById('cfgPhone').value = db.phone;
+            renderAdminItems();
+        }
+
+        function renderAdminItems() {
+            const container = document.getElementById('adminItemsList');
+            container.innerHTML = db.items.map((item, index) => `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center">
+                    <img src="${item.image}" class="w-24 h-24 object-cover rounded-lg border border-slate-800">
+                    <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+                        <input type="text" value="${item.name}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Nombre">
+                        <select onchange="updateItemField(${index}, 'category', this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm">
+                            <option value="trimaran" ${item.category==='trimaran'?'selected':''}>Trimarán</option>
+                            <option value="yate" ${item.category==='yate'?'selected':''}>Yate / Lancha</option>
+                            <option value="tour" ${item.category==='tour'?'selected':''}>Tour / Experiencia</option>
+                        </select>
+                        <input type="text" value="${item.price}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Precio">
+                        <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Capacidad">
+                        <input type="text" value="${item.image}" onchange="updateItemField(${index}, 'image', this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs lg:col-span-2" placeholder="URL de Foto">
+                        <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Descripción">
+                    </div>
+                    <button onclick="deleteItem(${index})" class="text-rose-400 hover:text-rose-300 p-2"><i class="fa-solid fa-trash text-lg"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function updateItemField(index, field, value) {
+            db.items[index][field] = value;
+            localStorage.setItem('mazwave_db', JSON.stringify(db));
+        }
+
+        function addNewItem() {
+            db.items.unshift({
+                id: Date.now(),
+                name: "Nueva Embarcación",
+                category: "trimaran",
+                price: "$5,000 MXN",
+                capacity: "Hasta 10 pax",
+                desc: "Descripción de la embarcación.",
+                image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
+            });
+            localStorage.setItem('mazwave_db', JSON.stringify(db));
+            renderAdminItems();
+        }
+
+        function deleteItem(index) {
+            if (confirm('¿Eliminar esta embarcación?')) {
+                db.items.splice(index, 1);
+                localStorage.setItem('mazwave_db', JSON.stringify(db));
+                renderAdminItems();
+            }
+        }
+
+        function downloadUpdatedIndex() {
+            db.brand = document.getElementById('cfgBrand').value;
+            db.phone = document.getElementById('cfgPhone').value;
+            localStorage.setItem('mazwave_db', JSON.stringify(db));
+
+            const updatedHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${db.brand} | Tu paraíso marítimo en Mazatlán</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .hero-bg {
+            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.85)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+    <div id="splashScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="text-center px-4 max-w-lg">
+            <div class="w-24 h-24 bg-cyan-500/10 border-2 border-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-cyan-500/20 animate-pulse">
+                <i class="fa-solid fa-water text-cyan-400 text-4xl"></i>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-3">${db.brand}</h1>
+            <p class="text-cyan-300 font-medium text-lg mb-8">${db.slogan}</p>
+            <button onclick="enterSite()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-10 rounded-full shadow-xl transition transform hover:scale-105">
+                Explorar Experiencias <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-cyan-500/20 border border-cyan-400 rounded-lg flex items-center justify-center text-cyan-400">
+                    <i class="fa-solid fa-water text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold tracking-tight text-white">${db.brand}</span>
+                    <span class="block text-xs text-cyan-400 font-medium">Marina Mazatlán</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="https://instagram.com/mazwavetours" target="_blank" class="text-slate-400 hover:text-cyan-400 transition text-xl"><i class="fa-brands fa-instagram"></i></a>
+                <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-lock text-cyan-400"></i>
+                    <span>Admin</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero-bg py-24 md:py-32 px-4 text-center relative">
+        <div class="max-w-4xl mx-auto">
+            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-3.5 py-1.5 rounded-full uppercase tracking-wider mb-6">Marina Mazatlán, Sinaloa</span>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6">${db.heroTitle}</h1>
+            <p class="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10">${db.heroSubtitle}</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#catalogo" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-xl shadow-lg transition">Ver Embarcaciones</a>
+                <a href="https://wa.me/${db.phone}" target="_blank" class="bg-slate-900/80 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-xl border border-slate-700 transition flex items-center justify-center space-x-2">
+                    <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
+                    <span>Cotizar por WhatsApp</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 py-16 w-full">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-white tracking-tight">Nuestra Flota y Experiencias</h2>
+                <p class="text-slate-400 mt-1">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-500"></i>
+                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar..." class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 w-full sm:w-64">
+                </div>
+                <select id="categoryFilter" onchange="filterItems()" class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                    <option value="all">Todas las categorías</option>
+                    <option value="trimaran">Trimaranes</option>
+                    <option value="yate">Yates y Lanchas</option>
+                    <option value="tour">Tours y Experiencias</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </main>
+
+    <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="modalTitle" class="text-xl font-bold text-white mb-2">Reservar Experiencia</h3>
+            <p class="text-slate-400 text-sm mb-6">Completa los datos para coordinar tu salida directamente por WhatsApp.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Tu Nombre</label>
+                    <input type="text" id="clientName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Ej. Carlos Mendoza">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Fecha Tentativa</label>
+                        <input type="date" id="clientDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nº de Personas</label>
+                        <input type="number" id="clientGuests" min="1" value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Comentarios</label>
+                    <textarea id="clientNotes" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Requerimientos..."></textarea>
+                </div>
+                <button onclick="sendWhatsAppReservation()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <span>Enviar Solicitud por WhatsApp</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-12 px-4 mt-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+            <div>
+                <span class="text-lg font-bold text-white">${db.brand}</span>
+                <p class="text-slate-400 text-sm mt-1">Marina Mazatlán, Sinaloa, México.</p>
+            </div>
+            <div class="flex items-center space-x-6 text-slate-400">
+                <a href="https://instagram.com/mazwavetours" target="_blank" class="hover:text-cyan-400 text-xl"><i class="fa-brands fa-instagram"></i></a>
+                <a href="https://wa.me/${db.phone}" target="_blank" class="hover:text-cyan-400 text-xl"><i class="fa-brands fa-whatsapp"></i></a>
+            </div>
+            <div class="text-xs text-slate-500">© 2026 ${db.brand}. Todos los derechos reservados.</div>
+        </div>
+    </footer>
+
+    <script>
+        const itemsData = ${JSON.stringify(db.items)};
+        let selectedItemForBooking = null;
+
+        function enterSite() {
+            const splash = document.getElementById('splashScreen');
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 700);
+        }
+
+        function renderCards(itemsToRender) {
+            const grid = document.getElementById('cardsGrid');
+            if (itemsToRender.length === 0) {
+                grid.innerHTML = \`<div class="col-span-full text-center py-12 text-slate-500">No se encontraron resultados.</div>\`;
+                return;
+            }
+            grid.innerHTML = itemsToRender.map(item => \`
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col">
+                    <div class="h-60 relative overflow-hidden">
+                        <img src="\${item.image}" alt="\${item.name}" class="w-full h-full object-cover transition duration-500 hover:scale-105">
+                        <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">\${item.category}</span>
+                        <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">\${item.price}</span>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-white">\${item.name}</h3>
+                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>\${item.capacity}</span>
+                        </div>
+                        <p class="text-slate-400 text-sm mb-6 flex-grow">\${item.desc}</p>
+                        <button onclick="openModal('\${item.name}')" class="w-full bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 border border-slate-700">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span>Reservar / Cotizar</span>
+                        </button>
+                    </div>
+                </div>
+            \`).join('');
+        }
+
+        function filterItems() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('categoryFilter').value;
+            const filtered = itemsData.filter(item => {
+                const matchesQuery = item.name.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query);
+                const matchesCat = cat === 'all' || item.category === cat;
+                return matchesQuery && matchesCat;
+            });
+            renderCards(filtered);
+        }
+
+        function openModal(itemName) {
+            selectedItemForBooking = itemName;
+            document.getElementById('modalTitle').innerText = \`Reservar: \${itemName}\`;
+            document.getElementById('bookingModal').classList.remove('hidden');
+            document.getElementById('bookingModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').classList.remove('flex');
+            document.getElementById('bookingModal').classList.add('hidden');
+        }
+
+        function sendWhatsAppReservation() {
+            const name = document.getElementById('clientName').value || 'Cliente';
+            const date = document.getElementById('clientDate').value || 'Por definir';
+            const guests = document.getElementById('clientGuests').value || 'Varios';
+            const notes = document.getElementById('clientNotes').value || 'Ninguno';
+
+            const text = \`¡Hola MazWaveTours! Me interesa reservar o cotizar *\${selectedItemForBooking}*.\n\n* Nombre: \${name}\n* Fecha tentativa: \${date}\n* Nº de personas: \${guests}\n* Notas: \${notes}\`;
+            window.open(\`https://wa.me/${db.phone}?text=\${encodeURIComponent(text)}\`, '_blank');
+            closeModal();
+        }
+
+        window.onload = () => renderCards(itemsData);
+    </script>
+</body>
+</html>`;
+
+            const blob = new Blob([updatedHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            a.click();
+        }
+    </script>
+</body>
+</html>
