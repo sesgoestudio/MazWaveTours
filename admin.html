@@ -46,12 +46,16 @@
                 </a>
                 <button onclick="downloadUpdatedIndex()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-lg shadow-emerald-600/20 active:scale-[0.98]">
                     <i class="fa-solid fa-download"></i>
-                    <span>Guardar y Descargar index.html</span>
+                    <span>Generar sitio actualizado</span>
                 </button>
             </div>
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
+            <div class="bg-cyan-950/40 border border-cyan-800/60 rounded-2xl p-4 text-sm text-cyan-100">
+                <strong class="block mb-1">Conexión con el sitio</strong>
+                Este panel y el sitio comparten los cambios guardados en este navegador. Para que todos los visitantes vean las modificaciones, pulsa “Generar sitio actualizado” y publica el archivo index.html descargado en GitHub. El archivo se genera desde la versión actual del sitio para conservar el formulario y las mejoras de WhatsApp.
+            </div>
             <!-- General Settings -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 class="text-base font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i> Ajustes Generales y WhatsApp</h3>
@@ -198,292 +202,51 @@
             }
         }
 
-        function downloadUpdatedIndex() {
-            db.brand = document.getElementById('cfgBrand').value;
-            db.phone = document.getElementById('cfgPhone').value;
+        async function downloadUpdatedIndex() {
+            db.brand = document.getElementById('cfgBrand').value.trim() || 'MazWaveTours';
+            db.phone = document.getElementById('cfgPhone').value.replace(/\\D/g, '');
             localStorage.setItem('mazwave_db', JSON.stringify(db));
 
-            const updatedHtml = `<!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>\${db.brand} | Tu paraíso marítimo en Mazatlán</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .hero-bg {
-            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
-        }
-    </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
-
-    <div id="splashScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="text-center px-4 max-w-lg">
-            <div class="w-24 h-24 bg-cyan-500/10 border-2 border-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-cyan-500/20 animate-pulse">
-                <i class="fa-solid fa-water text-cyan-400 text-4xl"></i>
-            </div>
-            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-3">\${db.brand}</h1>
-            <p class="text-cyan-300 font-medium text-lg mb-8">\${db.slogan}</p>
-            <button onclick="enterSite()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-10 rounded-full shadow-2xl transition transform hover:scale-105 active:scale-95">
-                Explorar Experiencias <i class="fa-solid fa-arrow-right ml-2"></i>
-            </button>
-        </div>
-    </div>
-
-    <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-cyan-500/20 border border-cyan-400/40 rounded-xl flex items-center justify-center text-cyan-400">
-                    <i class="fa-solid fa-water text-xl"></i>
-                </div>
-                <div>
-                    <span class="text-xl font-bold tracking-tight text-white">\${db.brand}</span>
-                    <span class="block text-xs text-cyan-400 font-medium">Marina Mazatlán</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <a href="https://instagram.com/mazwavetours" target="_blank" class="text-slate-400 hover:text-cyan-400 transition text-xl p-2"><i class="fa-brands fa-instagram"></i></a>
-                <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
-                    <i class="fa-solid fa-lock text-cyan-400"></i>
-                    <span>Admin</span>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <section class="hero-bg py-24 md:py-36 px-4 text-center relative overflow-hidden">
-        <div class="max-w-4xl mx-auto relative z-10">
-            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Marina Mazatlán, Sinaloa</span>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">\${db.heroTitle}</h1>
-            <p class="text-base md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">\${db.heroSubtitle}</p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#catalogo" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-2xl shadow-xl shadow-cyan-500/20 transition transform hover:-translate-y-0.5">Ver Embarcaciones</a>
-                <a href="https://wa.me/\${db.phone}" target="_blank" class="bg-slate-900/90 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-2xl border border-slate-700 transition flex items-center justify-center space-x-2">
-                    <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
-                    <span>Cotizar por WhatsApp</span>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Seasonal Highlight Section -->
-    <section id="seasonalSection" class="max-w-7xl mx-auto px-4 -mt-10 relative z-20 mb-12 hidden">
-        <div class="bg-gradient-to-r from-amber-500/10 via-slate-900 to-amber-500/10 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="w-10 h-10 bg-amber-500/20 border border-amber-400 rounded-xl flex items-center justify-center text-amber-400">
-                    <i class="fa-solid fa-fire text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-white">Destacados de Temporada ⭐</h2>
-                    <p class="text-xs text-amber-300">Experiencias y avistamientos con alta demanda actual</p>
-                </div>
-            </div>
-            <div id="seasonalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </div>
-    </section>
-
-    <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 py-12 w-full">
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-            <div>
-                <h2 class="text-3xl font-bold text-white tracking-tight">Nuestra Flota y Experiencias</h2>
-                <p class="text-slate-400 mt-1 text-sm">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <div class="relative">
-                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-500"></i>
-                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar yate, trimarán..." class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-cyan-500 w-full sm:w-64 transition">
-                </div>
-                <select id="categoryFilter" onchange="filterItems()" class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 transition">
-                    <option value="all">Todas las categorías</option>
-                    <option value="trimaran">Trimaranes</option>
-                    <option value="yate">Yates y Lanchas</option>
-                    <option value="tour">Tours y Experiencias</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-    </main>
-
-    <!-- Modal -->
-    <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
-            <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
-            <h3 id="modalTitle" class="text-xl font-bold text-white mb-1">Reservar Experiencia</h3>
-            <p class="text-slate-400 text-xs mb-6">Completa tus datos para coordinar la salida por WhatsApp.</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tu Nombre</label>
-                    <input type="text" id="clientName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="Ej. Carlos Mendoza">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Fecha Tentativa</label>
-                        <input type="date" id="clientDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nº de Personas</label>
-                        <input type="number" id="clientGuests" min="1" value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Comentarios o Dudas</label>
-                    <textarea id="clientNotes" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="¿Algún requerimiento especial?"></textarea>
-                </div>
-                <button onclick="sendWhatsAppReservation()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 active:scale-[0.98]">
-                    <i class="fa-brands fa-whatsapp text-xl"></i>
-                    <span>Enviar Solicitud por WhatsApp</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Sticky Bar -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 p-3 flex items-center justify-around">
-        <a href="#catalogo" class="text-xs text-slate-300 flex flex-col items-center"><i class="fa-solid fa-sailboat text-cyan-400 text-base mb-0.5"></i> Flota</a>
-        <a href="https://wa.me/\${db.phone}" target="_blank" class="bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-full flex items-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Cotizar Rápido</span></a>
-        <a href="https://instagram.com/mazwavetours" target="_blank" class="text-xs text-slate-300 flex flex-col items-center"><i class="fa-brands fa-instagram text-cyan-400 text-base mb-0.5"></i> Instagram</a>
-    </div>
-
-    <footer class="bg-slate-900 border-t border-slate-800 py-12 px-4 mt-20">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-            <div>
-                <span class="text-lg font-bold text-white">\${db.brand}</span>
-                <p class="text-slate-400 text-sm mt-1">Marina Mazatlán, Sinaloa, México.</p>
-            </div>
-            <div class="flex items-center space-x-6 text-slate-400">
-                <a href="https://instagram.com/mazwavetours" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-instagram"></i></a>
-                <a href="https://wa.me/\${db.phone}" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-whatsapp"></i></a>
-            </div>
-            <div class="text-xs text-slate-500">© 2026 \${db.brand}. Todos los derechos reservados.</div>
-        </div>
-    </footer>
-
-    <script>
-        const itemsData = \${JSON.stringify(db.items)};
-        let selectedItemForBooking = null;
-
-        function enterSite() {
-            const splash = document.getElementById('splashScreen');
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 500);
-        }
-
-        function renderSeasonal() {
-            const seasonalItems = itemsData.filter(i => i.isSeasonal);
-            const section = document.getElementById('seasonalSection');
-            const grid = document.getElementById('seasonalGrid');
-
-            if (seasonalItems.length === 0) {
-                section.classList.add('hidden');
-                return;
+            const button = document.querySelector('button[onclick="downloadUpdatedIndex()"]');
+            const originalLabel = button ? button.innerHTML : '';
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Preparando sitio...</span>';
             }
 
-            section.classList.remove('hidden');
-            grid.innerHTML = seasonalItems.map(item => \`
-                <div class="bg-slate-950/80 border border-amber-500/30 rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group">
-                    <div class="h-48 relative overflow-hidden">
-                        <img src="\${item.image}" alt="\${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        <span class="absolute top-3 left-3 bg-amber-500 text-slate-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow">⭐ Temporada</span>
-                        <span class="absolute bottom-3 right-3 bg-amber-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">\${item.price}</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-grow">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-lg font-bold text-white">\${item.name}</h3>
-                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-amber-400 mr-1.5"></i>\${item.capacity}</span>
-                        </div>
-                        <p class="text-slate-400 text-xs mb-5 flex-grow">\${item.desc}</p>
-                        <button onclick="openModal('\${item.name}')" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
-                            <i class="fa-brands fa-whatsapp text-lg"></i>
-                            <span>Reservar Temporada</span>
-                        </button>
-                    </div>
-                </div>
-            \`).join('');
-        }
+            try {
+                const response = await fetch('./index.html', { cache: 'no-store' });
+                if (!response.ok) throw new Error('No se pudo leer index.html (' + response.status + ').');
+                let updatedHtml = await response.text();
 
-        function renderCards(itemsToRender) {
-            const grid = document.getElementById('cardsGrid');
-            if (itemsToRender.length === 0) {
-                grid.innerHTML = \`<div class="col-span-full text-center py-12 text-slate-500">No se encontraron resultados con ese criterio.</div>\`;
-                return;
+                const dataPattern = /const defaultData = \\{[\\s\\S]*?\\n        \\};/;
+                if (!dataPattern.test(updatedHtml)) {
+                    throw new Error('La estructura de datos del sitio cambió. No se generó un archivo incompleto.');
+                }
+
+                const serializedData = 'const defaultData = ' + JSON.stringify(db, null, 4) + ';';
+                updatedHtml = updatedHtml.replace(dataPattern, serializedData);
+
+                const blob = new Blob([updatedHtml], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'index.html';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+                alert('Sitio actualizado generado. Para publicarlo, reemplaza index.html en GitHub con el archivo descargado. El diseño y el formulario de WhatsApp actuales se conservaron.');
+            } catch (error) {
+                console.error('Error al generar el sitio:', error);
+                alert('No se pudo generar el sitio actualizado: ' + error.message + ' Abre el panel desde la misma dirección web que el sitio, no desde un archivo local.');
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = originalLabel;
+                }
             }
-            grid.innerHTML = itemsToRender.map(item => \`
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col group">
-                    <div class="h-60 relative overflow-hidden">
-                        <img src="\${item.image}" alt="\${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">\${item.category}</span>
-                        <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">\${item.price}</span>
-                    </div>
-                    <div class="p-6 flex flex-col flex-grow">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-xl font-bold text-white">\${item.name}</h3>
-                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>\${item.capacity}</span>
-                        </div>
-                        <p class="text-slate-400 text-sm mb-6 flex-grow">\${item.desc}</p>
-                        <button onclick="openModal('\${item.name}')" class="w-full bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 border border-slate-700">
-                            <i class="fa-brands fa-whatsapp text-lg"></i>
-                            <span>Reservar / Cotizar</span>
-                        </button>
-                    </div>
-                </div>
-            \`).join('');
-        }
-
-        function filterItems() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const cat = document.getElementById('categoryFilter').value;
-            const filtered = itemsData.filter(item => {
-                const matchesQuery = item.name.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query);
-                const matchesCat = cat === 'all' || item.category === cat;
-                return matchesQuery && matchesCat;
-            });
-            renderCards(filtered);
-        }
-
-        function openModal(itemName) {
-            selectedItemForBooking = itemName;
-            document.getElementById('modalTitle').innerText = \`Reservar: \${itemName}\`;
-            document.getElementById('bookingModal').classList.remove('hidden');
-            document.getElementById('bookingModal').classList.add('flex');
-        }
-
-        function closeModal() {
-            document.getElementById('bookingModal').classList.remove('flex');
-            document.getElementById('bookingModal').classList.add('hidden');
-        }
-
-        function sendWhatsAppReservation() {
-            const name = document.getElementById('clientName').value || 'Cliente';
-            const date = document.getElementById('clientDate').value || 'Por definir';
-            const guests = document.getElementById('clientGuests').value || 'Varios';
-            const notes = document.getElementById('clientNotes').value || 'Ninguno';
-
-            const text = \`¡Hola MazWaveTours! Me interesa reservar o cotizar *\${selectedItemForBooking}*.\n\n* Nombre: \${name}\n* Fecha tentativa: \${date}\n* Nº de personas: \${guests}\n* Notas: \${notes}\`;
-            window.open(\`https://wa.me/\${db.phone}?text=\${encodeURIComponent(text)}\`, '_blank');
-            closeModal();
-        }
-
-        window.onload = () => {
-            renderSeasonal();
-            renderCards(itemsData);
-        };
-    </script>
-</body>
-</html>`;
-
-            const blob = new Blob([updatedHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            a.click();
         }
     </script>
 </body>
