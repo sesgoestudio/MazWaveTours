@@ -119,7 +119,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tu Nombre</label>
-                    <input type="text" id="clientName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="Ej. Carlos Mendoza">
+                    <input type="text" id="clientName" required minlength="2" maxlength="120" autocomplete="name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="Ej. Carlos Mendoza">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -128,7 +128,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nº de Personas</label>
-                        <input type="number" id="clientGuests" min="1" value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
+                        <input type="number" id="clientGuests" min="1" max="100" step="1" required value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
                 </div>
                 <div>
@@ -310,18 +310,65 @@
         }
 
         function sendWhatsAppReservation() {
-            const name = document.getElementById('clientName').value || 'Cliente';
-            const date = document.getElementById('clientDate').value || 'Por definir';
-            const guests = document.getElementById('clientGuests').value || 'Varios';
-            const notes = document.getElementById('clientNotes').value || 'Ninguno';
+            const nameInput = document.getElementById('clientName');
+            const dateInput = document.getElementById('clientDate');
+            const guestsInput = document.getElementById('clientGuests');
+            const notesInput = document.getElementById('clientNotes');
 
-            const text = `¡Hola MazWaveTours! Me interesa reservar o cotizar *${selectedItemForBooking}*.\n\n* Nombre: ${name}\n* Fecha tentativa: ${date}\n* Nº de personas: ${guests}\n* Notas: ${notes}`;
-            const url = `https://wa.me/${db.phone}?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
-            closeModal();
+            const name = nameInput.value.trim();
+            const date = dateInput.value;
+            const guests = Number(guestsInput.value);
+            const notes = notesInput.value.trim();
+            const phone = String(db.phone || '').replace(/\\D/g, '');
+
+            if (!name || name.length < 2) {
+                alert('Escribe tu nombre para que podamos atenderte.');
+                nameInput.focus();
+                return;
+            }
+            if (!Number.isInteger(guests) || guests < 1) {
+                alert('Indica cuántas personas asistirán.');
+                guestsInput.focus();
+                return;
+            }
+            if (!/^\\d{10,15}$/.test(phone)) {
+                alert('El número de WhatsApp del negocio no está configurado correctamente. Contáctanos desde los enlaces del sitio.');
+                return;
+            }
+            if (date) {
+                const selectedDate = new Date(date + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (selectedDate < today) {
+                    alert('Selecciona una fecha de hoy en adelante.');
+                    dateInput.focus();
+                    return;
+                }
+            }
+
+            const message = [
+                '¡Hola MazWaveTours! Quiero solicitar información y disponibilidad.',
+                '',
+                '*Experiencia:* ' + (selectedItemForBooking || 'Por definir'),
+                '*Nombre:* ' + name,
+                '*Fecha tentativa:* ' + (date || 'Por definir'),
+                '*Número de personas:* ' + guests,
+                '*Comentarios:* ' + (notes || 'Ninguno'),
+                '',
+                'Entiendo que la fecha y disponibilidad se confirman directamente con el equipo.'
+            ].join('\\n');
+
+            // wa.me abre WhatsApp (app o web) y deja el envío final bajo control del cliente.
+            window.location.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
         }
 
-        window.onload = renderSite;
+        window.onload = () => {
+            renderSite();
+            const dateInput = document.getElementById('clientDate');
+            const today = new Date();
+            const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            dateInput.min = localToday;
+        };
     </script>
 </body>
 </html>
