@@ -67,6 +67,9 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Nombre de la Marca</label>
                         <input type="text" id="cfgBrand" oninput="updateGeneralField('brand', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Eslogan</label><input id="cfgSlogan" type="text" oninput="updateGeneralField('slogan',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"></div>
+                    <div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Título principal</label><input id="cfgHeroTitle" type="text" oninput="updateGeneralField('heroTitle',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"></div>
+                    <div class="md:col-span-2"><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Descripción principal</label><textarea id="cfgHeroSubtitle" oninput="updateGeneralField('heroSubtitle',this.value)" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"></textarea></div>
                 </div>
             </div>
 
@@ -136,6 +139,11 @@
             const { data: row, error: readError } = await supabaseClient.from('site_config').select('data').eq('id', 1).maybeSingle();
             if (readError) { alert('No se pudo cargar el catálogo de Supabase: ' + readError.message); return; }
             db = row && row.data ? row.data : defaultData;
+            if (!row || !row.data) {
+                const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: defaultData, updated_at: new Date().toISOString()});
+                if (seedError) { alert('Inicio de sesión correcto, pero no se pudo importar el catálogo inicial: ' + seedError.message); return; }
+                db = JSON.parse(JSON.stringify(defaultData));
+            }
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             loadAdminData();
@@ -143,7 +151,10 @@
 
         function loadAdminData() {
             document.getElementById('cfgBrand').value = db.brand;
-            document.getElementById('cfgPhone').value = db.phone;
+            document.getElementById('cfgPhone').value = db.phone || '';
+            document.getElementById('cfgSlogan').value = db.slogan || '';
+            document.getElementById('cfgHeroTitle').value = db.heroTitle || '';
+            document.getElementById('cfgHeroSubtitle').value = db.heroSubtitle || '';
             renderAdminItems();
         }
 
@@ -152,7 +163,7 @@
             container.innerHTML = db.items.map((item, index) => `
                 <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
                     <div class="relative w-24 h-24 flex-shrink-0">
-                        <img src="${item.image}" class="w-full h-full object-cover rounded-xl border border-slate-800">
+                        <img src="${item.image}" id="item-image-preview-${index}" class="w-full h-full object-cover rounded-xl border border-slate-800">
                         ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
                     </div>
                     <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
@@ -164,7 +175,10 @@
                         </select>
                         <input type="text" value="${item.price}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
                         <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
-                        <input type="text" value="${item.image}" onchange="updateItemField(${index}, 'image', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="URL de Imagen">
+                        <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2">
+                            <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); document.getElementById('item-image-preview-${index}').src=this.value" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
+                            <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
+                        </div>
                         <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
                     </div>
                     <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2">
@@ -181,6 +195,27 @@
         function updateItemField(index, field, value) {
             db.items[index][field] = value;
             scheduleAutoPublish();
+        }
+
+        async function uploadItemImage(index, file, input) {
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { alert('Selecciona un archivo de imagen.'); input.value=''; return; }
+            if (file.size > 8 * 1024 * 1024) { alert('La imagen debe pesar menos de 8 MB.'); input.value=''; return; }
+            const status = document.getElementById('saveStatus');
+            if (status) status.textContent = 'Subiendo fotografía…';
+            const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+            const path = 'catalog/' + db.items[index].id + '-' + Date.now() + '.' + extension;
+            const { data, error } = await supabaseClient.storage.from('mazwave-images').upload(path, file, { upsert: true, contentType: file.type });
+            if (error) { alert('No se pudo subir la imagen: ' + error.message + '. Verifica que ejecutaste el SQL actualizado.'); if (status) status.textContent=''; input.value=''; return; }
+            const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
+            db.items[index].image = publicData.publicUrl;
+            const preview = document.getElementById('item-image-preview-' + index);
+            if (preview) preview.src = publicData.publicUrl;
+            const urlInput = input.parentElement.querySelector('input[type="text"]');
+            if (urlInput) urlInput.value = publicData.publicUrl;
+            if (status) status.textContent = 'Foto subida; guardando catálogo…';
+            await publishSiteChanges();
+            input.value = '';
         }
 
         function addNewItem() {
