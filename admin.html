@@ -120,16 +120,25 @@
         };
 
         let db = JSON.parse(localStorage.getItem('mazwave_db')) || defaultData;
-        const ADMIN_PASS = "mazwave2026";
+        // URL del Worker seguro. Se completa después de desplegarlo en Cloudflare.
+        const PUBLISHER_URL = "https://CONFIGURA-TU-WORKER.workers.dev";
+        let adminSessionPassword = "";
 
-        function checkLogin() {
+        async function checkLogin() {
             const val = document.getElementById('adminPassInput').value;
-            if (val === ADMIN_PASS) {
+            if (!val) return;
+            try {
+                const response = await fetch(PUBLISHER_URL + "/auth", {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({password: val})
+                });
+                if (!response.ok) throw new Error("No se pudo validar el acceso");
+                adminSessionPassword = val;
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
                 loadAdminData();
-            } else {
-                alert('Contraseña incorrecta. (Por defecto: mazwave2026)');
+            } catch (error) {
+                alert("No se pudo conectar con el servicio seguro. Verifica que el Worker esté configurado. " + error.message);
             }
         }
 
@@ -198,9 +207,23 @@
             }
         }
 
-        function publishSiteChanges() {
+        async function publishSiteChanges() {
             localStorage.setItem('mazwave_db', JSON.stringify(db));
-            alert('Cambios guardados en este navegador. La publicación automática en GitHub aún requiere configurar un flujo seguro de servidor.');
+            const button = document.querySelector('button[onclick="publishSiteChanges()"]');
+            if (button) { button.disabled = true; button.querySelector('span').textContent = "Publicando…"; }
+            try {
+                const response = await fetch(PUBLISHER_URL + "/publish", {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({password: adminSessionPassword, data: db})
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(result.error || "No se pudieron publicar los cambios");
+                alert("¡Publicado en GitHub! El sitio se actualizará automáticamente en unos minutos.");
+            } catch (error) {
+                alert("Los cambios quedaron guardados en este navegador, pero no se publicaron: " + error.message);
+            } finally {
+                if (button) { button.disabled = false; button.querySelector('span').textContent = "Guardar y publicar"; }
+            }
         }
         function scheduleAutoPublish() {
             localStorage.setItem('mazwave_db', JSON.stringify(db));
