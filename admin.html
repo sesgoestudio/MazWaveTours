@@ -54,7 +54,7 @@
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
 <section class="bg-slate-900/70 border border-cyan-800/60 rounded-2xl p-5 space-y-3">
 <div class="flex items-center justify-between gap-3"><div><h2 class="font-bold text-white"><i class="fa-brands fa-github text-cyan-400 mr-2"></i>Publicación automática en GitHub</h2><p class="text-xs text-slate-400 mt-1">Conecta un token limitado a este repositorio. Al editar, los cambios se publicarán automáticamente.</p></div><span id="githubConnectionStatus" class="text-xs rounded-full px-3 py-1 bg-amber-500/10 text-amber-300">Sin conectar</span></div>
-<div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3"><input type="password" id="githubTokenInput" autocomplete="off" placeholder="GitHub fine-grained token (github_pat_…)" class="min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500"><button id="githubConnectButton" onclick="connectGitHub()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm px-5 py-3 rounded-xl">Conectar GitHub</button></div>
+<div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3"><input type="password" id="githubTokenInput" autocomplete="off" placeholder="GitHub fine-grained token (github_pat_…)" class="min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500"><button id="githubConnectButton" onclick="connectGitHub()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm px-5 py-3 rounded-xl">Conectar GitHub</button><button onclick="disconnectGitHub()" class="text-xs text-slate-400 hover:text-white px-2 py-2">Desconectar</button></div>
 <p id="githubPublishStatus" aria-live="polite" class="text-xs text-slate-400">El token se guarda solo en esta sesión del navegador; nunca se guarda en el repositorio.</p>
 <p class="text-[11px] text-amber-200/80">Permiso requerido: Contents — Read and write, únicamente para sesgoestudio/MazWaveTours.</p></section>            <!-- General Settings -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
@@ -230,6 +230,12 @@
             if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
             return data;
         }
+        function disconnectGitHub() {
+            sessionStorage.removeItem('mazwave_github_token');
+            setConnectionStatus(false);
+            setPublishStatus('GitHub desconectado. Tus cambios quedarán solo en este navegador hasta volver a conectar.', 'muted');
+        }
+
         async function connectGitHub() {
             const input = document.getElementById('githubTokenInput');
             const token = input.value.trim();
