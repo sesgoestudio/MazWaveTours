@@ -270,7 +270,12 @@
         async function loadCentralCatalog() {
             try {
                 const { data, error } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
-                if (!error && data && data.data && Array.isArray(data.data.items)) db = data.data;
+                if (!error && data && data.data && Array.isArray(data.data.items) && data.data.items.length > 0) {
+                    db = { ...defaultData, ...data.data, items: data.data.items };
+                } else {
+                    console.warn('Supabase devolvió un catálogo vacío; se muestran las experiencias de respaldo.');
+                    db = JSON.parse(JSON.stringify(defaultData));
+                }
             } catch (error) { console.warn('Catálogo remoto no disponible; se muestran los datos de respaldo.', error); }
         }
         let selectedItemForBooking = null;
