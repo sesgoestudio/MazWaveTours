@@ -145,11 +145,13 @@
             if (error) { alert('No se pudo iniciar sesión: ' + error.message); return; }
             const { data: row, error: readError } = await supabaseClient.from('site_config').select('data').eq('id', 1).maybeSingle();
             if (readError) { alert('No se pudo cargar el catálogo de Supabase: ' + readError.message); return; }
-            db = row && row.data ? row.data : defaultData;
-            if (!row || !row.data) {
-                const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: defaultData, updated_at: new Date().toISOString()});
-                if (seedError) { alert('Inicio de sesión correcto, pero no se pudo importar el catálogo inicial: ' + seedError.message); return; }
+            const remoteData = row && row.data ? row.data : null;
+            if (!remoteData || !Array.isArray(remoteData.items) || remoteData.items.length === 0) {
                 db = JSON.parse(JSON.stringify(defaultData));
+                const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
+                if (seedError) { alert('Inicio de sesión correcto, pero no se pudo restaurar el catálogo inicial: ' + seedError.message); return; }
+            } else {
+                db = { ...defaultData, ...remoteData, items: remoteData.items };
             }
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
