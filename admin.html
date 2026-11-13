@@ -168,6 +168,7 @@
         }
 
         function renderAdminItems() {
+            db.items.forEach(item => { item.category = String(item.category || 'tour').toLowerCase(); if (!Array.isArray(item.images)) item.images = item.image ? [item.image] : []; });
             const container = document.getElementById('adminItemsList');
             container.innerHTML = db.items.map((item, index) => `
                 <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
@@ -189,6 +190,15 @@
                             <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
                         </div>
                         <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
+                        <input type="text" value="\${item.duration || ''}" onchange="updateItemField(\${index}, 'duration', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
+                        <input type="text" value="\${item.schedule || ''}" onchange="updateItemField(\${index}, 'schedule', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Horarios">
+                        <input type="text" value="\${item.location || ''}" onchange="updateItemField(\${index}, 'location', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Ubicación">
+                        <input type="text" value="\${item.oldPrice || ''}" onchange="updateItemField(\${index}, 'oldPrice', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Precio anterior / promoción">
+                        <textarea onchange="updateItemField(\${index}, 'includes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué incluye" rows="2">\${item.includes || ''}</textarea>
+                        <textarea onchange="updateItemField(\${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">\${item.excludes || ''}</textarea>
+                        <input type="text" value="\${item.availability || ''}" onchange="updateItemField(\${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
+                        <input type="text" value="\${(item.images || []).join(', ')}" onchange="updateItemField(\${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
+                        <label class="flex items-center gap-2 text-xs text-emerald-300"><input type="checkbox" \${item.published !== false ? 'checked' : ''} onchange="updateItemField(\${index}, 'published', this.checked)"> Publicado en la web</label>
                     </div>
                     <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2">
                         <label class="flex items-center space-x-2 text-xs text-amber-400 cursor-pointer bg-amber-500/10 border border-amber-500/30 px-3 py-2 rounded-xl">
@@ -273,7 +283,7 @@
                 category: "trimaran",
                 price: "$5,000 MXN",
                 capacity: "Hasta 10 pax",
-                isSeasonal: false,
+                isSeasonal: false, published: true, images: [], duration: "", schedule: "", location: "", includes: "", excludes: "", availability: "", oldPrice: "",
                 desc: "Descripción de la embarcación.",
                 image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
             });
