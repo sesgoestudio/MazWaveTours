@@ -319,7 +319,7 @@
 
             renderSeasonal();
             renderCategoryNav();
-            renderCards(db.items.filter(item => item.published !== false));
+            renderCards(db.items);
         }
 
         function renderSeasonal() {
@@ -385,7 +385,7 @@
         }
 
         function renderCategoryNav() {
-            const visibleItems = (Array.isArray(db.items) ? db.items : []).filter(item => item.published !== false);
+            const visibleItems = Array.isArray(db.items) ? db.items : [];
             const counts = { all: visibleItems.length, trimaran: 0, yate: 0, tour: 0 };
             visibleItems.forEach(item => { const category = normalizeCategory(item.category); if (Object.prototype.hasOwnProperty.call(counts, category)) counts[category]++; });
             Object.entries(counts).forEach(([category, count]) => {
@@ -418,8 +418,8 @@
             const query = document.getElementById('searchInput').value.toLowerCase();
             const cat = document.getElementById('categoryFilter').value;
 
-            const filtered = db.items.filter(item => item.published !== false).filter(item => {
-                const matchesQuery = item.name.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query);
+            const filtered = db.items.filter(item => {
+                const matchesQuery = String(item.name || '').toLowerCase().includes(query) || String(item.desc || '').toLowerCase().includes(query);
                 const matchesCat = cat === 'all' || normalizeCategory(item.category) === cat;
                 return matchesQuery && matchesCat;
             });
