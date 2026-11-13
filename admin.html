@@ -75,6 +75,13 @@
 
             <!-- Items List -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
+                <div class="mb-5 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/5">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div><p class="text-sm font-bold text-white">Biblioteca de imágenes</p><p class="text-xs text-slate-400 mt-1">Migra las fotos actuales del catálogo a Supabase Storage para administrarlas desde aquí.</p></div>
+                        <button id="migrateImagesBtn" onclick="migrateAllImagesToSupabase()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-4 py-3 rounded-xl">Guardar todas las fotos en Supabase</button>
+                    </div>
+                    <p id="imageMigrationStatus" class="text-xs text-cyan-200 mt-3" aria-live="polite"></p>
+                </div>
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                     <div>
                         <h3 class="text-base font-bold text-white flex items-center"><i class="fa-solid fa-sailboat text-cyan-400 mr-2"></i> Embarcaciones y Tours Registrados</h3>
@@ -195,6 +202,45 @@
         function updateItemField(index, field, value) {
             db.items[index][field] = value;
             scheduleAutoPublish();
+        }
+
+        async function migrateAllImagesToSupabase() {
+            const button = document.getElementById('migrateImagesBtn');
+            const status = document.getElementById('imageMigrationStatus');
+            if (!db || !Array.isArray(db.items)) { alert('Primero carga el catálogo desde Supabase.'); return; }
+            const pending = db.items.map((item, index) => ({item, index})).filter(x => x.item.image && !x.item.image.includes('/storage/v1/object/public/mazwave-images/'));
+            if (!pending.length) { status.textContent = 'Todas las fotografías del catálogo ya están guardadas en Supabase.'; return; }
+            if (!confirm('Se intentarán copiar ' + pending.length + ' fotografías actuales a Supabase Storage. ¿Continuar?')) return;
+            button.disabled = true;
+            let copied = 0, failed = [];
+            for (const entry of pending) {
+                const {item,index} = entry;
+                try {
+                    status.textContent = 'Migrando ' + (copied + failed.length + 1) + ' de ' + pending.length + ': ' + item.name;
+                    const response = await fetch(item.image, {mode:'cors'});
+                    if (!response.ok) throw new Error('No se pudo descargar la imagen (' + response.status + ')');
+                    const blob = await response.blob();
+                    if (!blob.type.startsWith('image/')) throw new Error('El enlace no devolvió una imagen');
+                    if (blob.size > 8 * 1024 * 1024) throw new Error('La imagen supera 8 MB');
+                    const extension = (blob.type.split('/')[1] || 'jpg').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'');
+                    const path = 'catalog/' + item.id + '-' + Date.now() + '.' + extension;
+                    const {data,error} = await supabaseClient.storage.from('mazwave-images').upload(path, blob, {upsert:true,contentType:blob.type});
+                    if (error) throw error;
+                    const {data:publicData} = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
+                    item.image = publicData.publicUrl;
+                    copied++;
+                } catch (error) {
+                    failed.push(item.name + ': ' + (error.message || 'Error desconocido'));
+                }
+            }
+            if (copied) {
+                status.textContent = 'Guardando catálogo con ' + copied + ' fotografías migradas…';
+                await publishSiteChanges();
+            }
+            status.textContent = 'Migración terminada: ' + copied + ' guardadas en Supabase; ' + failed.length + ' pendientes.' + (failed.length ? ' Revisa los errores en el aviso.' : '');
+            if (failed.length) alert('No se pudieron migrar estas imágenes:\n' + failed.join('\n'));
+            button.disabled = false;
+            renderAdminItems();
         }
 
         async function uploadItemImage(index, file, input) {
