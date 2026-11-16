@@ -440,19 +440,19 @@
                 return \`
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col group">
                     <div class="aspect-[4/3] relative overflow-hidden bg-slate-950 flex items-center justify-center">
-                        <img src="\\${images[current] || ''}" alt="\\${item.name}" loading="lazy" class="w-full h-full object-contain">
+                        <img src="\${images[current] || ''}" alt="\${item.name}" loading="lazy" class="w-full h-full object-contain">
                         \${images.length > 1 ? \`
-                            <button type="button" onclick="changeBoatImage('\\${item.id}', -1)" aria-label="Fotografía anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button>
-                            <button type="button" onclick="changeBoatImage('\\${item.id}', 1)" aria-label="Siguiente fotografía" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>
-                            <span class="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/80 text-white text-[11px] px-3 py-1">\\${current + 1} / \\${images.length}</span>
+                            <button type="button" onclick="changeBoatImage('\${item.id}', -1)" aria-label="Fotografía anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button>
+                            <button type="button" onclick="changeBoatImage('\${item.id}', 1)" aria-label="Siguiente fotografía" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>
+                            <span class="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/80 text-white text-[11px] px-3 py-1">\${current + 1} / \${images.length}</span>
                         \` : ''}
-                        <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">\\${item.category}</span>
-                        <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">\\${item.price}</span>
+                        <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">\${item.category}</span>
+                        <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">\${item.price}</span>
                     </div>
                     <div class="p-6 flex flex-col flex-grow">
-                        <div class="flex items-center justify-between mb-2"><h3 class="text-xl font-bold text-white">\\${item.name}</h3><span class="text-xs text-slate-400 font-medium"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>\\${item.capacity}</span></div>
-                        <p class="text-slate-400 text-sm mb-6 flex-grow">\\${item.desc}</p>
-                        <button onclick="openModal('\\${item.name}')" class="w-full bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 border border-slate-700"><i class="fa-brands fa-whatsapp text-lg"></i><span>Reservar / Cotizar</span></button>
+                        <div class="flex items-center justify-between mb-2"><h3 class="text-xl font-bold text-white">\${item.name}</h3><span class="text-xs text-slate-400 font-medium"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>\${item.capacity}</span></div>
+                        <p class="text-slate-400 text-sm mb-6 flex-grow">\${item.desc}</p>
+                        <button onclick="openModal('\${item.name}')" class="w-full bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 border border-slate-700"><i class="fa-brands fa-whatsapp text-lg"></i><span>Reservar / Cotizar</span></button>
                     </div>
                 </div>\`;
             }).join('');
