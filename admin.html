@@ -73,10 +73,10 @@
             </div>
             <h2 class="text-xl font-bold text-charcoal mb-1">Panel Administrativo</h2>
             <p class="text-olive text-xs mb-6">MazWaveTours • Mazatlán, Sinaloa</p>
-            <input type="email" id="adminEmailInput" placeholder="Correo de administrador" autocomplete="username" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3.5 text-charcoal text-sm mb-3 focus:outline-none focus:border-cyan-500 text-center transition">
-            <input type="password" id="adminPassInput" placeholder="Contraseña" autocomplete="current-password" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3.5 text-charcoal text-sm mb-4 focus:outline-none focus:border-cyan-500 text-center tracking-widest transition">
-            <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-olive to-olive-dark hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg shadow-olive/20 active:scale-[0.98]">Ingresar</button>
-            <a href="index.html" class="block mt-5 text-xs text-olive hover:text-slate-300 transition">← Volver al sitio web</a>
+            <input type="email" id="adminEmailInput" placeholder="Correo de administrador" autocomplete="username" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3.5 text-charcoal text-sm mb-3 focus:outline-none focus:border-olive text-center transition">
+            <input type="password" id="adminPassInput" placeholder="Contraseña" autocomplete="current-password" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3.5 text-charcoal text-sm mb-4 focus:outline-none focus:border-olive text-center tracking-widest transition">
+            <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-olive to-olive-dark hover:from-olive hover:to-olive text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg shadow-olive/20 active:scale-[0.98]">Ingresar</button>
+            <a href="index.html" class="block mt-5 text-xs text-olive hover:text-forest transition">← Volver al sitio web</a>
         </div>
     </div>
 
@@ -93,7 +93,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-2 md:space-x-3">
-                <a href="index.html" target="_blank" class="bg-bone-border hover:bg-slate-700 text-forest text-xs px-3.5 py-2.5 rounded-xl border border-bone-border transition flex items-center space-x-1.5">
+                <a href="index.html" target="_blank" class="bg-bone-border hover:bg-bone-border text-forest text-xs px-3.5 py-2.5 rounded-xl border border-bone-border transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-eye text-olive"></i>
                     <span class="hidden sm:inline">Ver Sitio</span>
                 </a>
@@ -107,16 +107,16 @@
 
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
 <!-- General Settings -->
-            <div class="bg-bone-muted/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
+            <div class="bg-bone-muted/60 border border-bone-border/80 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 class="text-base font-bold text-charcoal mb-4 flex items-center"><i class="fa-solid fa-gear text-olive mr-2"></i> Ajustes Generales y WhatsApp</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1.5">WhatsApp de Contacto (con código de país)</label>
-                        <input type="text" id="cfgPhone" oninput="updateGeneralField('phone', this.value)" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="526693285696">
+                        <input type="text" id="cfgPhone" oninput="updateGeneralField('phone', this.value)" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-olive transition" placeholder="526693285696">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1.5">Nombre de la Marca</label>
-                        <input type="text" id="cfgBrand" oninput="updateGeneralField('brand', this.value)" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-cyan-500 transition">
+                        <input type="text" id="cfgBrand" oninput="updateGeneralField('brand', this.value)" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-olive transition">
                     </div>
                     <div><label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1.5">Eslogan</label><input id="cfgSlogan" type="text" oninput="updateGeneralField('slogan',this.value)" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm"></div>
                     <div><label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1.5">Título principal</label><input id="cfgHeroTitle" type="text" oninput="updateGeneralField('heroTitle',this.value)" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm"></div>
@@ -125,7 +125,7 @@
             </div>
 
             <!-- Items List -->
-            <div class="bg-bone-muted/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
+            <div class="bg-bone-muted/60 border border-bone-border/80 rounded-2xl p-6 backdrop-blur-sm">
                 <div class="mb-5 p-4 rounded-xl border border-olive/30 bg-olive/5">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div><p class="text-sm font-bold text-charcoal">Biblioteca de imágenes</p><p class="text-xs text-olive mt-1">Migra las fotos actuales del catálogo a Supabase Storage para administrarlas desde aquí.</p></div>
@@ -230,25 +230,25 @@
             db.items.forEach(item => { item.category = String(item.category || 'tour').toLowerCase(); if (!Array.isArray(item.images)) item.images = item.image ? [item.image] : []; });
             const container = document.getElementById('adminItemsList');
             container.innerHTML = db.items.map((item, index) => `
-                <div class="bg-bone border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
+                <div class="bg-bone border border-bone-border/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
                     <div class="relative w-24 h-24 flex-shrink-0">
                         <img src="${item.image}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-bone-border bg-bone-muted">
                         ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-butter text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
                     </div>
                     <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-                        <input type="text" value="${item.name}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-cyan-500" placeholder="Nombre">
-                        <select onchange="updateItemField(${index}, 'category', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-cyan-500">
+                        <input type="text" value="${item.name}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-olive" placeholder="Nombre">
+                        <select onchange="updateItemField(${index}, 'category', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-olive">
                             <option value="trimaran" ${item.category==='trimaran'?'selected':''}>Trimarán</option>
                             <option value="yate" ${item.category==='yate'?'selected':''}>Yate / Lancha</option>
                             <option value="tour" ${item.category==='tour'?'selected':''}>Tour / Experiencia</option>
                         </select>
-                        <input type="text" value="${item.price}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
-                        <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
+                        <input type="text" value="${item.price}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-olive" placeholder="Precio">
+                        <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-sm focus:outline-none focus:border-olive" placeholder="Capacidad">
                         <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2">
-                            <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); document.getElementById('item-image-preview-${index}').src=this.value" class="min-w-0 flex-1 bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
-                            <label class="cursor-pointer bg-olive/15 border border-olive/40 text-olive-dark rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
+                            <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); document.getElementById('item-image-preview-${index}').src=this.value" class="min-w-0 flex-1 bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-xs focus:outline-none focus:border-olive" placeholder="URL de imagen">
+                            <label class="cursor-pointer bg-olive/15 border border-olive/40 text-olive-dark rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-olive/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
                         </div>
-                        <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
+                        <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3.5 py-2.5 text-charcoal text-xs lg:col-span-2 focus:outline-none focus:border-olive" placeholder="Descripción">
                         <input type="text" value="${item.duration || ''}" onchange="updateItemField(${index}, 'duration', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3 py-2 text-charcoal text-xs" placeholder="Duración">
                         <input type="text" value="${item.schedule || ''}" onchange="updateItemField(${index}, 'schedule', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3 py-2 text-charcoal text-xs" placeholder="Horarios">
                         <input type="text" value="${item.location || ''}" onchange="updateItemField(${index}, 'location', this.value)" class="bg-bone-muted border border-bone-border rounded-xl px-3 py-2 text-charcoal text-xs" placeholder="Ubicación">
