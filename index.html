@@ -90,7 +90,7 @@
         }
 
         .hero-bg {
-            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
+            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), var(--hero-image, url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80'));
             background-size: cover;
             background-position: center;
         }
@@ -430,6 +430,8 @@
             document.getElementById('splashSlogan').innerText = db.slogan;
             document.getElementById('heroTitle').innerText = db.heroTitle;
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
+            const hero = document.querySelector('.hero-bg');
+            if (hero && db.heroImage) hero.style.setProperty('--hero-image', `url("${String(db.heroImage).replace(/["\\]/g, '')}")`);
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
