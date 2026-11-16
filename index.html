@@ -481,16 +481,24 @@
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
-            if (!db.heroImage && !db.heroImageDisabled) {
+            // La carpeta hero es la fuente de verdad para la portada.
+            // No consultar Storage solo cuando heroImage esté vacío: un valor viejo
+            // en site_config impedía detectar la última imagen subida desde el admin.
+            if (!db.heroImageDisabled) {
                 try {
                     const latestHero = await findLatestHeroImage();
                     if (latestHero) {
                         db.heroImage = latestHero;
-                        console.info('MazWaveTours: portada recuperada directamente desde Storage.', latestHero);
+                        console.info('MazWaveTours: portada sincronizada con la imagen más reciente de Storage.', latestHero);
+                    } else if (!db.heroImage) {
+                        console.warn('MazWaveTours: no hay imagen en hero/ ni URL configurada en site_config.');
                     }
                 } catch (storageError) {
-                    console.warn('MazWaveTours: no se pudo consultar la carpeta hero de Storage.', storageError);
+                    console.warn('MazWaveTours: no se pudo consultar hero/; se conserva la URL de site_config si existe.', storageError);
                 }
+            } else {
+                db.heroImage = '';
+                console.info('MazWaveTours: imagen principal desactivada desde el administrador.');
             }
             console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null, heroImageDisabled: db.heroImageDisabled === true });
         }
