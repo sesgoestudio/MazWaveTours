@@ -108,13 +108,17 @@
                     <div class="md:col-span-2 border-t border-slate-800 pt-4">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Imagen principal del inicio (Hero)</label>
                         <div class="flex flex-col sm:flex-row gap-4 items-start">
-                            <img id="cfgHeroImagePreview" alt="Vista previa de la imagen principal" class="w-full sm:w-64 h-32 object-cover rounded-xl border border-slate-700 bg-slate-950">
+                            <div class="w-full sm:w-64 h-32 rounded-xl border border-slate-700 bg-slate-950 flex items-center justify-center overflow-hidden">
+                                <img id="cfgHeroImagePreview" alt="Vista previa de la imagen principal" class="w-full h-full object-cover hidden">
+                                <span id="cfgHeroImageEmpty" class="text-xs text-slate-500 text-center px-3">Sin imagen principal. Sube una desde aquí.</span>
+                            </div>
                             <div class="flex-1 w-full space-y-2">
                                 <label class="block cursor-pointer text-center bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-4 py-3 rounded-xl">Elegir nueva imagen
                                     <input id="cfgHeroImageFile" type="file" accept="image/*" class="hidden" onchange="uploadHeroImage(this.files[0],this)">
                                 </label>
                                 <input id="cfgHeroImageUrl" type="url" placeholder="O pega aquí la URL de una imagen" onchange="updateHeroImageUrl(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-xs">
-                                <p class="text-xs text-slate-500">La imagen se guarda en Supabase y se refleja en la portada del sitio.</p>
+                                <button type="button" onclick="clearHeroImage()" class="w-full border border-slate-700 hover:border-red-400 text-slate-300 hover:text-red-300 text-xs font-semibold px-4 py-2.5 rounded-xl">Quitar imagen actual</button>
+                                <p class="text-xs text-slate-500">La portada permanecerá sin fotografía hasta que elijas una desde el administrador.</p>
                             </div>
                         </div>
                     </div>
@@ -226,8 +230,15 @@
             document.getElementById('cfgSlogan').value = db.slogan || '';
             document.getElementById('cfgHeroTitle').value = db.heroTitle || '';
             document.getElementById('cfgHeroSubtitle').value = db.heroSubtitle || '';
-            document.getElementById('cfgHeroImageUrl').value = db.heroImage || '';
-            document.getElementById('cfgHeroImagePreview').src = db.heroImage || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80';
+            const savedHeroImage = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
+            const currentHeroImage = savedHeroImage.includes('photo-1544551763-46a013bb70d5') ? '' : savedHeroImage;
+            db.heroImage = currentHeroImage;
+            document.getElementById('cfgHeroImageUrl').value = currentHeroImage;
+            const heroPreview = document.getElementById('cfgHeroImagePreview');
+            const heroEmpty = document.getElementById('cfgHeroImageEmpty');
+            heroPreview.src = currentHeroImage;
+            heroPreview.classList.toggle('hidden', !currentHeroImage);
+            heroEmpty.classList.toggle('hidden', !!currentHeroImage);
             renderAdminItems();
         }
 
@@ -351,11 +362,23 @@
             renderAdminItems();
         }
 
+        function updateHeroImagePreview(value) {
+            const preview = document.getElementById('cfgHeroImagePreview');
+            const empty = document.getElementById('cfgHeroImageEmpty');
+            const hasImage = !!value;
+            if (preview) { preview.src = value || ''; preview.classList.toggle('hidden', !hasImage); }
+            if (empty) empty.classList.toggle('hidden', hasImage);
+        }
         function updateHeroImageUrl(value) {
             db.heroImage = value.trim();
-            const preview = document.getElementById('cfgHeroImagePreview');
-            if (preview && db.heroImage) preview.src = db.heroImage;
+            updateHeroImagePreview(db.heroImage);
             scheduleAutoPublish();
+        }
+        async function clearHeroImage() {
+            db.heroImage = '';
+            document.getElementById('cfgHeroImageUrl').value = '';
+            updateHeroImagePreview('');
+            await publishSiteChanges();
         }
 
         async function uploadHeroImage(file, input) {
@@ -370,8 +393,8 @@
             if (error) { alert('No se pudo subir la imagen: ' + error.message + '. Verifica los permisos de Supabase Storage.'); if (status) status.textContent=''; input.value=''; return; }
             const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
             db.heroImage = publicData.publicUrl;
-            document.getElementById('cfgHeroImagePreview').src = db.heroImage;
             document.getElementById('cfgHeroImageUrl').value = db.heroImage;
+            updateHeroImagePreview(db.heroImage);
             if (status) status.textContent = 'Imagen subida; guardando…';
             await publishSiteChanges();
             input.value = '';
