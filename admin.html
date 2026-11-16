@@ -105,6 +105,19 @@
                     <div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Eslogan</label><input id="cfgSlogan" type="text" oninput="updateGeneralField('slogan',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"></div>
                     <div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Título principal</label><input id="cfgHeroTitle" type="text" oninput="updateGeneralField('heroTitle',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"></div>
                     <div class="md:col-span-2"><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Descripción principal</label><textarea id="cfgHeroSubtitle" oninput="updateGeneralField('heroSubtitle',this.value)" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"></textarea></div>
+                    <div class="md:col-span-2 border-t border-slate-800 pt-4">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Imagen principal del inicio (Hero)</label>
+                        <div class="flex flex-col sm:flex-row gap-4 items-start">
+                            <img id="cfgHeroImagePreview" alt="Vista previa de la imagen principal" class="w-full sm:w-64 h-32 object-cover rounded-xl border border-slate-700 bg-slate-950">
+                            <div class="flex-1 w-full space-y-2">
+                                <label class="block cursor-pointer text-center bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-4 py-3 rounded-xl">Elegir nueva imagen
+                                    <input id="cfgHeroImageFile" type="file" accept="image/*" class="hidden" onchange="uploadHeroImage(this.files[0],this)">
+                                </label>
+                                <input id="cfgHeroImageUrl" type="url" placeholder="O pega aquí la URL de una imagen" onchange="updateHeroImageUrl(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-xs">
+                                <p class="text-xs text-slate-500">La imagen se guarda en Supabase y se refleja en la portada del sitio.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -207,6 +220,8 @@
             document.getElementById('cfgSlogan').value = db.slogan || '';
             document.getElementById('cfgHeroTitle').value = db.heroTitle || '';
             document.getElementById('cfgHeroSubtitle').value = db.heroSubtitle || '';
+            document.getElementById('cfgHeroImageUrl').value = db.heroImage || '';
+            document.getElementById('cfgHeroImagePreview').src = db.heroImage || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80';
             renderAdminItems();
         }
 
@@ -328,6 +343,32 @@
             if (failed.length) alert('No se pudieron migrar estas imágenes:\n' + failed.join('\n'));
             button.disabled = false;
             renderAdminItems();
+        }
+
+        function updateHeroImageUrl(value) {
+            db.heroImage = value.trim();
+            const preview = document.getElementById('cfgHeroImagePreview');
+            if (preview && db.heroImage) preview.src = db.heroImage;
+            scheduleAutoPublish();
+        }
+
+        async function uploadHeroImage(file, input) {
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { alert('Selecciona un archivo de imagen.'); input.value=''; return; }
+            if (file.size > 8 * 1024 * 1024) { alert('La imagen debe pesar menos de 8 MB.'); input.value=''; return; }
+            const status = document.getElementById('saveStatus');
+            if (status) status.textContent = 'Subiendo imagen principal…';
+            const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+            const path = 'hero/index-' + Date.now() + '.' + extension;
+            const { data, error } = await supabaseClient.storage.from('mazwave-images').upload(path, file, { upsert: true, contentType: file.type });
+            if (error) { alert('No se pudo subir la imagen: ' + error.message + '. Verifica los permisos de Supabase Storage.'); if (status) status.textContent=''; input.value=''; return; }
+            const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
+            db.heroImage = publicData.publicUrl;
+            document.getElementById('cfgHeroImagePreview').src = db.heroImage;
+            document.getElementById('cfgHeroImageUrl').value = db.heroImage;
+            if (status) status.textContent = 'Imagen subida; guardando…';
+            await publishSiteChanges();
+            input.value = '';
         }
 
         async function uploadItemImage(index, file, input) {
