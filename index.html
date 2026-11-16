@@ -390,37 +390,57 @@
             ]
         };
 
+        const SUPABASE_PUBLIC_URL = "https://vwtthqywcuzjvzzbzzps.supabase.co";
+        const SUPABASE_PUBLIC_KEY = "sb_publishable_FsIs5klj7rHso_P8o4yOBQ_J_cRu-5D";
         let supabaseClient = null;
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
-                supabaseClient = window.supabase.createClient("https://vwtthqywcuzjvzzbzzps.supabase.co", "sb_publishable_FsIs5klj7rHso_P8o4yOBQ_J_cRu-5D");
+                supabaseClient = window.supabase.createClient(SUPABASE_PUBLIC_URL, SUPABASE_PUBLIC_KEY);
             } else {
-                console.warn('SDK de Supabase no disponible; se utiliza el catálogo local.');
+                console.warn('SDK de Supabase no disponible; se intentará leer la configuración por REST.');
             }
-        } catch (clientError) { console.warn('No se pudo iniciar Supabase; se utiliza el catálogo local.', clientError); }
+        } catch (clientError) { console.warn('No se pudo iniciar Supabase; se intentará leer la configuración por REST.', clientError); }
         let db = JSON.parse(JSON.stringify(defaultData));
         async function loadCentralCatalog() {
-            if (!supabaseClient) return;
-            try {
-                const { data, error } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
-                if (error) throw error;
-                if (data && data.data && typeof data.data === 'object') {
-                    const remote = data.data;
-                    const remoteItems = Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items;
-                    db = {
-                        ...defaultData,
-                        ...remote,
-                        // La configuración visual (incluida heroImage) se conserva aunque el catálogo remoto esté vacío.
-                        items: remoteItems.map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
-                    };
-                } else {
-                    console.warn('No se encontró la configuración remota; se muestran los datos de respaldo.');
-                    db = JSON.parse(JSON.stringify(defaultData));
+            let remote = null;
+            let sdkError = null;
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
+                    if (error) throw error;
+                    remote = data && data.data && typeof data.data === 'object' ? data.data : null;
+                } catch (error) {
+                    sdkError = error;
+                    console.warn('Lectura de site_config mediante SDK falló; se probará REST.', error);
                 }
-            } catch (error) {
-                console.warn('Catálogo remoto no disponible; se muestran los datos de respaldo.', error);
-                db = JSON.parse(JSON.stringify(defaultData));
             }
+            // Ruta independiente del SDK: evita que un fallo de inicialización o consulta
+            // deje la portada sin la imagen que ya está guardada en la configuración pública.
+            if (!remote) {
+                try {
+                    const response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1`, {
+                        method: 'GET',
+                        headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
+                        cache: 'no-store'
+                    });
+                    if (!response.ok) throw new Error(`REST site_config respondió HTTP ${response.status}`);
+                    const rows = await response.json();
+                    remote = Array.isArray(rows) && rows[0] && rows[0].data && typeof rows[0].data === 'object' ? rows[0].data : null;
+                } catch (restError) {
+                    console.error('No se pudo leer la configuración pública ni por SDK ni por REST.', { sdkError, restError });
+                }
+            }
+            if (!remote) {
+                console.warn('No se recibió data desde site_config; se conserva el catálogo local.');
+                return;
+            }
+            const remoteItems = Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items;
+            db = {
+                ...defaultData,
+                ...remote,
+                items: remoteItems.map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
+            };
+            console.info('MazWaveTours: configuración pública cargada.', { heroImage: db.heroImage || null, hasHeroImage: Boolean(db.heroImage) });
         }
         function cleanLocationReferences(value) {
             if (typeof value === 'string') return value.replace(/Marina\s+Mazatl[aá]n(?:,\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
@@ -470,22 +490,28 @@
                 hero.style.backgroundColor = '#0b1d3a';
                 heroImageElement.style.objectPosition = `${heroX}% ${heroY}%`;
                 heroImageElement.style.transform = `scale(${heroZoom})`;
-                heroImageElement.onload = () => heroImageElement.classList.remove('hidden');
+                heroImageElement.onload = () => {
+                    heroImageElement.classList.remove('hidden');
+                    hero.style.backgroundImage = 'none';
+                };
                 heroImageElement.onerror = () => {
+                    console.error('La etiqueta img no pudo mostrar la portada; se activa el fondo alternativo:', heroImage);
+                    // Segundo mecanismo de renderizado para navegadores/estilos que oculten la capa img.
                     heroImageElement.classList.add('hidden');
-                    console.error('No se pudo cargar la imagen principal desde Supabase:', heroImage);
+                    hero.style.backgroundImage = `linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url("${heroImage.replace(/["\\\\\n\r]/g, '')}")`;
+                    hero.style.backgroundSize = heroZoom > 1 ? `${heroZoom * 100}% auto` : 'cover';
+                    hero.style.backgroundPosition = `${heroX}% ${heroY}%`;
+                    hero.style.backgroundRepeat = 'no-repeat';
                 };
                 if (heroImage) {
-                    if (heroImageElement.getAttribute('src') !== heroImage) {
-                        heroImageElement.classList.add('hidden');
-                        heroImageElement.src = heroImage;
-                    } else if (heroImageElement.complete && heroImageElement.naturalWidth > 0) {
-                        heroImageElement.classList.remove('hidden');
-                    }
+                    heroImageElement.classList.remove('hidden');
+                    if (heroImageElement.getAttribute('src') !== heroImage) heroImageElement.src = heroImage;
+                    else if (heroImageElement.complete && heroImageElement.naturalWidth > 0) heroImageElement.classList.remove('hidden');
                 } else {
                     heroImageElement.removeAttribute('src');
                     heroImageElement.classList.add('hidden');
-                    console.warn('MazWaveTours: no hay heroImage guardada en site_config.');
+                    hero.style.backgroundImage = 'none';
+                    console.warn('MazWaveTours: no hay heroImage guardada en site_config.', { remoteKeys: Object.keys(db || {}) });
                 }
             }
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
