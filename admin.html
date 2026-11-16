@@ -459,7 +459,7 @@
         }
         function getBoatImageStyle(item) {
             const view = item.imageView || {};
-            return `object-fit:${view.fit || 'contain'};object-position:${view.x ?? 50}% ${view.y ?? 50}%;transform:scale(${(view.zoom ?? 100)/100});`;
+            return 'object-fit:' + (view.fit || 'contain') + ';object-position:' + (view.x ?? 50) + '% ' + (view.y ?? 50) + '%;transform:scale(' + ((view.zoom ?? 100)/100) + ');';
         }
         function renderCards(itemsToRender) {
             currentlyRenderedItems = itemsToRender;
