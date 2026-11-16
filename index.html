@@ -440,33 +440,35 @@
         }
 
         function renderSeasonal() {
-            const seasonalItems = db.items.filter(i => /ballena/i.test(String(i.name || '')) || (i.isSeasonal === false ? false : (i.isSeasonal === true || i.is_seasonal === true || i.seasonal === true || i.temporada === true || ['true','1','si','sí','temporada'].includes(String(i.isSeasonal ?? i.is_seasonal ?? i.seasonal ?? i.temporada ?? '').toLowerCase()))));
-            // Si Supabase no trae el tour de ballenas, usar el registro local como destacado visible.
-            const whaleTour = seasonalItems.find(i => /ballena/i.test(String(i.name || ''))) || defaultData.items.find(i => /ballena/i.test(String(i.name || ''))) || {
-                id: 'whale-season-feature',
-                name: 'Avistamiento de Ballenas en Mazatlán',
-                category: 'tour',
-                price: 'Consultar disponibilidad',
-                capacity: 'Experiencia de temporada',
-                desc: 'Vive el encuentro con las ballenas jorobadas en las aguas del Pacífico. Consulta fechas, horarios, disponibilidad y condiciones del recorrido por WhatsApp.',
-                image: '',
-                isSeasonal: true
-            };
-            if (!seasonalItems.some(i => /ballena/i.test(String(i.name || '')))) seasonalItems.unshift(whaleTour);
+            const seasonalItems = db.items.filter(item => {
+                const flag = item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada;
+                const flagText = String(flag ?? "").trim().toLowerCase();
+                const explicitlyOff = flag === false || ["false", "0", "no", "off"].includes(flagText);
+                const explicitlyOn = flag === true || ["true", "1", "si", "sí", "temporada"].includes(flagText);
+                if (explicitlyOff) return false;
+                return explicitlyOn || /ballena/i.test(String(item.name || ""));
+            });
+            // Solo mostrar un destacado de respaldo si el catálogo no contiene ningún registro de ballenas.
+            const hasWhaleRecord = db.items.some(item => /ballena/i.test(String(item.name || "")));
+            if (!hasWhaleRecord && seasonalItems.length === 0) {
+                const fallbackWhale = defaultData.items.find(item => /ballena/i.test(String(item.name || "")));
+                if (fallbackWhale) seasonalItems.push(fallbackWhale);
+            }
             seasonalItems.sort((a, b) => (/ballena/i.test(String(a.name || '')) ? 0 : 1) - (/ballena/i.test(String(b.name || '')) ? 0 : 1));
             const section = document.getElementById('seasonalSection');
             const grid = document.getElementById('seasonalGrid');
 
             if (seasonalItems.length === 0) {
                 section.classList.add('hidden');
+                grid.innerHTML = '';
                 return;
             }
 
             section.classList.remove('hidden');
             grid.innerHTML = seasonalItems.map(item => `
                 <div class="${/ballena/i.test(item.name) ? 'bg-slate-950 border-2 border-amber-400 ring-2 ring-amber-400/20' : 'bg-slate-950/80 border border-amber-500/30'} rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group ${/ballena/i.test(item.name) ? 'md:col-span-2 lg:col-span-2' : ''}">
-                    <div class="h-56 relative overflow-hidden">
-                        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" style="${getBoatImageStyle(item)}" class="w-full h-full bg-slate-950">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
+                    <div class="w-full aspect-[16/9] sm:aspect-[2/1] relative overflow-hidden bg-slate-950 flex items-center justify-center">
+                        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" class="w-full h-full object-contain object-center">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
                         <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
                         ${/ballena/i.test(item.name) ? '<div class="absolute bottom-3 left-3 flex flex-col items-start gap-2"><span class="max-w-[calc(100vw-3rem)] bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold leading-tight px-3 py-2 rounded-xl shadow-lg">'+item.price+'</span><span class="max-w-[calc(100vw-3rem)] bg-slate-950/90 text-white text-[10px] sm:text-xs font-bold leading-tight px-3 py-2 rounded-xl border border-amber-300/60">Avistamiento en el Pacífico</span></div>' : ''}
                     </div>
