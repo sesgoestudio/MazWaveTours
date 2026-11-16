@@ -114,10 +114,11 @@
             object-position: center center;
             pointer-events: none;
             transform-origin: center;
-            opacity: 0;
+            opacity: 1 !important;
+            visibility: visible !important;
             transition: opacity .35s ease;
         }
-        #heroBackgroundImage.is-loaded { opacity: 1; }
+        #heroBackgroundImage.is-loaded { opacity: 1 !important; }
         .hero-bg > .max-w-4xl { position: relative; z-index: 2; }
 
         /* Scroll más fluido y animaciones discretas al entrar en pantalla */
@@ -165,7 +166,7 @@
 
     <!-- Hero Section -->
     <section class="hero-bg py-16 sm:py-20 md:py-36 px-4 text-center relative overflow-hidden">
-        <img id="heroBackgroundImage" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
+        <img id="heroBackgroundImage" src="https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794866793867.webp" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
         <div class="max-w-4xl mx-auto relative z-10">
             <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
             <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
@@ -442,7 +443,7 @@
             db = {
                 ...defaultData,
                 ...remote,
-                heroImage: typeof remoteHero === 'string' ? remoteHero.trim() : '',
+                heroImage: (typeof remoteHero === 'string' ? remoteHero.trim() : '') || defaultData.heroImage,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
@@ -510,8 +511,7 @@
                 }
             };
             if (!url) {
-                image.removeAttribute('src');
-                console.error('MazWaveTours: Supabase no devolvió heroImage.');
+                image.src = defaultData.heroImage;
                 return;
             }
             try {
