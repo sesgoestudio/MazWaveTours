@@ -216,7 +216,7 @@
             container.innerHTML = db.items.map((item, index) => `
                 <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
                     <div class="relative w-24 h-24 flex-shrink-0">
-                        <img src="${item.image}" id="item-image-preview-${index}" class="w-full h-full object-cover rounded-xl border border-slate-800">
+                        <img src="${item.image}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">
                         ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
                     </div>
                     <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
@@ -241,6 +241,23 @@
                         <textarea onchange="updateItemField(${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${item.excludes || ''}</textarea>
                         <input type="text" value="${item.availability || ''}" onchange="updateItemField(${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
                         <input type="text" value="${(item.images || []).join(', ')}" onchange="updateItemField(${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
+<div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+  <label class="text-xs text-slate-400">Ajuste de imagen
+    <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+      <option value="contain" ${(item.imageView?.fit || 'contain')==='contain'?'selected':''}>Mostrar completa</option>
+      <option value="cover" ${(item.imageView?.fit || 'contain')==='cover'?'selected':''}>Llenar el marco</option>
+    </select>
+  </label>
+  <label class="text-xs text-slate-400">Posición horizontal
+    <input type="range" min="0" max="100" value="${item.imageView?.x ?? 50}" onchange="updateItemView(${index}, 'x', this.value)" class="mt-2 w-full accent-cyan-500">
+  </label>
+  <label class="text-xs text-slate-400">Posición vertical
+    <input type="range" min="0" max="100" value="${item.imageView?.y ?? 50}" onchange="updateItemView(${index}, 'y', this.value)" class="mt-2 w-full accent-cyan-500">
+  </label>
+  <label class="text-xs text-slate-400">Zoom
+    <input type="range" min="100" max="160" step="5" value="${item.imageView?.zoom ?? 100}" onchange="updateItemView(${index}, 'zoom', this.value)" class="mt-2 w-full accent-cyan-500">
+  </label>
+</div>
                         <label class="flex items-center gap-2 text-xs text-emerald-300"><input type="checkbox" ${item.published !== false ? 'checked' : ''} onchange="updateItemField(${index}, 'published', this.checked)"> Publicado en la web</label>
                     </div>
                     <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2">
@@ -254,6 +271,19 @@
             `).join('');
         }
 
+        function getAdminImageStyle(item) {
+            const view = item.imageView || {};
+            return "object-fit:" + (view.fit || "contain") + ";object-position:" + (view.x ?? 50) + "% " + (view.y ?? 50) + "%;transform:scale(" + ((view.zoom ?? 100)/100) + ");";
+        }
+
+        function updateItemView(index, field, value) {
+            if (!db.items[index].imageView) db.items[index].imageView = {};
+            db.items[index].imageView[field] = field === "fit" ? value : Number(value);
+            const preview = document.getElementById("item-image-preview-" + index);
+            if (preview) preview.style.cssText = getAdminImageStyle(db.items[index]);
+            scheduleAutoPublish();
+            renderAdminItems();
+        }
         function updateItemField(index, field, value) {
             db.items[index][field] = value;
             if (field === 'image') { db.items[index].images = [value, ...(db.items[index].images || []).slice(1)]; }

@@ -466,7 +466,7 @@
             grid.innerHTML = seasonalItems.map(item => `
                 <div class="${/ballena/i.test(item.name) ? 'bg-slate-950 border-2 border-amber-400 ring-2 ring-amber-400/20' : 'bg-slate-950/80 border border-amber-500/30'} rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group ${/ballena/i.test(item.name) ? 'md:col-span-2 lg:col-span-2' : ''}">
                     <div class="h-56 relative overflow-hidden">
-                        ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
+                        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" style="${getBoatImageStyle(item)}" class="w-full h-full bg-slate-950">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
                         <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
                         ${/ballena/i.test(item.name) ? '<div class="absolute bottom-3 left-3 flex flex-col items-start gap-2"><span class="max-w-[calc(100vw-3rem)] bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold leading-tight px-3 py-2 rounded-xl shadow-lg">'+item.price+'</span><span class="max-w-[calc(100vw-3rem)] bg-slate-950/90 text-white text-[10px] sm:text-xs font-bold leading-tight px-3 py-2 rounded-xl border border-amber-300/60">Avistamiento en el Pacífico</span></div>' : ''}
                     </div>
@@ -483,6 +483,38 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function getBoatImageStyle(item) {
+            const view = item.imageView || {};
+            return "object-fit:" + (view.fit || "contain") + ";object-position:" + (view.x ?? 50) + "% " + (view.y ?? 50) + "%;transform:scale(" + ((view.zoom ?? 100)/100) + ");";
+        }
+        let detailGalleryItemId = null;
+        let detailGalleryIndex = 0;
+        function renderDetailGallery(item) {
+            const photos = Array.isArray(item.images) && item.images.length ? item.images : [item.image].filter(Boolean);
+            if (!photos.length) return;
+            detailGalleryIndex = ((detailGalleryIndex % photos.length) + photos.length) % photos.length;
+            const view = item.imageView || {};
+            const frame = document.getElementById("detailGalleryFrame");
+            const counter = document.getElementById("detailGalleryCounter");
+            const thumbs = document.getElementById("detailGalleryThumbs");
+            if (frame) frame.innerHTML = '<img src="' + escapeHtml(photos[detailGalleryIndex]) + '" alt="' + escapeHtml(item.name) + ' ' + (detailGalleryIndex + 1) + '" class="w-full h-full" style="object-fit:' + (view.fit || "contain") + ';object-position:' + (view.x ?? 50) + '% ' + (view.y ?? 50) + '%;transform:scale(' + ((view.zoom ?? 100)/100) + ');">';
+            if (counter) counter.textContent = (detailGalleryIndex + 1) + " / " + photos.length;
+            if (thumbs) thumbs.innerHTML = photos.map((src, i) => '<button type="button" onclick="setDetailGalleryImage(' + i + ')" class="w-14 h-12 sm:w-16 sm:h-14 rounded-lg overflow-hidden border-2 ' + (i === detailGalleryIndex ? 'border-cyan-400' : 'border-slate-700') + '"><img src="' + escapeHtml(src) + '" alt="Miniatura ' + (i+1) + '" class="w-full h-full object-cover"></button>').join("");
+        }
+        function moveDetailGallery(direction) {
+            const item = db.items.find(entry => String(entry.id) === String(detailGalleryItemId));
+            if (!item) return;
+            const photos = Array.isArray(item.images) && item.images.length ? item.images : [item.image].filter(Boolean);
+            detailGalleryIndex = (detailGalleryIndex + direction + photos.length) % photos.length;
+            renderDetailGallery(item);
+        }
+        function setDetailGalleryImage(index) {
+            const item = db.items.find(entry => String(entry.id) === String(detailGalleryItemId));
+            if (!item) return;
+            detailGalleryIndex = index;
+            renderDetailGallery(item);
         }
 
         function renderCards(itemsToRender) {
@@ -563,12 +595,15 @@
             const item = db.items.find(entry => String(entry.id) === String(itemId));
             if (!item) return;
             const photos = Array.isArray(item.images) && item.images.length ? item.images : [item.image].filter(Boolean);
-            const photoHtml = photos.map((src, i) => '<img src="'+escapeHtml(src)+'" alt="'+escapeHtml(item.name)+' '+(i+1)+'" class="w-full h-44 sm:h-64 object-cover rounded-2xl '+(i ? 'mt-3' : '')+'">').join('');
-            const rows = [['Duración',item.duration],['Horarios',item.schedule],['Ubicación',item.location],['Capacidad',item.capacity],['Incluye',item.includes],['No incluye',item.excludes],['Disponibilidad',item.availability]].filter(row => row[1]);
-            document.getElementById('detailContent').innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>'+photoHtml+'</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">'+escapeHtml(normalizeCategory(item.category))+'</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">'+escapeHtml(item.name)+'</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">'+escapeHtml(item.desc || '')+'</p><div class="mt-5 text-2xl font-black text-cyan-300">'+escapeHtml(item.price || '')+'</div>'+(item.oldPrice?'<p class="text-slate-500 line-through">'+escapeHtml(item.oldPrice)+'</p>':'')+'<button onclick="closeDetail();openModal('+JSON.stringify(item.name)+')" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>'+(rows.length?'<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">'+rows.map(row=>'<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">'+row[0]+'</div><div class="text-sm text-slate-200 whitespace-pre-line">'+escapeHtml(row[1])+'</div></div>').join('')+'</div>':'')+'</div>';
-            const modal = document.getElementById('detailModal'); modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.style.overflow = 'hidden';
+            detailGalleryItemId = item.id;
+            detailGalleryIndex = 0;
+            const rows = [["Duración",item.duration],["Horarios",item.schedule],["Ubicación",item.location],["Capacidad",item.capacity],["Incluye",item.includes],["No incluye",item.excludes],["Disponibilidad",item.availability]].filter(row => row[1]);
+            const gallery = '<div class="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800"><div id="detailGalleryFrame" class="h-56 sm:h-80 flex items-center justify-center"></div>' + (photos.length > 1 ? '<button type="button" onclick="moveDetailGallery(-1)" aria-label="Foto anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button><button type="button" onclick="moveDetailGallery(1)" aria-label="Foto siguiente" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>' : '') + '<span id="detailGalleryCounter" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-950/80 text-white text-xs px-3 py-1 rounded-full"></span></div><div id="detailGalleryThumbs" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>';
+            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">' + escapeHtml(item.name) + '</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-cyan-300">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-slate-500 line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button onclick="closeDetail();openModal(' + JSON.stringify(item.name) + ')" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">' + row[0] + '</div><div class="text-sm text-slate-200 whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
+            renderDetailGallery(item);
+            const modal = document.getElementById("detailModal"); modal.classList.remove("hidden"); modal.classList.add("flex"); document.body.style.overflow = "hidden";
         }
-        function closeDetail() { const modal = document.getElementById('detailModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow = ''; }
+                function closeDetail() { const modal = document.getElementById('detailModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow = ''; }
         function openModal(itemName) {
             selectedItemForBooking = itemName;
             document.getElementById('modalTitle').innerText = `Reservar: ${itemName}`;
