@@ -411,31 +411,11 @@
         } catch (clientError) { console.warn('No se pudo iniciar Supabase; se intentará leer la configuración por REST.', clientError); }
         let db = JSON.parse(JSON.stringify(defaultData));
         async function findLatestHeroImage() {
-            // Respaldo: si el archivo sí llegó al bucket pero el campo heroImage
-            // no se guardó, el index recupera la última imagen de la carpeta hero.
-            const endpoint = SUPABASE_PUBLIC_URL + '/storage/v1/object/list/mazwave-images';
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    apikey: SUPABASE_PUBLIC_KEY,
-                    Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    prefix: 'hero/',
-                    limit: 100,
-                    offset: 0,
-                    sortBy: { column: 'created_at', order: 'desc' }
-                }),
-                cache: 'no-store'
-            });
-            if (!response.ok) throw new Error('Storage list HTTP ' + response.status);
-            const files = await response.json();
-            const latest = (Array.isArray(files) ? files : []).find(file => {
-                const mime = file && file.metadata && file.metadata.mimetype;
-                return typeof file?.name === 'string' && (!mime || String(mime).startsWith('image/'));
-            });
-            return latest ? SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-images/hero/' + encodeURIComponent(latest.name) : '';
+            // Compatibilidad con la imagen que ya estaba guardada en site_config.
+            // Las nuevas cargas del administrador usarán siempre hero/current.
+            const savedUrl = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
+            const source = savedUrl || (SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-images/hero/current');
+            return source + (source.includes('?') ? '&' : '?') + 'v=' + Date.now();
         }
 
         async function loadCentralCatalog() {
