@@ -94,6 +94,25 @@
             background-image: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9));
             background-size: cover;
             background-position: center;
+            isolation: isolate;
+        }
+        .hero-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9));
+        }
+        #heroBackgroundImage {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            pointer-events: none;
         }
 
         /* Scroll más fluido y animaciones discretas al entrar en pantalla */
@@ -141,6 +160,7 @@
 
     <!-- Hero Section -->
     <section class="hero-bg py-16 sm:py-20 md:py-36 px-4 text-center relative overflow-hidden">
+        <img id="heroBackgroundImage" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="hidden">
         <div class="max-w-4xl mx-auto relative z-10">
             <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
             <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
@@ -440,20 +460,28 @@
             document.getElementById('heroTitle').innerText = db.heroTitle;
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             const hero = document.querySelector('.hero-bg');
-            if (hero) {
+            const heroImageElement = document.getElementById('heroBackgroundImage');
+            if (hero && heroImageElement) {
                 const storedHeroImage = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
-                // Ignorar la antigua fotografía predeterminada del buzo, incluso si quedó guardada en Supabase.
+                // Nunca restaurar la imagen predeterminada anterior del buzo.
                 const heroImage = storedHeroImage.includes('photo-1544551763-46a013bb70d5') ? '' : storedHeroImage;
-                const safeHeroImage = heroImage.replace(/["\\\\\n\r]/g, '');
                 const heroX = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
                 const heroY = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
                 const heroZoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
                 hero.style.backgroundColor = '#0b1d3a';
-                hero.style.backgroundImage = heroImage
-                    ? `linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url("${safeHeroImage}")`
-                    : 'linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9))';
-                hero.style.backgroundSize = heroImage && heroZoom > 1 ? `${heroZoom * 100}% auto` : 'cover';
-                hero.style.backgroundPosition = `${heroX}% ${heroY}%`;
+                heroImageElement.style.objectPosition = `${heroX}% ${heroY}%`;
+                heroImageElement.style.transform = `scale(${heroZoom})`;
+                if (heroImage) {
+                    if (heroImageElement.src !== heroImage) heroImageElement.src = heroImage;
+                    heroImageElement.classList.remove('hidden');
+                    heroImageElement.onerror = () => {
+                        console.error('No se pudo cargar la imagen principal desde la URL guardada:', heroImage);
+                        heroImageElement.classList.add('hidden');
+                    };
+                } else {
+                    heroImageElement.removeAttribute('src');
+                    heroImageElement.classList.add('hidden');
+                }
             }
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
