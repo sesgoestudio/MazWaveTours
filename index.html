@@ -410,6 +410,34 @@
             }
         } catch (clientError) { console.warn('No se pudo iniciar Supabase; se intentará leer la configuración por REST.', clientError); }
         let db = JSON.parse(JSON.stringify(defaultData));
+        async function findLatestHeroImage() {
+            // Respaldo: si el archivo sí llegó al bucket pero el campo heroImage
+            // no se guardó, el index recupera la última imagen de la carpeta hero.
+            const endpoint = SUPABASE_PUBLIC_URL + '/storage/v1/object/list/mazwave-images';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    apikey: SUPABASE_PUBLIC_KEY,
+                    Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prefix: 'hero/',
+                    limit: 100,
+                    offset: 0,
+                    sortBy: { column: 'created_at', order: 'desc' }
+                }),
+                cache: 'no-store'
+            });
+            if (!response.ok) throw new Error('Storage list HTTP ' + response.status);
+            const files = await response.json();
+            const latest = (Array.isArray(files) ? files : []).find(file => {
+                const mime = file && file.metadata && file.metadata.mimetype;
+                return typeof file?.name === 'string' && (!mime || String(mime).startsWith('image/'));
+            });
+            return latest ? SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-images/hero/' + encodeURIComponent(latest.name) : '';
+        }
+
         async function loadCentralCatalog() {
             let remote = null;
             // REST primero: no dependemos del SDK de Supabase para la portada.
@@ -444,14 +472,27 @@
             const heroKey = ['heroImage', 'hero_image', 'imagen_guardada', 'imagenGuardada']
                 .find(key => Object.prototype.hasOwnProperty.call(remote, key));
             const remoteHero = heroKey ? remote[heroKey] : '';
+            const heroDisabled = remote.heroImageDisabled === true;
             db = {
                 ...defaultData,
                 ...remote,
+                heroImageDisabled: heroDisabled,
                 heroImage: typeof remoteHero === 'string' ? remoteHero.trim() : '',
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
-            console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null });
+            if (!db.heroImage && !db.heroImageDisabled) {
+                try {
+                    const latestHero = await findLatestHeroImage();
+                    if (latestHero) {
+                        db.heroImage = latestHero;
+                        console.info('MazWaveTours: portada recuperada directamente desde Storage.', latestHero);
+                    }
+                } catch (storageError) {
+                    console.warn('MazWaveTours: no se pudo consultar la carpeta hero de Storage.', storageError);
+                }
+            }
+            console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null, heroImageDisabled: db.heroImageDisabled === true });
         }
         function cleanLocationReferences(value) {
             if (typeof value === 'string') return value.replace(/Marina\s+Mazatl[aá]n(?:,\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
