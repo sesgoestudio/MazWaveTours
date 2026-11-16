@@ -465,18 +465,48 @@
             updateHeroImagePreview(db.heroImage);
             scheduleAutoPublish();
         }
+        function getHeroStoragePath(publicUrl) {
+            if (!publicUrl) return '';
+            try {
+                const parsed = new URL(publicUrl);
+                const marker = '/storage/v1/object/public/mazwave-images/';
+                const position = parsed.pathname.indexOf(marker);
+                if (position < 0) return '';
+                const path = decodeURIComponent(parsed.pathname.slice(position + marker.length));
+                return path.startsWith('hero/') && !path.includes('..') ? path : '';
+            } catch (_) { return ''; }
+        }
+
         async function clearHeroImage() {
             if (!confirm('¿Quitar la imagen principal del sitio?')) return;
+            if (!supabaseClient) { alert('No hay conexión con Supabase. Inicia sesión nuevamente.'); return; }
+            const status = document.getElementById('saveStatus');
+            const oldPath = getHeroStoragePath(db.heroImage);
             try {
-                const { error } = await supabaseClient.storage.from('mazwave-images').remove(['hero/current']);
-                if (error) throw error;
+                if (typeof publishQueue !== 'undefined') await publishQueue;
                 db.heroImage = '';
                 db.heroImageDisabled = true;
                 document.getElementById('cfgHeroImageUrl').value = '';
                 updateHeroImagePreview('');
-                await publishSiteChanges();
+                const snapshot = JSON.parse(JSON.stringify(db));
+                const { data: savedRow, error: saveError } = await supabaseClient
+                    .from('site_config')
+                    .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+                    .select('data')
+                    .single();
+                if (saveError) throw new Error('No se pudo guardar el cambio: ' + saveError.message);
+                if (!savedRow || !savedRow.data || savedRow.data.heroImage !== '') {
+                    throw new Error('Supabase no confirmó que la portada quedara vacía.');
+                }
+                const paths = [...new Set([oldPath, 'hero/current'].filter(Boolean))];
+                if (paths.length) {
+                    const { error: removeError } = await supabaseClient.storage.from('mazwave-images').remove(paths);
+                    if (removeError) console.warn('La portada quedó desactivada, pero no se pudo limpiar el archivo anterior:', removeError.message);
+                }
+                if (status) status.textContent = 'Portada eliminada y cambio guardado';
             } catch (error) {
-                alert('No se pudo quitar la imagen principal de Storage: ' + (error.message || 'Error desconocido'));
+                if (status) status.textContent = 'No se pudo quitar la portada';
+                alert('No se pudo quitar la portada: ' + (error.message || 'Error desconocido'));
             }
         }
 
@@ -489,34 +519,29 @@
             const status = document.getElementById('saveStatus');
             if (status) status.textContent = 'Preparando sincronización de portada…';
             if (typeof saveTimer !== 'undefined') clearTimeout(saveTimer);
-
             try {
-                // Esperar a que termine cualquier guardado anterior para evitar que
-                // una copia vieja de db sobrescriba la URL que acabamos de subir.
                 if (typeof publishQueue !== 'undefined') await publishQueue;
-
-                if (status) status.textContent = 'Subiendo imagen principal…';
+                const previousPath = getHeroStoragePath(db.heroImage);
+                if (status) status.textContent = 'Subiendo nueva imagen de portada…';
                 const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-                const path = 'hero/current';
+                const path = 'hero/cover-' + Date.now() + '.' + extension;
                 const { data, error } = await supabaseClient.storage.from('mazwave-images')
-                    .upload(path, file, { upsert: true, contentType: file.type });
+                    .upload(path, file, { upsert: false, contentType: file.type, cacheControl: '0' });
                 if (error) throw new Error('Storage: ' + error.message);
-
                 const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
                 const publicUrl = publicData && publicData.publicUrl ? publicData.publicUrl : '';
-                if (!publicUrl || !/^https:\/\//i.test(publicUrl)) throw new Error('Supabase no generó una URL pública válida para la imagen.');
+                if (!publicUrl || !/^https:\/\//i.test(publicUrl)) throw new Error('Supabase no generó una URL pública válida.');
 
-                // La portada se guarda como una operación dedicada, no mezclada con
-                // el guardado automático del resto del catálogo.
                 db.heroImage = publicUrl;
                 db.heroImageDisabled = false;
                 document.getElementById('cfgHeroImageUrl').value = publicUrl;
                 updateHeroImagePreview(publicUrl);
-                if (status) status.textContent = 'Imagen subida; vinculando portada…';
+                if (status) status.textContent = 'Guardando nueva portada…';
 
                 const persistHero = async () => {
                     const snapshot = JSON.parse(JSON.stringify(db));
                     snapshot.heroImage = publicUrl;
+                    snapshot.heroImageDisabled = false;
                     const { data: savedRow, error: saveError } = await supabaseClient
                         .from('site_config')
                         .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' })
@@ -525,19 +550,26 @@
                     if (saveError) throw new Error('site_config: ' + saveError.message);
                     const savedHero = savedRow && savedRow.data && typeof savedRow.data.heroImage === 'string'
                         ? savedRow.data.heroImage.trim() : '';
-                    if (savedHero !== publicUrl) throw new Error('Supabase no confirmó la misma URL de portada que se acaba de subir.');
+                    if (savedHero !== publicUrl || savedRow.data.heroImageDisabled === true) {
+                        throw new Error('Supabase no confirmó la nueva imagen como portada activa.');
+                    }
                     return true;
                 };
-
                 const pending = publishQueue.then(persistHero, persistHero);
                 publishQueue = pending.catch(() => {});
                 await pending;
 
-                if (status) status.textContent = 'Portada guardada y verificada en Supabase';
+                // Solo borrar la anterior DESPUÉS de confirmar que la nueva ya quedó guardada.
+                const obsoletePaths = [...new Set([previousPath, 'hero/current'].filter(path => path && path !== data.path))];
+                if (obsoletePaths.length) {
+                    const { error: cleanupError } = await supabaseClient.storage.from('mazwave-images').remove(obsoletePaths);
+                    if (cleanupError) console.warn('La nueva portada ya está activa; no se pudo borrar algún archivo anterior:', cleanupError.message);
+                }
+                if (status) status.textContent = 'Nueva portada guardada; imagen anterior eliminada';
                 input.value = '';
             } catch (error) {
                 if (status) status.textContent = 'No se pudo sincronizar la portada';
-                alert('La imagen pudo subirse a Storage, pero no se vinculó al index. Detalle: ' + (error.message || 'Error desconocido'));
+                alert('No se pudo guardar la nueva portada. La imagen anterior se conserva. Detalle: ' + (error.message || 'Error desconocido'));
                 input.value = '';
             }
         }
