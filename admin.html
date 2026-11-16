@@ -146,7 +146,7 @@
             container.innerHTML = db.items.map((item, index) => `
                 <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
                     <div class="relative w-24 h-24 flex-shrink-0">
-                        <img src="${item.image}" class="w-full h-full object-cover rounded-xl border border-slate-800">
+                        <img src="${item.image}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">
                         ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
                     </div>
                     <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
@@ -160,6 +160,23 @@
                         <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
                         <textarea rows="3" onchange="updateItemImages(${index}, this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="URLs de fotografías (una por línea)">${(Array.isArray(item.images) && item.images.length ? item.images : [item.image]).filter(Boolean).join('\n')}</textarea>
                         <p class="text-[11px] text-slate-500 lg:col-span-2">Agrega varias direcciones de imagen, una por línea. La primera será la portada y las demás aparecerán en el carrusel.</p>
+                        <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+                            <label class="text-xs text-slate-400">Ajuste de imagen
+                                <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                                    <option value="contain" ${(item.imageView?.fit || 'contain')==='contain'?'selected':''}>Mostrar completa</option>
+                                    <option value="cover" ${(item.imageView?.fit || 'contain')==='cover'?'selected':''}>Llenar el marco</option>
+                                </select>
+                            </label>
+                            <label class="text-xs text-slate-400">Posición horizontal
+                                <input type="range" min="0" max="100" value="${item.imageView?.x ?? 50}" onchange="updateItemView(${index}, 'x', this.value)" class="mt-2 w-full accent-cyan-500">
+                            </label>
+                            <label class="text-xs text-slate-400">Posición vertical
+                                <input type="range" min="0" max="100" value="${item.imageView?.y ?? 50}" onchange="updateItemView(${index}, 'y', this.value)" class="mt-2 w-full accent-cyan-500">
+                            </label>
+                            <label class="text-xs text-slate-400 sm:col-span-3">Zoom
+                                <input type="range" min="100" max="160" step="5" value="${item.imageView?.zoom ?? 100}" onchange="updateItemView(${index}, 'zoom', this.value)" class="mt-2 w-full accent-cyan-500">
+                            </label>
+                        </div>
                         <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
                     </div>
                     <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2">
@@ -178,6 +195,17 @@
             localStorage.setItem('mazwave_db', JSON.stringify(db));
         }
 
+        function getAdminImageStyle(item) {
+            const view = item.imageView || {};
+            return `object-fit:${view.fit || 'contain'};object-position:${view.x ?? 50}% ${view.y ?? 50}%;transform:scale(${(view.zoom ?? 100)/100});`;
+        }
+
+        function updateItemView(index, field, value) {
+            if (!db.items[index].imageView) db.items[index].imageView = {};
+            db.items[index].imageView[field] = field === 'fit' ? value : Number(value);
+            localStorage.setItem('mazwave_db', JSON.stringify(db));
+            renderAdminItems();
+        }
         function updateItemImages(index, rawValue) {
             const images = [...new Set(rawValue.split(/\r?\n/).map(url => url.trim()).filter(url => /^https?:\/\//i.test(url)))];
             db.items[index].images = images;
@@ -429,6 +457,10 @@
             galleryIndexById[itemId] = ((galleryIndexById[itemId] || 0) + direction + images.length) % images.length;
             renderCards(currentlyRenderedItems);
         }
+        function getBoatImageStyle(item) {
+            const view = item.imageView || {};
+            return `object-fit:${view.fit || 'contain'};object-position:${view.x ?? 50}% ${view.y ?? 50}%;transform:scale(${(view.zoom ?? 100)/100});`;
+        }
         function renderCards(itemsToRender) {
             currentlyRenderedItems = itemsToRender;
             const grid = document.getElementById('cardsGrid');
@@ -442,7 +474,7 @@
                 return \`
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col group">
                     <div class="aspect-[4/3] relative overflow-hidden bg-slate-950 flex items-center justify-center">
-                        <img src="\${images[current] || ''}" alt="\${item.name}" loading="lazy" class="w-full h-full object-contain">
+                        <img src="\${images[current] || ''}" alt="\${item.name}" loading="lazy" style="\${getBoatImageStyle(item)}" class="w-full h-full">
                         \${images.length > 1 ? \`
                             <button type="button" onclick="changeBoatImage('\${item.id}', -1)" aria-label="Fotografía anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button>
                             <button type="button" onclick="changeBoatImage('\${item.id}', 1)" aria-label="Siguiente fotografía" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>
