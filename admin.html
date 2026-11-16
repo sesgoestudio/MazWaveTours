@@ -220,6 +220,29 @@
                 const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
                 if (seedError) { alert('Inicio de sesión correcto, pero no se pudo crear la configuración inicial: ' + seedError.message); return; }
             }
+            // Migración automática de la portada anterior al objeto fijo.
+            // Así el index no depende de permisos de lectura sobre site_config.
+            try {
+                const oldHero = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
+                const fixedUrl = 'https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/current';
+                if (oldHero && !oldHero.includes('/hero/current') && !oldHero.includes('photo-1544551763')) {
+                    const imageResponse = await fetch(oldHero, { cache: 'no-store' });
+                    if (!imageResponse.ok) throw new Error('No se pudo leer la portada anterior (' + imageResponse.status + ')');
+                    const imageBlob = await imageResponse.blob();
+                    if (!imageBlob.type.startsWith('image/')) throw new Error('La URL guardada no devolvió una imagen.');
+                    const { error: migrationError } = await supabaseClient.storage.from('mazwave-images')
+                        .upload('hero/current', imageBlob, { upsert: true, contentType: imageBlob.type });
+                    if (migrationError) throw migrationError;
+                    db.heroImage = fixedUrl;
+                    db.heroImageDisabled = false;
+                    const { error: configError } = await supabaseClient.from('site_config')
+                        .upsert({ id: 1, data: db, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+                    if (configError) throw configError;
+                }
+            } catch (migrationError) {
+                console.error('No se pudo migrar automáticamente la portada existente:', migrationError);
+                alert('La sesión inició, pero no se pudo migrar la portada existente al archivo fijo: ' + (migrationError.message || 'Error desconocido'));
+            }
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             loadAdminData();
@@ -443,11 +466,18 @@
             scheduleAutoPublish();
         }
         async function clearHeroImage() {
-            db.heroImage = '';
-            db.heroImageDisabled = true;
-            document.getElementById('cfgHeroImageUrl').value = '';
-            updateHeroImagePreview('');
-            await publishSiteChanges();
+            if (!confirm('¿Quitar la imagen principal del sitio?')) return;
+            try {
+                const { error } = await supabaseClient.storage.from('mazwave-images').remove(['hero/current']);
+                if (error) throw error;
+                db.heroImage = '';
+                db.heroImageDisabled = true;
+                document.getElementById('cfgHeroImageUrl').value = '';
+                updateHeroImagePreview('');
+                await publishSiteChanges();
+            } catch (error) {
+                alert('No se pudo quitar la imagen principal de Storage: ' + (error.message || 'Error desconocido'));
+            }
         }
 
         async function uploadHeroImage(file, input) {
