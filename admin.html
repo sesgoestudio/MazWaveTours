@@ -420,6 +420,7 @@
         }
 
         const galleryIndexById = {};
+        let currentlyRenderedItems = [];
         function changeBoatImage(itemId, direction) {
             const item = itemsData.find(entry => String(entry.id) === String(itemId));
             if (!item) return;
