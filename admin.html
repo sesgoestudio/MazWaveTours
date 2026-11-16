@@ -108,9 +108,18 @@
                     <div class="md:col-span-2 border-t border-slate-800 pt-4">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Imagen principal del inicio (Hero)</label>
                         <div class="flex flex-col sm:flex-row gap-4 items-start">
-                            <div class="w-full sm:w-64 h-32 rounded-xl border border-slate-700 bg-slate-950 flex items-center justify-center overflow-hidden">
-                                <img id="cfgHeroImagePreview" alt="Vista previa de la imagen principal" class="w-full h-full object-cover hidden">
-                                <span id="cfgHeroImageEmpty" class="text-xs text-slate-500 text-center px-3">Sin imagen principal. Sube una desde aquí.</span>
+                            <div class="flex-1 w-full space-y-3">
+                                <div id="cfgHeroPreviewFrame" class="relative w-full h-44 sm:h-56 rounded-xl border border-slate-700 bg-slate-950 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none" onpointerdown="startHeroImageDrag(event)" onpointermove="moveHeroImageDrag(event)" onpointerup="endHeroImageDrag(event)" onpointercancel="endHeroImageDrag(event)">
+                                    <img id="cfgHeroImagePreview" alt="Vista previa de la imagen principal; arrastra para ajustar el encuadre" draggable="false" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
+                                    <span id="cfgHeroImageEmpty" class="text-xs text-slate-500 text-center px-3">Sin imagen principal. Sube una desde aquí.</span>
+                                    <span id="cfgHeroDragHint" class="absolute bottom-2 left-2 rounded-lg bg-slate-950/75 text-white text-[10px] px-2 py-1 hidden pointer-events-none">Arrastra para encuadrar</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <label for="cfgHeroImageZoom" class="text-xs text-slate-400 whitespace-nowrap">Zoom</label>
+                                    <input id="cfgHeroImageZoom" type="range" min="1" max="2.5" step="0.05" value="1" oninput="updateHeroImageZoom(this.value)" class="w-full accent-cyan-400">
+                                    <span id="cfgHeroImageZoomValue" class="text-xs text-slate-400 w-10 text-right">100%</span>
+                                </div>
+                                <button type="button" onclick="resetHeroImagePosition()" class="text-xs text-cyan-300 hover:text-cyan-200">Restablecer encuadre</button>
                             </div>
                             <div class="flex-1 w-full space-y-2">
                                 <label class="block cursor-pointer text-center bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-4 py-3 rounded-xl">Elegir nueva imagen
@@ -236,9 +245,16 @@
             document.getElementById('cfgHeroImageUrl').value = currentHeroImage;
             const heroPreview = document.getElementById('cfgHeroImagePreview');
             const heroEmpty = document.getElementById('cfgHeroImageEmpty');
+            db.heroImagePositionX = Number(db.heroImagePositionX ?? 50);
+            db.heroImagePositionY = Number(db.heroImagePositionY ?? 50);
+            db.heroImageZoom = Number(db.heroImageZoom ?? 1);
             heroPreview.src = currentHeroImage;
             heroPreview.classList.toggle('hidden', !currentHeroImage);
             heroEmpty.classList.toggle('hidden', !!currentHeroImage);
+            applyHeroImagePreview();
+            document.getElementById('cfgHeroImageZoom').value = db.heroImageZoom;
+            document.getElementById('cfgHeroImageZoomValue').textContent = Math.round(db.heroImageZoom * 100) + '%';
+            document.getElementById('cfgHeroDragHint').classList.toggle('hidden', !currentHeroImage);
             renderAdminItems();
         }
 
@@ -362,12 +378,64 @@
             renderAdminItems();
         }
 
+        let heroDragState = null;
+        function applyHeroImagePreview() {
+            const preview = document.getElementById('cfgHeroImagePreview');
+            if (!preview) return;
+            const x = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
+            const y = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
+            const zoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
+            preview.style.objectPosition = x + '% ' + y + '%';
+            preview.style.transform = 'scale(' + zoom + ')';
+            const slider = document.getElementById('cfgHeroImageZoom');
+            const value = document.getElementById('cfgHeroImageZoomValue');
+            if (slider) slider.value = zoom;
+            if (value) value.textContent = Math.round(zoom * 100) + '%';
+        }
         function updateHeroImagePreview(value) {
             const preview = document.getElementById('cfgHeroImagePreview');
             const empty = document.getElementById('cfgHeroImageEmpty');
+            const hint = document.getElementById('cfgHeroDragHint');
             const hasImage = !!value;
             if (preview) { preview.src = value || ''; preview.classList.toggle('hidden', !hasImage); }
             if (empty) empty.classList.toggle('hidden', hasImage);
+            if (hint) hint.classList.toggle('hidden', !hasImage);
+            applyHeroImagePreview();
+        }
+        function startHeroImageDrag(event) {
+            if (!db.heroImage) return;
+            heroDragState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+            event.currentTarget.setPointerCapture(event.pointerId);
+        }
+        function moveHeroImageDrag(event) {
+            if (!heroDragState || heroDragState.pointerId !== event.pointerId) return;
+            const frame = document.getElementById('cfgHeroPreviewFrame');
+            const zoom = Math.max(1, Number(db.heroImageZoom || 1));
+            const rect = frame.getBoundingClientRect();
+            const dx = event.clientX - heroDragState.x;
+            const dy = event.clientY - heroDragState.y;
+            db.heroImagePositionX = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50) - (dx / rect.width) * 100 / zoom));
+            db.heroImagePositionY = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50) - (dy / rect.height) * 100 / zoom));
+            heroDragState.x = event.clientX;
+            heroDragState.y = event.clientY;
+            applyHeroImagePreview();
+        }
+        function endHeroImageDrag(event) {
+            if (!heroDragState) return;
+            heroDragState = null;
+            scheduleAutoPublish();
+        }
+        function updateHeroImageZoom(value) {
+            db.heroImageZoom = Math.max(1, Math.min(2.5, Number(value) || 1));
+            applyHeroImagePreview();
+            scheduleAutoPublish();
+        }
+        function resetHeroImagePosition() {
+            db.heroImagePositionX = 50;
+            db.heroImagePositionY = 50;
+            db.heroImageZoom = 1;
+            applyHeroImagePreview();
+            scheduleAutoPublish();
         }
         function updateHeroImageUrl(value) {
             db.heroImage = value.trim();

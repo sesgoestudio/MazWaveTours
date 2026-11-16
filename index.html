@@ -445,12 +445,15 @@
                 // Ignorar la antigua fotografía predeterminada del buzo, incluso si quedó guardada en Supabase.
                 const heroImage = storedHeroImage.includes('photo-1544551763-46a013bb70d5') ? '' : storedHeroImage;
                 const safeHeroImage = heroImage.replace(/["\\\\\n\r]/g, '');
+                const heroX = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
+                const heroY = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
+                const heroZoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
                 hero.style.backgroundColor = '#0b1d3a';
                 hero.style.backgroundImage = heroImage
                     ? `linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url("${safeHeroImage}")`
                     : 'linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9))';
-                hero.style.backgroundSize = 'cover';
-                hero.style.backgroundPosition = 'center';
+                hero.style.backgroundSize = heroImage && heroZoom > 1 ? `${heroZoom * 100}% auto` : 'cover';
+                hero.style.backgroundPosition = `${heroX}% ${heroY}%`;
             }
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
