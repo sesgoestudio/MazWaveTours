@@ -514,18 +514,51 @@
         }
 
         let saveTimer = null;
+        let publishQueue = Promise.resolve();
         function scheduleAutoPublish() {
             clearTimeout(saveTimer);
-            saveTimer = setTimeout(publishSiteChanges, 900);
+            saveTimer = setTimeout(() => { publishSiteChanges(); }, 900);
         }
         async function publishSiteChanges() {
             const button = document.querySelector('button[onclick="publishSiteChanges()"]');
-            if (button) { button.disabled = true; button.querySelector('span').textContent = 'Guardando…'; }
-            const { error } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
-            if (button) { button.disabled = false; button.querySelector('span').textContent = 'Guardar y publicar'; }
-            if (error) { alert('No se pudieron guardar los cambios: ' + error.message); return; }
             const status = document.getElementById('saveStatus');
-            if (status) status.textContent = 'Guardado en la nube';
+            const buttonLabel = button ? button.querySelector('span') : null;
+            const snapshot = JSON.parse(JSON.stringify(db));
+            const expectedHero = typeof snapshot.heroImage === 'string' ? snapshot.heroImage.trim() : '';
+            if (button) button.disabled = true;
+            if (buttonLabel) buttonLabel.textContent = 'Guardando…';
+            if (status) status.textContent = 'Guardando cambios en Supabase…';
+
+            const saveTask = async () => {
+                const { data, error } = await supabaseClient
+                    .from('site_config')
+                    .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+                    .select('id,data,updated_at')
+                    .single();
+                if (error) throw error;
+
+                const savedData = data && data.data && typeof data.data === 'object' ? data.data : {};
+                const savedHero = typeof savedData.heroImage === 'string' ? savedData.heroImage.trim() : '';
+                if (savedHero !== expectedHero) {
+                    throw new Error('Supabase no confirmó la URL de la imagen principal. La imagen puede estar en Storage, pero no quedó vinculada a la portada.');
+                }
+                return data;
+            };
+
+            const pendingSave = publishQueue.then(saveTask, saveTask);
+            publishQueue = pendingSave.catch(() => {});
+            try {
+                await pendingSave;
+                if (status) status.textContent = expectedHero ? 'Imagen y configuración confirmadas en Supabase' : 'Cambios confirmados en Supabase';
+                return true;
+            } catch (error) {
+                if (status) status.textContent = 'No se confirmó el guardado en Supabase';
+                alert('No se pudieron confirmar los cambios en site_config: ' + (error.message || 'Error desconocido') + '. La imagen subida puede seguir en Storage, pero la portada no cambiará hasta guardar su URL.');
+                return false;
+            } finally {
+                if (button) button.disabled = false;
+                if (buttonLabel) buttonLabel.textContent = 'Guardar y publicar';
+            }
         }
         function updateGeneralField(field, value) { db[field] = value; scheduleAutoPublish(); }
         document.getElementById('adminPassInput').addEventListener('keydown', function(event) { if (event.key === 'Enter') checkLogin(); });
