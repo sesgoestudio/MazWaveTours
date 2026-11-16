@@ -296,6 +296,10 @@
 
         const galleryIndexById = {};
         let currentlyRenderedItems = [];
+        function getBoatImageStyle(item) {
+            const view = item.imageView || {};
+            return `object-fit:${view.fit || 'contain'};object-position:${view.x ?? 50}% ${view.y ?? 50}%;transform:scale(${(view.zoom ?? 100)/100});`;
+        }
         function getItemImages(item) {
             const list = Array.isArray(item.images) ? item.images.filter(Boolean) : [];
             return list.length ? list : (item.image ? [item.image] : []);
@@ -321,7 +325,7 @@
                 return `
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition flex flex-col group">
                     <div class="aspect-[4/3] relative overflow-hidden bg-slate-950 flex items-center justify-center">
-                        <img src="${images[current] || ''}" alt="${item.name}" loading="lazy" class="w-full h-full object-contain">
+                        <img src="${images[current] || ''}" alt="${item.name}" loading="lazy" style="${getBoatImageStyle(item)}" class="w-full h-full">
                         ${images.length > 1 ? `
                             <button type="button" onclick="changeBoatImage('${item.id}', -1)" aria-label="Fotografía anterior de ${item.name}" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20 hover:bg-cyan-500 hover:text-slate-950">‹</button>
                             <button type="button" onclick="changeBoatImage('${item.id}', 1)" aria-label="Siguiente fotografía de ${item.name}" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-950/80 text-white border border-white/20 hover:bg-cyan-500 hover:text-slate-950">›</button>
