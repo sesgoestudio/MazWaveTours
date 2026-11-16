@@ -444,6 +444,7 @@
         }
         async function clearHeroImage() {
             db.heroImage = '';
+            db.heroImageDisabled = true;
             document.getElementById('cfgHeroImageUrl').value = '';
             updateHeroImagePreview('');
             await publishSiteChanges();
@@ -478,6 +479,7 @@
                 // La portada se guarda como una operación dedicada, no mezclada con
                 // el guardado automático del resto del catálogo.
                 db.heroImage = publicUrl;
+                db.heroImageDisabled = false;
                 document.getElementById('cfgHeroImageUrl').value = publicUrl;
                 updateHeroImagePreview(publicUrl);
                 if (status) status.textContent = 'Imagen subida; vinculando portada…';
