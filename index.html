@@ -7,7 +7,7 @@
     <meta name="description" content="Vive Mazatlán con MazWaveTours: avistamiento de ballenas, renta de yates y trimaranes, y clases de surf. Conoce experiencias, compara opciones y cotiza por WhatsApp.">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="https://sesgoestudio.github.io/MazWaveTours/">
-    <meta name="theme-color" content="#F8F7F4">
+    <meta name="theme-color" content="#020617">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="MazWaveTours">
     <meta property="og:url" content="https://sesgoestudio.github.io/MazWaveTours/">
@@ -70,22 +70,6 @@
       ]
     }
     </script>
-    <script>
-        tailwind.config = {
-            theme: { extend: { colors: {
-                bone: '#F8F7F4',
-                'bone-muted': '#F0EFE9',
-                'bone-border': '#D8D9D1',
-                charcoal: '#222222',
-                forest: '#2C3E35',
-                olive: '#5B7065',
-                'olive-dark': '#43594D',
-                'olive-soft': '#DCE4DE',
-                butter: '#E6C547',
-                'butter-dark': '#D5B63C'
-            } } }
-        };
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -105,17 +89,14 @@
             #splashScreen, #splashScreen * { animation: none !important; transition: none !important; }
         }
 
-        .hero-bg #heroTitle { color: #FFFFFF !important; }
-        .hero-bg #heroSubtitle { color: #F8F7F4 !important; }
-        .hero-bg > div > span { color: #E6E8E2 !important; }
         .hero-bg {
-            background: linear-gradient(to bottom, rgba(44, 62, 53, 0.42), rgba(44, 62, 53, 0.88)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
+            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
         }
 
         /* Scroll más fluido y animaciones discretas al entrar en pantalla */
-        #scrollProgress { position: fixed; inset: 0 auto auto 0; height: 3px; width: 0; z-index: 100; pointer-events: none; background: linear-gradient(90deg,#5B7065,#E6C547); box-shadow: 0 0 10px rgba(91,112,101,.35); transform-origin: left; }
+        #scrollProgress { position: fixed; inset: 0 auto auto 0; height: 3px; width: 0; z-index: 100; pointer-events: none; background: linear-gradient(90deg,#06b6d4,#fbbf24); box-shadow: 0 0 10px rgba(6,182,212,.45); transform-origin: left; }
         .scroll-reveal { opacity: 0; transform: translate3d(0,22px,0); transition: opacity .65s ease, transform .65s cubic-bezier(.2,.7,.2,1); }
         .scroll-reveal.is-visible { opacity: 1; transform: translate3d(0,0,0); }
         @media (max-width: 640px) { .scroll-reveal { transform: translate3d(0,14px,0); transition-duration: .5s; } }
@@ -133,26 +114,26 @@
 
     </style>
 </head>
-<body class="bg-bone text-charcoal min-h-screen flex flex-col selection:bg-olive selection:text-bone pb-20 md:pb-0">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
 
     <!-- Intro breve: aparece y da paso al sitio automáticamente -->
-    <div id="splashScreen" aria-label="MazWaveTours" class="fixed inset-0 z-50 bg-bone flex items-center justify-center transition-opacity duration-300 ease-out">
+    <div id="splashScreen" aria-label="MazWaveTours" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center transition-opacity duration-300 ease-out">
         <div class="text-center px-4 animate-[introReveal_550ms_ease-out_both]">
             <img src="logo-mazwave.png" alt="Maz Wave Tours" class="w-72 md:w-96 h-32 md:h-40 object-contain mx-auto mb-4 drop-shadow-xl">
-            <h1 class="text-2xl md:text-4xl font-extrabold tracking-[.12em] text-charcoal">MAZ WAVE TOURS</h1>
-            <p id="splashSlogan" class="text-olive-dark text-sm md:text-base mt-2">Haciendo de Mazatlán tu paraíso marítimo</p>
+            <h1 class="text-2xl md:text-4xl font-extrabold tracking-[.12em] text-white">MAZ WAVE TOURS</h1>
+            <p id="splashSlogan" class="text-cyan-300 text-sm md:text-base mt-2">Haciendo de Mazatlán tu paraíso marítimo</p>
         </div>
     </div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-40 bg-bone-muted/80 backdrop-blur-xl border-b border-bone-border">
+    <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-3 sm:px-4 h-16 sm:h-20 flex items-center justify-between overflow-visible gap-2">
             <div class="flex items-center space-x-3">
                 <img src="logo-mazwave.png" alt="Maz Wave Tours" class="w-40 sm:w-64 h-16 sm:h-24 object-contain object-left max-w-none">
             </div>
             <div class="flex items-center space-x-3">
-                <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" aria-label="Instagram MazWaveTours" class="text-olive hover:text-olive transition text-xl p-2"><i class="fa-brands fa-instagram"></i></a>
-                <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook MazWaveTours" class="text-olive hover:text-olive transition text-xl p-2"><i class="fa-brands fa-facebook"></i></a>
+                <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" aria-label="Instagram MazWaveTours" class="text-slate-400 hover:text-cyan-400 transition text-xl p-2"><i class="fa-brands fa-instagram"></i></a>
+                <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook MazWaveTours" class="text-slate-400 hover:text-blue-400 transition text-xl p-2"><i class="fa-brands fa-facebook"></i></a>
             </div>
         </div>
     </header>
@@ -160,13 +141,13 @@
     <!-- Hero Section -->
     <section class="hero-bg py-16 sm:py-20 md:py-36 px-4 text-center relative overflow-hidden">
         <div class="max-w-4xl mx-auto relative z-10">
-            <span class="inline-block bg-olive/20 border border-olive/30 text-olive-dark text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
-            <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-charcoal tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
-            <p id="heroSubtitle" class="text-sm sm:text-base md:text-xl text-forest max-w-2xl mx-auto mb-7 md:mb-10 leading-relaxed">Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.</p>
+            <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
+            <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
+            <p id="heroSubtitle" class="text-sm sm:text-base md:text-xl text-slate-300 max-w-2xl mx-auto mb-7 md:mb-10 leading-relaxed">Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#catalogo" class="bg-butter hover:bg-butter-dark text-slate-950 font-bold px-8 py-4 rounded-2xl shadow-xl shadow-olive/20 transition transform hover:-translate-y-0.5">Ver Embarcaciones</a>
-                <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" rel="noopener noreferrer" class="bg-bone-muted/90 hover:bg-bone-border text-charcoal font-semibold px-8 py-4 rounded-2xl border border-bone-border transition flex items-center justify-center space-x-2">
-                    <i class="fa-brands fa-whatsapp text-olive text-xl"></i>
+                <a href="#catalogo" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-8 py-4 rounded-2xl shadow-xl shadow-cyan-500/20 transition transform hover:-translate-y-0.5">Ver Embarcaciones</a>
+                <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" rel="noopener noreferrer" class="bg-slate-900/90 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-2xl border border-slate-700 transition flex items-center justify-center space-x-2">
+                    <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
                     <span>Cotizar por WhatsApp</span>
                 </a>
             </div>
@@ -191,18 +172,18 @@
 
     <!-- Seasonal Section -->
     <section id="seasonalSection" class="max-w-7xl mx-auto px-4 -mt-10 relative z-20 mb-12">
-        <div class="bg-gradient-to-r from-butter/10 via-bone-muted to-butter/10 border border-butter/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
+        <div class="bg-gradient-to-r from-amber-500/10 via-slate-900 to-amber-500/10 border border-amber-500/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-butter/20 border border-butter rounded-xl flex items-center justify-center text-olive-dark">
+                    <div class="w-10 h-10 bg-amber-500/20 border border-amber-400 rounded-xl flex items-center justify-center text-amber-400">
                         <i class="fa-solid fa-fire text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-charcoal">En temporada: avistamiento de ballenas</h2>
-                        <p class="text-xs text-olive-dark">Una experiencia especial del Pacífico de Mazatlán</p>
+                        <h2 class="text-xl font-bold text-white">En temporada: avistamiento de ballenas</h2>
+                        <p class="text-xs text-amber-300">Una experiencia especial del Pacífico de Mazatlán</p>
                     </div>
                 </div>
-                <span class="inline-flex w-full sm:w-auto items-center justify-center gap-2 self-stretch sm:self-auto rounded-full bg-butter text-slate-950 text-[10px] sm:text-[11px] text-center leading-tight font-black uppercase tracking-wide sm:tracking-wider px-3 sm:px-4 py-2 shadow-lg shadow-olive/20"><i class="fa-solid fa-star shrink-0"></i><span>Experiencia de temporada</span></span>
+                <span class="inline-flex w-full sm:w-auto items-center justify-center gap-2 self-stretch sm:self-auto rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] text-center leading-tight font-black uppercase tracking-wide sm:tracking-wider px-3 sm:px-4 py-2 shadow-lg shadow-amber-500/20"><i class="fa-solid fa-star shrink-0"></i><span>Experiencia de temporada</span></span>
             </div>
             <div id="seasonalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -211,74 +192,74 @@
 
     <!-- Booking guide / conversion section -->
     <section class="max-w-7xl mx-auto px-4 py-10" aria-labelledby="bookingGuideTitle">
-        <div class="rounded-3xl border border-bone-border bg-bone-muted/70 p-5 sm:p-7 md:p-10">
+        <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 sm:p-7 md:p-10">
             <div class="max-w-2xl mb-8">
-                <span class="text-olive text-xs font-bold uppercase tracking-[.2em]">Tu experiencia comienza aquí</span>
-                <h2 id="bookingGuideTitle" class="text-2xl md:text-3xl font-extrabold text-charcoal mt-2">Encuentra el plan ideal para tu día en el mar</h2>
-                <p class="text-olive mt-3 leading-relaxed">Explora las opciones disponibles y cuéntanos qué tienes en mente. Te ayudamos a elegir la experiencia que mejor se adapte a tu grupo.</p>
+                <span class="text-cyan-400 text-xs font-bold uppercase tracking-[.2em]">Tu experiencia comienza aquí</span>
+                <h2 id="bookingGuideTitle" class="text-2xl md:text-3xl font-extrabold text-white mt-2">Encuentra el plan ideal para tu día en el mar</h2>
+                <p class="text-slate-400 mt-3 leading-relaxed">Explora las opciones disponibles y cuéntanos qué tienes en mente. Te ayudamos a elegir la experiencia que mejor se adapte a tu grupo.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <article class="rounded-2xl bg-bone/80 border border-bone-border p-5">
-                    <div class="w-10 h-10 rounded-xl bg-olive/10 text-olive flex items-center justify-center mb-4"><i class="fa-solid fa-compass"></i></div>
-                    <h3 class="font-bold text-charcoal mb-2">1. Explora la flota</h3>
-                    <p class="text-sm text-olive">Compara embarcaciones, capacidad y precios publicados en el catálogo.</p>
+                <article class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4"><i class="fa-solid fa-compass"></i></div>
+                    <h3 class="font-bold text-white mb-2">1. Explora la flota</h3>
+                    <p class="text-sm text-slate-400">Compara embarcaciones, capacidad y precios publicados en el catálogo.</p>
                 </article>
-                <article class="rounded-2xl bg-bone/80 border border-bone-border p-5">
-                    <div class="w-10 h-10 rounded-xl bg-olive/10 text-olive flex items-center justify-center mb-4"><i class="fa-solid fa-calendar-check"></i></div>
-                    <h3 class="font-bold text-charcoal mb-2">2. Cuéntanos tu plan</h3>
-                    <p class="text-sm text-olive">Indica fecha tentativa, número de personas y la experiencia que buscas.</p>
+                <article class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3 class="font-bold text-white mb-2">2. Cuéntanos tu plan</h3>
+                    <p class="text-sm text-slate-400">Indica fecha tentativa, número de personas y la experiencia que buscas.</p>
                 </article>
-                <article class="rounded-2xl bg-bone/80 border border-bone-border p-5">
-                    <div class="w-10 h-10 rounded-xl bg-olive/10 text-olive flex items-center justify-center mb-4"><i class="fa-brands fa-whatsapp"></i></div>
-                    <h3 class="font-bold text-charcoal mb-2">3. Confirma por WhatsApp</h3>
-                    <p class="text-sm text-olive">Recibe atención directa para revisar disponibilidad, detalles y condiciones.</p>
+                <article class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4"><i class="fa-brands fa-whatsapp"></i></div>
+                    <h3 class="font-bold text-white mb-2">3. Confirma por WhatsApp</h3>
+                    <p class="text-sm text-slate-400">Recibe atención directa para revisar disponibilidad, detalles y condiciones.</p>
                 </article>
             </div>
-            <div class="mt-7 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-bone-border pt-6">
-                <p class="text-xs text-olive">La disponibilidad y las condiciones se confirman directamente al cotizar.</p>
-                <a href="https://wa.me/526693285696?text=Hola%20MazWaveTours%2C%20quiero%20ayuda%20para%20elegir%20una%20experiencia." target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto text-center bg-butter hover:bg-butter-dark text-charcoal font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-olive/20"><i class="fa-brands fa-whatsapp mr-2"></i>Ayúdame a elegir</a>
+            <div class="mt-7 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800 pt-6">
+                <p class="text-xs text-slate-500">La disponibilidad y las condiciones se confirman directamente al cotizar.</p>
+                <a href="https://wa.me/526693285696?text=Hola%20MazWaveTours%2C%20quiero%20ayuda%20para%20elegir%20una%20experiencia." target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto text-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-600/20"><i class="fa-brands fa-whatsapp mr-2"></i>Ayúdame a elegir</a>
             </div>
         </div>
     </section>
 
     <!-- Catálogo Completo -->
     <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 py-12 w-full">
-        <section class="mb-8 rounded-3xl border border-olive/20 bg-gradient-to-br from-bone-muted via-bone-muted to-olive-soft/40 p-5 md:p-7" aria-label="Categorías del catálogo">
+        <section class="mb-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/40 p-5 md:p-7" aria-label="Categorías del catálogo">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
                 <div>
-                    <span class="text-olive text-[11px] font-extrabold uppercase tracking-[.22em]">Explora Mazatlán</span>
-                    <h2 class="text-xl md:text-2xl font-extrabold text-charcoal mt-1">¿Qué experiencia estás buscando?</h2>
+                    <span class="text-cyan-400 text-[11px] font-extrabold uppercase tracking-[.22em]">Explora Mazatlán</span>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-white mt-1">¿Qué experiencia estás buscando?</h2>
                 </div>
-                <p class="text-xs text-olive">Elige una categoría para ver sus opciones</p>
+                <p class="text-xs text-slate-400">Elige una categoría para ver sus opciones</p>
             </div>
             <div id="categoryNav" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                <button type="button" data-category="all" onclick="setCategory('all')" class="category-chip col-span-2 sm:col-span-1 text-left rounded-2xl border border-olive bg-olive/15 p-3 sm:p-4 transition hover:-translate-y-0.5">
-                    <span class="flex items-center justify-between"><i class="fa-solid fa-compass text-olive-dark text-xl"></i><span id="count-all" class="text-xs font-bold text-olive-dark">24 opciones</span></span>
-                    <span class="block text-charcoal font-bold mt-3">Todas las experiencias</span><span class="block text-xs text-olive mt-1">Explora el catálogo completo</span>
+                <button type="button" data-category="all" onclick="setCategory('all')" class="category-chip col-span-2 sm:col-span-1 text-left rounded-2xl border border-cyan-400 bg-cyan-500/15 p-3 sm:p-4 transition hover:-translate-y-0.5">
+                    <span class="flex items-center justify-between"><i class="fa-solid fa-compass text-cyan-300 text-xl"></i><span id="count-all" class="text-xs font-bold text-cyan-200">24 opciones</span></span>
+                    <span class="block text-white font-bold mt-3">Todas las experiencias</span><span class="block text-xs text-slate-400 mt-1">Explora el catálogo completo</span>
                 </button>
-                <button type="button" data-category="trimaran" onclick="setCategory('trimaran')" class="category-chip text-left rounded-2xl border border-bone-border bg-bone/70 p-3 sm:p-4 transition hover:border-olive hover:-translate-y-0.5">
-                    <span class="flex items-center justify-between"><i class="fa-solid fa-sailboat text-olive-dark text-xl"></i><span id="count-trimaran" class="text-xs font-bold text-olive-dark">17 opciones</span></span>
-                    <span class="block text-charcoal font-bold mt-3">Trimaranes</span><span class="block text-xs text-olive mt-1">Para grupos y celebraciones</span>
+                <button type="button" data-category="trimaran" onclick="setCategory('trimaran')" class="category-chip text-left rounded-2xl border border-slate-700 bg-slate-950/70 p-3 sm:p-4 transition hover:border-cyan-400 hover:-translate-y-0.5">
+                    <span class="flex items-center justify-between"><i class="fa-solid fa-sailboat text-cyan-300 text-xl"></i><span id="count-trimaran" class="text-xs font-bold text-cyan-200">17 opciones</span></span>
+                    <span class="block text-white font-bold mt-3">Trimaranes</span><span class="block text-xs text-slate-400 mt-1">Para grupos y celebraciones</span>
                 </button>
-                <button type="button" data-category="yate" onclick="setCategory('yate')" class="category-chip text-left rounded-2xl border border-bone-border bg-bone/70 p-4 transition hover:border-olive hover:-translate-y-0.5">
-                    <span class="flex items-center justify-between"><i class="fa-solid fa-ship text-olive-dark text-xl"></i><span id="count-yate" class="text-xs font-bold text-olive-dark">5 opciones</span></span>
-                    <span class="block text-charcoal font-bold mt-3">Yates y lanchas</span><span class="block text-xs text-olive mt-1">Paseos privados y exclusivos</span>
+                <button type="button" data-category="yate" onclick="setCategory('yate')" class="category-chip text-left rounded-2xl border border-slate-700 bg-slate-950/70 p-4 transition hover:border-cyan-400 hover:-translate-y-0.5">
+                    <span class="flex items-center justify-between"><i class="fa-solid fa-ship text-cyan-300 text-xl"></i><span id="count-yate" class="text-xs font-bold text-cyan-200">5 opciones</span></span>
+                    <span class="block text-white font-bold mt-3">Yates y lanchas</span><span class="block text-xs text-slate-400 mt-1">Paseos privados y exclusivos</span>
                 </button>
-                <button type="button" data-category="tour" onclick="setCategory('tour')" class="category-chip text-left rounded-2xl border border-bone-border bg-bone/70 p-4 transition hover:border-olive hover:-translate-y-0.5 sm:col-span-3 sm:flex sm:items-center sm:gap-4">
-                    <span class="flex items-center justify-between sm:gap-5"><i class="fa-solid fa-water text-olive-dark text-xl"></i><span id="count-tour" class="text-xs font-bold text-olive-dark">2 opciones</span></span>
-                    <span><span class="block text-charcoal font-bold mt-3 sm:mt-0">Tours y experiencias</span><span class="block text-xs text-olive mt-1">Ballenas, surf y aventuras en el Pacífico</span></span>
+                <button type="button" data-category="tour" onclick="setCategory('tour')" class="category-chip text-left rounded-2xl border border-slate-700 bg-slate-950/70 p-4 transition hover:border-cyan-400 hover:-translate-y-0.5 sm:col-span-3 sm:flex sm:items-center sm:gap-4">
+                    <span class="flex items-center justify-between sm:gap-5"><i class="fa-solid fa-water text-cyan-300 text-xl"></i><span id="count-tour" class="text-xs font-bold text-cyan-200">2 opciones</span></span>
+                    <span><span class="block text-white font-bold mt-3 sm:mt-0">Tours y experiencias</span><span class="block text-xs text-slate-400 mt-1">Ballenas, surf y aventuras en el Pacífico</span></span>
                 </button>
             </div>
         </section>
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-7 sm:mb-10 gap-4">
             <div>
-                <h2 class="text-2xl sm:text-3xl font-bold text-charcoal tracking-tight">Nuestra Flota y Experiencias</h2>
-                <p class="text-olive mt-1 text-sm">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
+                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Nuestra Flota y Experiencias</h2>
+                <p class="text-slate-400 mt-1 text-sm">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="relative">
-                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-olive"></i>
-                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar yate, trimarán..." class="bg-bone-muted border border-bone-border text-charcoal text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-olive w-full sm:w-64 transition">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-500"></i>
+                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar yate, trimarán..." class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-cyan-500 w-full sm:w-64 transition">
                 </div>
                 <select id="categoryFilter" onchange="filterItems()" aria-label="Filtrar por categoría" class="sr-only">
                     <option value="all">Todas las categorías</option><option value="trimaran">Trimaranes</option><option value="yate">Yates y Lanchas</option><option value="tour">Tours y Experiencias</option>
@@ -289,38 +270,38 @@
         <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"></div>
     </main>
 
-    <div id="detailModal" class="fixed inset-0 z-[60] bg-bone/90 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5" onclick="if(event.target===this)closeDetail()">
-        <div class="bg-bone-muted border border-bone-border rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative">
-            <button type="button" onclick="closeDetail()" aria-label="Cerrar" class="sticky top-3 float-right mr-3 z-10 bg-bone/80 text-charcoal rounded-full w-10 h-10 text-xl">×</button>
+    <div id="detailModal" class="fixed inset-0 z-[60] bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5" onclick="if(event.target===this)closeDetail()">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative">
+            <button type="button" onclick="closeDetail()" aria-label="Cerrar" class="sticky top-3 float-right mr-3 z-10 bg-slate-950/80 text-white rounded-full w-10 h-10 text-xl">×</button>
             <div id="detailContent" class="clear-both"></div>
         </div>
     </div>
     <!-- Modal Reserva WhatsApp -->
-    <div id="bookingModal" class="fixed inset-0 z-50 bg-bone/80 backdrop-blur-md hidden items-center justify-center p-4">
-        <div class="booking-modal-card bg-bone-muted border border-bone-border rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
-            <button onclick="closeModal()" class="absolute top-5 right-5 text-olive hover:text-charcoal text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
-            <h3 id="modalTitle" class="text-xl font-bold text-charcoal mb-1">Reservar Experiencia</h3>
-            <p class="text-olive text-xs mb-6">Completa tus datos para coordinar la salida por WhatsApp.</p>
+    <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="booking-modal-card bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="modalTitle" class="text-xl font-bold text-white mb-1">Reservar Experiencia</h3>
+            <p class="text-slate-400 text-xs mb-6">Completa tus datos para coordinar la salida por WhatsApp.</p>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1">Tu Nombre</label>
-                    <input type="text" id="clientName" required minlength="2" maxlength="120" autocomplete="name" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-olive transition" placeholder="Ej. Carlos Mendoza">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tu Nombre</label>
+                    <input type="text" id="clientName" required minlength="2" maxlength="120" autocomplete="name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="Ej. Carlos Mendoza">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="min-w-0">
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1">Fecha Tentativa</label>
-                        <input type="date" id="clientDate" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-olive transition">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Fecha Tentativa</label>
+                        <input type="date" id="clientDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
                     <div class="min-w-0 w-full">
-                        <label for="clientGuests" class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1">Número de personas</label>
-                        <input type="number" id="clientGuests" min="1" max="100" step="1" required value="6" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-olive transition">
+                        <label for="clientGuests" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Número de personas</label>
+                        <input type="number" id="clientGuests" min="1" max="100" step="1" required value="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-olive mb-1">Comentarios o Dudas</label>
-                    <textarea id="clientNotes" rows="2" class="w-full bg-bone border border-bone-border rounded-xl px-4 py-3 text-charcoal text-sm focus:outline-none focus:border-olive transition" placeholder="¿Algún requerimiento especial?"></textarea>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Comentarios o Dudas</label>
+                    <textarea id="clientNotes" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition" placeholder="¿Algún requerimiento especial?"></textarea>
                 </div>
-                <button onclick="sendWhatsAppReservation()" class="w-full bg-butter hover:bg-butter-dark text-charcoal font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-olive/20 active:scale-[0.98]">
+                <button onclick="sendWhatsAppReservation()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 active:scale-[0.98]">
                     <i class="fa-brands fa-whatsapp text-xl"></i>
                     <span>Enviar Solicitud por WhatsApp</span>
                 </button>
@@ -329,28 +310,28 @@
     </div>
 
     <!-- Mobile Sticky Bar -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bone-muted/95 backdrop-blur-lg border-t border-bone-border p-3 flex items-center justify-around">
-        <a href="#catalogo" class="text-xs text-forest flex flex-col items-center"><i class="fa-solid fa-sailboat text-olive text-base mb-0.5"></i> Flota</a>
-        <a id="mobileWpBar" href="https://wa.me/526693285696" target="_blank" class="bg-butter text-charcoal text-xs font-bold px-6 py-2.5 rounded-full flex items-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Cotizar Rápido</span></a>
-        <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" class="text-[11px] text-forest flex flex-col items-center"><i class="fa-brands fa-instagram text-olive text-base mb-0.5"></i> Instagram</a>
-        <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="text-[11px] text-forest flex flex-col items-center"><i class="fa-brands fa-facebook text-olive text-base mb-0.5"></i> Facebook</a>
+    <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 p-3 flex items-center justify-around">
+        <a href="#catalogo" class="text-xs text-slate-300 flex flex-col items-center"><i class="fa-solid fa-sailboat text-cyan-400 text-base mb-0.5"></i> Flota</a>
+        <a id="mobileWpBar" href="https://wa.me/526693285696" target="_blank" class="bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-full flex items-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Cotizar Rápido</span></a>
+        <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" class="text-[11px] text-slate-300 flex flex-col items-center"><i class="fa-brands fa-instagram text-cyan-400 text-base mb-0.5"></i> Instagram</a>
+        <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="text-[11px] text-slate-300 flex flex-col items-center"><i class="fa-brands fa-facebook text-blue-400 text-base mb-0.5"></i> Facebook</a>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-bone-muted border-t border-bone-border py-12 px-4 mt-20">
+    <footer class="bg-slate-900 border-t border-slate-800 py-12 px-4 mt-20">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
             <div>
-                <span class="text-lg font-bold text-charcoal">MazWaveTours</span>
-                <p class="text-olive text-sm mt-1">Mazatlán, Sinaloa, México.</p>
+                <span class="text-lg font-bold text-white">MazWaveTours</span>
+                <p class="text-slate-400 text-sm mt-1">Mazatlán, Sinaloa, México.</p>
             </div>
-            <div class="flex items-center space-x-6 text-olive">
-                <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" aria-label="Instagram MazWaveTours" class="hover:text-olive text-xl transition"><i class="fa-brands fa-instagram"></i></a>
-                <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook MazWaveTours" class="hover:text-olive text-xl transition"><i class="fa-brands fa-facebook"></i></a>
-                <a id="footerWp" href="https://wa.me/526693285696" target="_blank" class="hover:text-olive text-xl transition"><i class="fa-brands fa-whatsapp"></i></a>
-                <a href="mailto:mazwavetours@gmail.com" aria-label="Correo electrónico MazWaveTours" class="hover:text-olive text-sm transition">mazwavetours@gmail.com</a>
+            <div class="flex items-center space-x-6 text-slate-400">
+                <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" aria-label="Instagram MazWaveTours" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-instagram"></i></a>
+                <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook MazWaveTours" class="hover:text-blue-400 text-xl transition"><i class="fa-brands fa-facebook"></i></a>
+                <a id="footerWp" href="https://wa.me/526693285696" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-whatsapp"></i></a>
+                <a href="mailto:mazwavetours@gmail.com" aria-label="Correo electrónico MazWaveTours" class="hover:text-cyan-400 text-sm transition">mazwavetours@gmail.com</a>
             </div>
-            <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-olive"><a href="terminos.html" class="hover:text-olive-dark">Términos y condiciones</a><span aria-hidden="true">·</span><span class="text-olive">© 2026 MazWaveTours. Todos los derechos reservados.</span></div>
-            <div class="flex items-center gap-3"><a href="admin.html" aria-label="Acceso de administración" title="Administración" class="text-olive-dark/60 hover:text-olive text-[10px] p-1 transition opacity-50 hover:opacity-100 focus:opacity-100"><i class="fa-solid fa-lock"></i></a></div>
+            <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400"><a href="terminos.html" class="hover:text-cyan-300">Términos y condiciones</a><span aria-hidden="true">·</span><span class="text-slate-500">© 2026 MazWaveTours. Todos los derechos reservados.</span></div>
+            <div class="flex items-center gap-3"><a href="admin.html" aria-label="Acceso de administración" title="Administración" class="text-slate-600/60 hover:text-slate-400 text-[10px] p-1 transition opacity-50 hover:opacity-100 focus:opacity-100"><i class="fa-solid fa-lock"></i></a></div>
         </div>
     </footer>
 
@@ -485,19 +466,19 @@
 
             section.classList.remove('hidden');
             grid.innerHTML = seasonalItems.map(item => `
-                <div class="${/ballena/i.test(item.name) ? 'bg-bone border-2 border-butter ring-2 ring-butter/20' : 'bg-bone/80 border border-butter/30'} rounded-2xl overflow-hidden shadow-xl hover:border-butter/60 transition flex flex-col group ${/ballena/i.test(item.name) ? 'md:col-span-2 lg:col-span-2' : ''}">
-                    <div class="w-full aspect-[16/9] sm:aspect-[2/1] relative overflow-hidden bg-bone flex items-center justify-center">
-                        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" class="block max-w-full max-h-full w-auto h-auto object-contain object-center mx-auto my-auto">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-bone-muted via-olive-soft to-bone text-olive-dark"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
-                        <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-butter text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
-                        ${/ballena/i.test(item.name) ? '<div class="absolute bottom-3 left-3 flex flex-col items-start gap-2"><span class="max-w-[calc(100vw-3rem)] bg-butter text-slate-950 text-xs sm:text-sm font-extrabold leading-tight px-3 py-2 rounded-xl shadow-lg">'+item.price+'</span><span class="max-w-[calc(100vw-3rem)] bg-bone/90 text-charcoal text-[10px] sm:text-xs font-bold leading-tight px-3 py-2 rounded-xl border border-butter/60">Avistamiento en el Pacífico</span></div>' : ''}
+                <div class="${/ballena/i.test(item.name) ? 'bg-slate-950 border-2 border-amber-400 ring-2 ring-amber-400/20' : 'bg-slate-950/80 border border-amber-500/30'} rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group ${/ballena/i.test(item.name) ? 'md:col-span-2 lg:col-span-2' : ''}">
+                    <div class="w-full aspect-[16/9] sm:aspect-[2/1] relative overflow-hidden bg-slate-950 flex items-center justify-center">
+                        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" class="block max-w-full max-h-full w-auto h-auto object-contain object-center mx-auto my-auto">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
+                        <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
+                        ${/ballena/i.test(item.name) ? '<div class="absolute bottom-3 left-3 flex flex-col items-start gap-2"><span class="max-w-[calc(100vw-3rem)] bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold leading-tight px-3 py-2 rounded-xl shadow-lg">'+item.price+'</span><span class="max-w-[calc(100vw-3rem)] bg-slate-950/90 text-white text-[10px] sm:text-xs font-bold leading-tight px-3 py-2 rounded-xl border border-amber-300/60">Avistamiento en el Pacífico</span></div>' : ''}
                     </div>
                     <div class="p-4 sm:p-5 flex flex-col flex-grow">
                         <div class="flex items-start justify-between gap-3 mb-3">
-                            <h3 class="text-lg font-bold text-charcoal min-w-0 flex-1">${item.name}</h3>
-                            <span class="text-xs text-olive font-medium flex items-center"><i class="fa-solid fa-user-group text-olive-dark mr-1.5"></i>${item.capacity}</span>
+                            <h3 class="text-lg font-bold text-white min-w-0 flex-1">${item.name}</h3>
+                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-amber-400 mr-1.5"></i>${item.capacity}</span>
                         </div>
-                        <p class="text-olive text-xs mb-5 flex-grow">${item.desc}</p>
-                        <button onclick="openModal('${item.name}')" class="w-full ${/ballena/i.test(item.name) ? 'bg-butter hover:bg-butter-dark' : 'bg-butter hover:bg-butter-dark'} text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
+                        <p class="text-slate-400 text-xs mb-5 flex-grow">${item.desc}</p>
+                        <button onclick="openModal('${item.name}')" class="w-full ${/ballena/i.test(item.name) ? 'bg-amber-400 hover:bg-amber-300' : 'bg-amber-500 hover:bg-amber-400'} text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
                             <i class="fa-brands fa-whatsapp text-lg"></i>
                             <span>${/ballena/i.test(item.name) ? 'Cotizar avistamiento de ballenas' : 'Reservar Temporada'}</span>
                         </button>
@@ -522,7 +503,7 @@
             const thumbs = document.getElementById("detailGalleryThumbs");
             if (frame) frame.innerHTML = '<img src="' + escapeHtml(photos[detailGalleryIndex]) + '" alt="' + escapeHtml(item.name) + ' ' + (detailGalleryIndex + 1) + '" class="w-full h-full" style="object-fit:' + (view.fit || "contain") + ';object-position:' + (view.x ?? 50) + '% ' + (view.y ?? 50) + '%;transform:scale(' + ((view.zoom ?? 100)/100) + ');">';
             if (counter) counter.textContent = (detailGalleryIndex + 1) + " / " + photos.length;
-            if (thumbs) thumbs.innerHTML = photos.map((src, i) => '<button type="button" onclick="setDetailGalleryImage(' + i + ')" class="w-14 h-12 sm:w-16 sm:h-14 rounded-lg overflow-hidden border-2 ' + (i === detailGalleryIndex ? 'border-olive' : 'border-bone-border') + '"><img src="' + escapeHtml(src) + '" alt="Miniatura ' + (i+1) + '" class="w-full h-full object-cover"></button>').join("");
+            if (thumbs) thumbs.innerHTML = photos.map((src, i) => '<button type="button" onclick="setDetailGalleryImage(' + i + ')" class="w-14 h-12 sm:w-16 sm:h-14 rounded-lg overflow-hidden border-2 ' + (i === detailGalleryIndex ? 'border-cyan-400' : 'border-slate-700') + '"><img src="' + escapeHtml(src) + '" alt="Miniatura ' + (i+1) + '" class="w-full h-full object-cover"></button>').join("");
         }
         function moveDetailGallery(direction) {
             const item = db.items.find(entry => String(entry.id) === String(detailGalleryItemId));
@@ -541,23 +522,23 @@
         function renderCards(itemsToRender) {
             const grid = document.getElementById('cardsGrid');
             if (itemsToRender.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center py-12 text-olive">No se encontraron experiencias con ese criterio.</div>';
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500">No se encontraron experiencias con ese criterio.</div>';
                 return;
             }
             grid.innerHTML = itemsToRender.map(item => `
-                <button type="button" onclick="openDetail(${JSON.stringify(item.id)})" aria-label="Ver detalles de ${item.name}" class="text-left bg-bone-muted border border-bone-border rounded-2xl overflow-hidden shadow-xl hover:border-olive transition flex flex-col group focus:outline-none focus:ring-2 focus:ring-olive">
+                <button type="button" onclick="openDetail(${JSON.stringify(item.id)})" aria-label="Ver detalles de ${item.name}" class="text-left bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-cyan-400 transition flex flex-col group focus:outline-none focus:ring-2 focus:ring-cyan-400">
                     <div class="h-52 sm:h-60 relative overflow-hidden">
                         <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        <span class="absolute top-3 left-3 bg-bone/80 backdrop-blur-md text-olive text-xs font-semibold px-3 py-1 rounded-full border border-bone-border uppercase tracking-wider">${normalizeCategory(item.category)}</span>
-                        <span class="absolute bottom-3 right-3 bg-butter text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${item.price}</span>
+                        <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">${normalizeCategory(item.category)}</span>
+                        <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${item.price}</span>
                     </div>
                     <div class="p-4 sm:p-6 flex flex-col flex-grow">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-xl font-bold text-charcoal">${item.name}</h3>
-                            <span class="text-xs text-olive font-medium flex items-center"><i class="fa-solid fa-user-group text-olive mr-1.5"></i>${item.capacity || ''}</span>
+                            <h3 class="text-xl font-bold text-white">${item.name}</h3>
+                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>${item.capacity || ''}</span>
                         </div>
-                        <p class="text-olive text-sm mb-6 flex-grow">${item.desc || ''}</p>
-                        <span class="w-full bg-bone-border group-hover:bg-butter group-hover:text-slate-950 text-charcoal font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 border border-bone-border"><i class="fa-regular fa-eye"></i><span>Ver información</span></span>
+                        <p class="text-slate-400 text-sm mb-6 flex-grow">${item.desc || ''}</p>
+                        <span class="w-full bg-slate-800 group-hover:bg-cyan-500 group-hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 border border-slate-700"><i class="fa-regular fa-eye"></i><span>Ver información</span></span>
                     </div>
                 </button>
             `).join('');
@@ -582,10 +563,10 @@
             const active = document.getElementById('categoryFilter').value;
             document.querySelectorAll('.category-chip').forEach(button => {
                 const selected = button.dataset.category === active;
-                button.classList.toggle('border-olive', selected);
-                button.classList.toggle('bg-olive/15', selected);
-                button.classList.toggle('border-bone-border', !selected);
-                button.classList.toggle('bg-bone/70', !selected);
+                button.classList.toggle('border-cyan-400', selected);
+                button.classList.toggle('bg-cyan-500/15', selected);
+                button.classList.toggle('border-slate-700', !selected);
+                button.classList.toggle('bg-slate-950/70', !selected);
                 button.setAttribute('aria-pressed', String(selected));
             });
         }
@@ -619,8 +600,8 @@
             detailGalleryItemId = item.id;
             detailGalleryIndex = 0;
             const rows = [["Duración",item.duration],["Horarios",item.schedule],["Ubicación",item.location],["Capacidad",item.capacity],["Incluye",item.includes],["No incluye",item.excludes],["Disponibilidad",item.availability]].filter(row => row[1]);
-            const gallery = '<div class="relative rounded-2xl overflow-hidden bg-bone border border-bone-border"><div id="detailGalleryFrame" class="h-56 sm:h-80 flex items-center justify-center"></div>' + (photos.length > 1 ? '<button type="button" onclick="moveDetailGallery(-1)" aria-label="Foto anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bone/80 text-charcoal border border-white/20">‹</button><button type="button" onclick="moveDetailGallery(1)" aria-label="Foto siguiente" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bone/80 text-charcoal border border-white/20">›</button>' : '') + '<span id="detailGalleryCounter" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-bone/80 text-charcoal text-xs px-3 py-1 rounded-full"></span></div><div id="detailGalleryThumbs" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>';
-            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-olive text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-charcoal mt-2">' + escapeHtml(item.name) + '</h2><p class="text-forest leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-olive-dark">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-olive line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button onclick="closeDetail();openModal(' + JSON.stringify(item.name) + ')" class="mt-6 w-full bg-butter hover:bg-butter-dark text-charcoal font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-bone border border-bone-border rounded-xl p-4"><div class="text-xs uppercase text-olive font-bold mb-1">' + row[0] + '</div><div class="text-sm text-forest whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
+            const gallery = '<div class="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800"><div id="detailGalleryFrame" class="h-56 sm:h-80 flex items-center justify-center"></div>' + (photos.length > 1 ? '<button type="button" onclick="moveDetailGallery(-1)" aria-label="Foto anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button><button type="button" onclick="moveDetailGallery(1)" aria-label="Foto siguiente" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>' : '') + '<span id="detailGalleryCounter" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-950/80 text-white text-xs px-3 py-1 rounded-full"></span></div><div id="detailGalleryThumbs" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>';
+            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">' + escapeHtml(item.name) + '</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-cyan-300">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-slate-500 line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button onclick="closeDetail();openModal(' + JSON.stringify(item.name) + ')" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">' + row[0] + '</div><div class="text-sm text-slate-200 whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
             renderDetailGallery(item);
             const modal = document.getElementById("detailModal"); modal.classList.remove("hidden"); modal.classList.add("flex"); document.body.style.overflow = "hidden";
         }
