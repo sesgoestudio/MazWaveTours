@@ -166,7 +166,7 @@
 
     <!-- Hero Section -->
     <section class="hero-bg py-16 sm:py-20 md:py-36 px-4 text-center relative overflow-hidden">
-        <img id="heroBackgroundImage" src="https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794866793867.webp" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
+        <img id="heroBackgroundImage" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
         <div class="max-w-4xl mx-auto relative z-10">
             <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
             <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
@@ -370,7 +370,7 @@
             heroTitle: "Vive el Mar de Mazatlán al Máximo",
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
             // Imagen publicada confirmada en Supabase: respaldo si la lectura remota falla.
-            heroImage: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794866793867.webp",
+            heroImage: "",
             items: [
                 { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
@@ -439,11 +439,15 @@
                 return;
             }
             // Compatibilidad con nombres anteriores del campo de imagen.
-            const remoteHero = remote.heroImage || remote.hero_image || remote.imagen_guardada || remote.imagenGuardada || '';
+            // El valor vacío es intencional: significa que el administrador quitó la imagen.
+            // No usar || aquí, porque volvería a colocar una imagen predeterminada.
+            const heroKey = ['heroImage', 'hero_image', 'imagen_guardada', 'imagenGuardada']
+                .find(key => Object.prototype.hasOwnProperty.call(remote, key));
+            const remoteHero = heroKey ? remote[heroKey] : '';
             db = {
                 ...defaultData,
                 ...remote,
-                heroImage: (typeof remoteHero === 'string' ? remoteHero.trim() : '') || defaultData.heroImage,
+                heroImage: typeof remoteHero === 'string' ? remoteHero.trim() : '',
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
@@ -511,7 +515,8 @@
                 }
             };
             if (!url) {
-                image.src = defaultData.heroImage;
+                image.removeAttribute('src');
+                image.classList.remove('is-loaded');
                 return;
             }
             try {
