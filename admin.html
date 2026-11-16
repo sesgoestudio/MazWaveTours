@@ -400,7 +400,7 @@
             grid.innerHTML = seasonalItems.map(item => \`
                 <div class="bg-slate-950/80 border border-amber-500/30 rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group">
                     <div class="h-48 relative overflow-hidden">
-                        <img src="\${item.image}" alt="\${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        <img src="\${item.image}" alt="\${item.name}" class="w-full h-full object-contain bg-slate-950 transition duration-500">
                         <span class="absolute top-3 left-3 bg-amber-500 text-slate-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow">⭐ Temporada</span>
                         <span class="absolute bottom-3 right-3 bg-amber-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">\${item.price}</span>
                     </div>
@@ -426,9 +426,10 @@
             const images = (Array.isArray(item.images) && item.images.length ? item.images : [item.image]).filter(Boolean);
             if (images.length < 2) return;
             galleryIndexById[itemId] = ((galleryIndexById[itemId] || 0) + direction + images.length) % images.length;
-            renderCards(itemsData);
+            renderCards(currentlyRenderedItems);
         }
         function renderCards(itemsToRender) {
+            currentlyRenderedItems = itemsToRender;
             const grid = document.getElementById('cardsGrid');
             if (!itemsToRender.length) {
                 grid.innerHTML = \`<div class="col-span-full text-center py-12 text-slate-500">No se encontraron resultados con ese criterio.</div>\`;
