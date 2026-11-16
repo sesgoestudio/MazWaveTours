@@ -405,7 +405,7 @@
             let remote = null;
             // REST primero: no dependemos del SDK de Supabase para la portada.
             try {
-                const response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1&v=${Date.now()}`, {
+                const response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1`, {
                     method: 'GET',
                     headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
                     cache: 'no-store'
