@@ -467,7 +467,7 @@
 
                 if (status) status.textContent = 'Subiendo imagen principal…';
                 const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-                const path = 'hero/index-' + Date.now() + '.' + extension;
+                const path = 'hero/current';
                 const { data, error } = await supabaseClient.storage.from('mazwave-images')
                     .upload(path, file, { upsert: true, contentType: file.type });
                 if (error) throw new Error('Storage: ' + error.message);
@@ -489,8 +489,7 @@
                     snapshot.heroImage = publicUrl;
                     const { data: savedRow, error: saveError } = await supabaseClient
                         .from('site_config')
-                        .update({ data: snapshot, updated_at: new Date().toISOString() })
-                        .eq('id', 1)
+                        .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' })
                         .select('data')
                         .single();
                     if (saveError) throw new Error('site_config: ' + saveError.message);
