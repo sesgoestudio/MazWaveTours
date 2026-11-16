@@ -442,7 +442,7 @@
             updateHeroImagePreview(db.heroImage);
             scheduleAutoPublish();
         }
-        async async function clearHeroImage() {
+        async function clearHeroImage() {
             db.heroImage = '';
             document.getElementById('cfgHeroImageUrl').value = '';
             updateHeroImagePreview('');
