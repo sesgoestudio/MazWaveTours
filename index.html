@@ -91,28 +91,27 @@
 
         .hero-bg {
             background-color: #0b1d3a;
-            background-image: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9));
-            background-size: cover;
-            background-position: center;
+            background-image: none;
             isolation: isolate;
-        }
-        .hero-bg::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9));
         }
         #heroBackgroundImage {
             position: absolute;
             inset: 0;
-            z-index: -1;
+            z-index: 0;
+            display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
             object-position: center;
             pointer-events: none;
+        }
+        .hero-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9));
         }
 
         /* Scroll más fluido y animaciones discretas al entrar en pantalla */
@@ -472,12 +471,18 @@
                 heroImageElement.style.objectPosition = `${heroX}% ${heroY}%`;
                 heroImageElement.style.transform = `scale(${heroZoom})`;
                 if (heroImage) {
-                    if (heroImageElement.src !== heroImage) heroImageElement.src = heroImage;
-                    heroImageElement.classList.remove('hidden');
                     heroImageElement.onerror = () => {
                         console.error('No se pudo cargar la imagen principal desde la URL guardada:', heroImage);
                         heroImageElement.classList.add('hidden');
                     };
+                    heroImageElement.onload = () => {
+                        heroImageElement.classList.remove('hidden');
+                    };
+                    heroImageElement.classList.remove('hidden');
+                    if (heroImageElement.getAttribute('src') !== heroImage) heroImageElement.src = heroImage;
+                    if (heroImageElement.complete && heroImageElement.naturalWidth > 0) {
+                        heroImageElement.classList.remove('hidden');
+                    }
                 } else {
                     heroImageElement.removeAttribute('src');
                     heroImageElement.classList.add('hidden');
