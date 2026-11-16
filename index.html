@@ -104,15 +104,21 @@
             background: linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9));
         }
         #heroBackgroundImage {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
+            position: absolute !important;
+            inset: 0 !important;
+            z-index: 0 !important;
+            display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center center;
             pointer-events: none;
             transform-origin: center;
+            opacity: 0;
+            transition: opacity .35s ease;
         }
+        #heroBackgroundImage.is-loaded { opacity: 1; }
+        .hero-bg > .max-w-4xl { position: relative; z-index: 2; }
 
         /* Scroll más fluido y animaciones discretas al entrar en pantalla */
         #scrollProgress { position: fixed; inset: 0 auto auto 0; height: 3px; width: 0; z-index: 100; pointer-events: none; background: linear-gradient(90deg,#06b6d4,#fbbf24); box-shadow: 0 0 10px rgba(6,182,212,.45); transform-origin: left; }
@@ -159,7 +165,7 @@
 
     <!-- Hero Section -->
     <section class="hero-bg py-16 sm:py-20 md:py-36 px-4 text-center relative overflow-hidden">
-        <img id="heroBackgroundImage" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover pointer-events-none hidden">
+        <img id="heroBackgroundImage" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
         <div class="max-w-4xl mx-auto relative z-10">
             <span class="inline-block bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-sm">Mazatlán, Sinaloa</span>
             <h1 id="heroTitle" class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-5 md:mb-6 leading-tight">Vive el Mar de Mazatlán al Máximo</h1>
@@ -471,35 +477,55 @@
             if (v.includes('tour') || v.includes('exper') || v.includes('ballena') || v.includes('surf') || v.includes('paseo') || v.includes('actividad')) return 'tour';
             return 'tour';
         }
+        // Cargador independiente de la imagen principal: usa un <img> real,
+        // valida que el archivo responda y conserva el encuadre guardado desde Admin.
+        function applyHeroImage() {
+            const hero = document.querySelector('.hero-bg');
+            const image = document.getElementById('heroBackgroundImage');
+            if (!hero || !image) return;
+            const url = String(db.heroImage || '').trim();
+            const x = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
+            const y = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
+            const zoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
+            hero.style.setProperty('background-color', '#0b1d3a', 'important');
+            image.classList.remove('is-loaded');
+            image.style.display = 'block';
+            image.style.objectFit = 'cover';
+            image.style.objectPosition = x + '% ' + y + '%';
+            image.style.transform = 'scale(' + zoom + ')';
+            image.onload = () => {
+                image.classList.add('is-loaded');
+                console.info('MazWaveTours: imagen principal cargada correctamente.');
+            };
+            image.onerror = () => {
+                image.classList.remove('is-loaded');
+                image.removeAttribute('src');
+                console.error('MazWaveTours: la URL de imagen principal no pudo cargarse.', url);
+            };
+            if (!url) {
+                image.removeAttribute('src');
+                console.error('MazWaveTours: Supabase no devolvió heroImage.');
+                return;
+            }
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('supabase.co')) {
+                    throw new Error('URL de imagen no permitida');
+                }
+                image.src = parsed.href;
+            } catch (error) {
+                image.removeAttribute('src');
+                console.error('MazWaveTours: URL de imagen principal inválida.', error);
+            }
+        }
+
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
             document.getElementById('heroTitle').innerText = db.heroTitle;
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
-            const hero = document.querySelector('.hero-bg');
-            const heroImageElement = document.getElementById('heroBackgroundImage');
-            if (hero) {
-                const storedHeroImage = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
-                const heroImage = storedHeroImage.includes('photo-1544551763-46a013bb70d5') ? '' : storedHeroImage;
-                const heroX = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
-                const heroY = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
-                const heroZoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
-                hero.style.setProperty('background-color', '#0b1d3a', 'important');
-                if (heroImage) {
-                    // Aplicar la fotografía como fondo directo del contenedor. No depende
-                    // de la visibilidad de una etiqueta img ni de clases Tailwind.
-                    const safeImageUrl = heroImage.replace(/["\\\\\n\r]/g, '');
-                    hero.style.setProperty('background-image', `linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url("${safeImageUrl}")`, 'important');
-                    hero.style.setProperty('background-size', heroZoom > 1 ? `${heroZoom * 100}% auto` : 'cover', 'important');
-                    hero.style.setProperty('background-position', `${heroX}% ${heroY}%`, 'important');
-                    hero.style.setProperty('background-repeat', 'no-repeat', 'important');
-                    if (heroImageElement) heroImageElement.classList.add('hidden');
-                } else {
-                    hero.style.setProperty('background-image', 'linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9))', 'important');
-                    if (heroImageElement) heroImageElement.classList.add('hidden');
-                    console.error('MazWaveTours: site_config no entregó una URL de imagen principal.', { availableKeys: Object.keys(db || {}) });
-                }
-            }
+            applyHeroImage();
+
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
