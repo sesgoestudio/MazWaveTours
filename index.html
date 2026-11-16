@@ -295,6 +295,7 @@
         }
 
         const galleryIndexById = {};
+        let currentlyRenderedItems = [];
         function getItemImages(item) {
             const list = Array.isArray(item.images) ? item.images.filter(Boolean) : [];
             return list.length ? list : (item.image ? [item.image] : []);
@@ -305,9 +306,10 @@
             const images = getItemImages(item);
             if (images.length < 2) return;
             galleryIndexById[itemId] = ((galleryIndexById[itemId] || 0) + direction + images.length) % images.length;
-            renderCards(db.items);
+            renderCards(currentlyRenderedItems);
         }
         function renderCards(itemsToRender) {
+            currentlyRenderedItems = itemsToRender;
             const grid = document.getElementById('cardsGrid');
             if (!itemsToRender.length) {
                 grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">No se encontraron embarcaciones o tours con ese criterio.</div>`;
