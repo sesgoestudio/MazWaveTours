@@ -445,24 +445,16 @@
                 console.error('No se recibió configuración pública; se conserva el catálogo local.');
                 return;
             }
-            // Compatibilidad con nombres anteriores del campo de imagen.
-            // El valor vacío es intencional: significa que el administrador quitó la imagen.
-            // No usar || aquí, porque volvería a colocar una imagen predeterminada.
-            const heroKey = ['heroImage', 'hero_image', 'imagen_guardada', 'imagenGuardada']
-                .find(key => Object.prototype.hasOwnProperty.call(remote, key));
-            const remoteHero = heroKey ? remote[heroKey] : '';
-            const heroDisabled = remote.heroImageDisabled === true;
+            // La portada vive en un único objeto público de Storage.
+            // El administrador reemplaza ese objeto directamente; no depende de leer site_config para mostrarla.
             db = {
                 ...defaultData,
                 ...remote,
-                heroImageDisabled: heroDisabled,
-                heroImage: typeof remoteHero === 'string' ? remoteHero.trim() : '',
+                heroImage: await findLatestHeroImage(),
+                heroImageDisabled: false,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
-            // site_config contiene la URL exacta de la última imagen confirmada por el admin.
-            // No sustituirla por un nombre fijo de Storage: cada carga puede tener su propio archivo.
-            if (db.heroImageDisabled) db.heroImage = '';
             console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null, heroImageDisabled: db.heroImageDisabled === true });
         }
         function cleanLocationReferences(value) {
