@@ -459,26 +459,17 @@
             if (!confirm('¿Quitar la imagen principal del sitio?')) return;
             if (!supabaseClient) { alert('No hay conexión con Supabase. Inicia sesión nuevamente.'); return; }
             const status = document.getElementById('saveStatus');
-            const oldPath = getHeroStoragePath(db.heroImage);
             try {
                 if (saveTimer) clearTimeout(saveTimer);
                 await publishQueue;
+                const paths = [...new Set(['hero/current', getHeroStoragePath(db.heroImage)].filter(Boolean))];
+                const { error } = await supabaseClient.storage.from('mazwave-images').remove(paths);
+                if (error) throw new Error('Storage: ' + error.message);
                 db.heroImage = '';
                 db.heroImageDisabled = true;
                 document.getElementById('cfgHeroImageUrl').value = '';
                 updateHeroImagePreview('');
-                const snapshot = JSON.parse(JSON.stringify(db));
-                const { data: savedRow, error } = await supabaseClient.from('site_config')
-                    .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' })
-                    .select('data').single();
-                if (error) throw error;
-                if (!savedRow?.data || savedRow.data.heroImage !== '' || savedRow.data.heroImageDisabled !== true) {
-                    throw new Error('Supabase no confirmó que la portada quedara vacía.');
-                }
-                const paths = [...new Set([oldPath, 'hero/current'].filter(Boolean))];
-                const { error: removeError } = await supabaseClient.storage.from('mazwave-images').remove(paths);
-                if (removeError) console.warn('La portada se desactivó, pero no se pudo borrar el archivo:', removeError.message);
-                if (status) status.textContent = 'Portada eliminada';
+                if (status) status.textContent = 'Portada eliminada de Storage';
             } catch (error) {
                 if (status) status.textContent = 'No se pudo quitar la portada';
                 alert('No se pudo quitar la portada: ' + (error.message || 'Error desconocido'));
@@ -492,50 +483,32 @@
             if (!supabaseClient) { alert('No hay conexión con Supabase. Inicia sesión nuevamente.'); input.value=''; return; }
 
             const status = document.getElementById('saveStatus');
-            if (status) status.textContent = 'Subiendo portada…';
+            const path = 'hero/current';
+            if (status) status.textContent = 'Reemplazando imagen de portada…';
             try {
                 if (saveTimer) clearTimeout(saveTimer);
                 await publishQueue;
-                const previousPath = getHeroStoragePath(db.heroImage);
-                // Un único objeto estable: cada carga reemplaza la portada anterior.
-                const path = 'hero/current';
+
+                // Evita la operación UPDATE (upsert) que puede estar bloqueada por Storage.
+                // Se elimina el objeto anterior y se crea de nuevo con la misma ruta pública.
+                const { error: removeError } = await supabaseClient.storage.from('mazwave-images').remove([path]);
+                if (removeError) throw new Error('No se pudo reemplazar la imagen anterior: ' + removeError.message);
                 const { data, error } = await supabaseClient.storage.from('mazwave-images')
-                    .upload(path, file, { upsert: true, contentType: file.type, cacheControl: '0' });
-                if (error) throw new Error('Storage: ' + error.message);
+                    .upload(path, file, { upsert: false, contentType: file.type, cacheControl: '0' });
+                if (error) throw new Error('No se pudo subir la portada: ' + error.message);
+
                 const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
                 const publicUrl = publicData?.publicUrl ? publicData.publicUrl + '?v=' + Date.now() : '';
-                if (!publicUrl || !/^https:\/\//i.test(publicUrl)) throw new Error('Supabase no generó una URL pública válida.');
+                if (!publicUrl) throw new Error('Supabase no generó la URL pública de la portada.');
 
                 db.heroImage = publicUrl;
                 db.heroImageDisabled = false;
                 document.getElementById('cfgHeroImageUrl').value = publicUrl;
                 updateHeroImagePreview(publicUrl);
-                const snapshot = JSON.parse(JSON.stringify(db));
-                snapshot.heroImage = publicUrl;
-                snapshot.heroImageDisabled = false;
-                const saveTask = async () => {
-                    const { data: savedRow, error: saveError } = await supabaseClient.from('site_config')
-                        .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' })
-                        .select('data').single();
-                    if (saveError) throw new Error('site_config: ' + saveError.message);
-                    if (savedRow?.data?.heroImage !== publicUrl || savedRow.data.heroImageDisabled === true) {
-                        throw new Error('Supabase no confirmó la nueva foto de portada.');
-                    }
-                    return true;
-                };
-                const pending = publishQueue.then(saveTask, saveTask);
-                publishQueue = pending.catch(() => {});
-                await pending;
-
-                // Retirar la imagen antigua si pertenecía a otro archivo de hero/.
-                if (previousPath && previousPath !== path) {
-                    const { error: cleanupError } = await supabaseClient.storage.from('mazwave-images').remove([previousPath]);
-                    if (cleanupError) console.warn('La nueva portada quedó activa, pero no se pudo borrar el archivo anterior:', cleanupError.message);
-                }
-                if (status) status.textContent = 'Portada actualizada y guardada';
+                if (status) status.textContent = 'Portada subida y lista para el index';
                 input.value = '';
             } catch (error) {
-                if (status) status.textContent = 'Error al actualizar portada';
+                if (status) status.textContent = 'Error al cambiar la portada';
                 alert('No se pudo cambiar la portada: ' + (error.message || 'Error desconocido'));
                 input.value = '';
             }
