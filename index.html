@@ -403,44 +403,42 @@
         let db = JSON.parse(JSON.stringify(defaultData));
         async function loadCentralCatalog() {
             let remote = null;
-            let sdkError = null;
-            if (supabaseClient) {
+            // REST primero: no dependemos del SDK de Supabase para la portada.
+            try {
+                const response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1&v=${Date.now()}`, {
+                    method: 'GET',
+                    headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
+                    cache: 'no-store'
+                });
+                if (!response.ok) throw new Error(`REST site_config HTTP ${response.status}`);
+                const rows = await response.json();
+                remote = Array.isArray(rows) && rows[0] && rows[0].data && typeof rows[0].data === 'object' ? rows[0].data : null;
+            } catch (restError) {
+                console.error('Lectura REST de site_config falló; se intenta el SDK.', restError);
+            }
+            if (!remote && supabaseClient) {
                 try {
                     const { data, error } = await supabaseClient.from('site_config').select('data').eq('id', 1).single();
                     if (error) throw error;
                     remote = data && data.data && typeof data.data === 'object' ? data.data : null;
-                } catch (error) {
-                    sdkError = error;
-                    console.warn('Lectura de site_config mediante SDK falló; se probará REST.', error);
-                }
-            }
-            // Ruta independiente del SDK: evita que un fallo de inicialización o consulta
-            // deje la portada sin la imagen que ya está guardada en la configuración pública.
-            if (!remote) {
-                try {
-                    const response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1`, {
-                        method: 'GET',
-                        headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
-                        cache: 'no-store'
-                    });
-                    if (!response.ok) throw new Error(`REST site_config respondió HTTP ${response.status}`);
-                    const rows = await response.json();
-                    remote = Array.isArray(rows) && rows[0] && rows[0].data && typeof rows[0].data === 'object' ? rows[0].data : null;
-                } catch (restError) {
-                    console.error('No se pudo leer la configuración pública ni por SDK ni por REST.', { sdkError, restError });
+                } catch (sdkError) {
+                    console.error('Lectura de site_config mediante SDK también falló.', sdkError);
                 }
             }
             if (!remote) {
-                console.warn('No se recibió data desde site_config; se conserva el catálogo local.');
+                console.error('No se recibió configuración pública; se conserva el catálogo local.');
                 return;
             }
-            const remoteItems = Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items;
+            // Compatibilidad con nombres anteriores del campo de imagen.
+            const remoteHero = remote.heroImage || remote.hero_image || remote.imagen_guardada || remote.imagenGuardada || '';
             db = {
                 ...defaultData,
                 ...remote,
-                items: remoteItems.map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
+                heroImage: typeof remoteHero === 'string' ? remoteHero.trim() : '',
+                items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
+                    .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
-            console.info('MazWaveTours: configuración pública cargada.', { heroImage: db.heroImage || null, hasHeroImage: Boolean(db.heroImage) });
+            console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null });
         }
         function cleanLocationReferences(value) {
             if (typeof value === 'string') return value.replace(/Marina\s+Mazatl[aá]n(?:,\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
@@ -480,38 +478,26 @@
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             const hero = document.querySelector('.hero-bg');
             const heroImageElement = document.getElementById('heroBackgroundImage');
-            if (hero && heroImageElement) {
+            if (hero) {
                 const storedHeroImage = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
-                // Nunca restaurar la antigua imagen predeterminada del buzo.
                 const heroImage = storedHeroImage.includes('photo-1544551763-46a013bb70d5') ? '' : storedHeroImage;
                 const heroX = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
                 const heroY = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
                 const heroZoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
-                hero.style.backgroundColor = '#0b1d3a';
-                heroImageElement.style.objectPosition = `${heroX}% ${heroY}%`;
-                heroImageElement.style.transform = `scale(${heroZoom})`;
-                heroImageElement.onload = () => {
-                    heroImageElement.classList.remove('hidden');
-                    hero.style.backgroundImage = 'none';
-                };
-                heroImageElement.onerror = () => {
-                    console.error('La etiqueta img no pudo mostrar la portada; se activa el fondo alternativo:', heroImage);
-                    // Segundo mecanismo de renderizado para navegadores/estilos que oculten la capa img.
-                    heroImageElement.classList.add('hidden');
-                    hero.style.backgroundImage = `linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url("${heroImage.replace(/["\\\\\n\r]/g, '')}")`;
-                    hero.style.backgroundSize = heroZoom > 1 ? `${heroZoom * 100}% auto` : 'cover';
-                    hero.style.backgroundPosition = `${heroX}% ${heroY}%`;
-                    hero.style.backgroundRepeat = 'no-repeat';
-                };
+                hero.style.setProperty('background-color', '#0b1d3a', 'important');
                 if (heroImage) {
-                    heroImageElement.classList.remove('hidden');
-                    if (heroImageElement.getAttribute('src') !== heroImage) heroImageElement.src = heroImage;
-                    else if (heroImageElement.complete && heroImageElement.naturalWidth > 0) heroImageElement.classList.remove('hidden');
+                    // Aplicar la fotografía como fondo directo del contenedor. No depende
+                    // de la visibilidad de una etiqueta img ni de clases Tailwind.
+                    const safeImageUrl = heroImage.replace(/["\\\\\n\r]/g, '');
+                    hero.style.setProperty('background-image', `linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9)), url("${safeImageUrl}")`, 'important');
+                    hero.style.setProperty('background-size', heroZoom > 1 ? `${heroZoom * 100}% auto` : 'cover', 'important');
+                    hero.style.setProperty('background-position', `${heroX}% ${heroY}%`, 'important');
+                    hero.style.setProperty('background-repeat', 'no-repeat', 'important');
+                    if (heroImageElement) heroImageElement.classList.add('hidden');
                 } else {
-                    heroImageElement.removeAttribute('src');
-                    heroImageElement.classList.add('hidden');
-                    hero.style.backgroundImage = 'none';
-                    console.warn('MazWaveTours: no hay heroImage guardada en site_config.', { remoteKeys: Object.keys(db || {}) });
+                    hero.style.setProperty('background-image', 'linear-gradient(to bottom, rgba(11, 29, 58, 0.4), rgba(11, 29, 58, 0.9))', 'important');
+                    if (heroImageElement) heroImageElement.classList.add('hidden');
+                    console.error('MazWaveTours: site_config no entregó una URL de imagen principal.', { availableKeys: Object.keys(db || {}) });
                 }
             }
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
