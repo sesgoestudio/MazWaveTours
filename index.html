@@ -806,16 +806,24 @@
                 }
             }
 
+            const selectedProduct = db.items.find(item => String(item.name || '').trim() === String(selectedItemForBooking || '').trim());
+            const productName = selectedItemForBooking || 'Experiencia por definir';
+            const productCategory = selectedProduct && selectedProduct.category
+                ? normalizeCategory(selectedProduct.category)
+                : 'Experiencia MazWaveTours';
             const message = [
-                '¡Hola MazWaveTours! Quiero solicitar información y disponibilidad.',
+                '¡Hola MazWaveTours! Quiero cotizar esta opción:',
                 '',
-                '*Experiencia:* ' + (selectedItemForBooking || 'Por definir'),
-                '*Nombre:* ' + name,
+                '*' + productCategory + ':* ' + productName,
+                '',
+                '¿Me pueden compartir precio y disponibilidad para esta opción?',
+                '',
+                '*Mi nombre:* ' + name,
                 '*Fecha tentativa:* ' + (date || 'Por definir'),
                 '*Número de personas:* ' + guests,
-                '*Comentarios:* ' + (notes || 'Ninguno'),
+                '*Comentarios adicionales:* ' + (notes || 'Ninguno'),
                 '',
-                'Entiendo que la fecha y disponibilidad se confirman directamente con el equipo.'
+                'Quedo pendiente de la información. ¡Gracias!'
             ].join('\n');
 
             // wa.me abre WhatsApp (app o web) y deja el envío final bajo control del cliente.
