@@ -243,9 +243,11 @@
             document.getElementById('cfgHeroTitle').value = db.heroTitle || '';
             document.getElementById('cfgHeroSubtitle').value = db.heroSubtitle || '';
             const savedHeroImage = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
-            const currentHeroImage = db.heroImageDisabled === true ? '' : (savedHeroImage || defaultData.heroImage);
+            // Si Supabase tiene una URL vacía o una bandera antigua de desactivación,
+            // mostrar la portada base conocida para que siempre exista vista previa.
+            const currentHeroImage = savedHeroImage || defaultData.heroImage;
             db.heroImage = currentHeroImage;
-            if (currentHeroImage) db.heroImageDisabled = false;
+            db.heroImageDisabled = false;
             document.getElementById('cfgHeroImageUrl').value = currentHeroImage;
             const heroPreview = document.getElementById('cfgHeroImagePreview');
             const heroEmpty = document.getElementById('cfgHeroImageEmpty');
@@ -401,8 +403,20 @@
             const empty = document.getElementById('cfgHeroImageEmpty');
             const hint = document.getElementById('cfgHeroDragHint');
             const hasImage = !!value;
-            if (preview) { preview.src = value || ''; preview.classList.toggle('hidden', !hasImage); }
-            if (empty) empty.classList.toggle('hidden', hasImage);
+            if (preview) {
+                preview.onerror = () => {
+                    preview.classList.add('hidden');
+                    if (empty) { empty.textContent = 'No se pudo cargar esta imagen. Comprueba que la URL sea pública o elige otra foto.'; empty.classList.remove('hidden'); }
+                };
+                preview.onload = () => {
+                    preview.classList.remove('hidden');
+                    if (empty) empty.classList.add('hidden');
+                };
+                preview.classList.toggle('hidden', !hasImage);
+                if (value) preview.src = value;
+                else preview.removeAttribute('src');
+            }
+            if (empty && !hasImage) { empty.textContent = 'Sin imagen principal. Sube una desde aquí.'; empty.classList.remove('hidden'); }
             if (hint) hint.classList.toggle('hidden', !hasImage);
             applyHeroImagePreview();
         }
