@@ -581,9 +581,10 @@
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
 
-            document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
-            document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
-            document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
+            const whatsappPhone = String(db.phone || '526693285696').replace(/\D/g, '');
+            document.getElementById('heroWpBtn').href = `https://wa.me/${whatsappPhone}`;
+            document.getElementById('footerWp').href = `https://wa.me/${whatsappPhone}`;
+            document.getElementById('mobileWpBar').href = `https://wa.me/${whatsappPhone}`;
 
             renderSeasonal();
             renderCategoryNav();
@@ -592,52 +593,30 @@
 
         function renderSeasonal() {
             const seasonalItems = db.items.filter(item => {
-                const flag = item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada;
-                const flagText = String(flag ?? "").trim().toLowerCase();
-                const explicitlyOff = flag === false || ["false", "0", "no", "off"].includes(flagText);
-                const explicitlyOn = flag === true || ["true", "1", "si", "sí", "temporada"].includes(flagText);
-                if (explicitlyOff) return false;
-                return explicitlyOn || /ballena/i.test(String(item.name || ""));
+                const flag=item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada, text=String(flag ?? "").trim().toLowerCase();
+                if (flag===false || ["false","0","no","off"].includes(text)) return false;
+                return flag===true || ["true","1","si","sí","temporada"].includes(text) || /ballena/i.test(String(item.name || ""));
             });
-            // Solo mostrar un destacado de respaldo si el catálogo no contiene ningún registro de ballenas.
-            const hasWhaleRecord = db.items.some(item => /ballena/i.test(String(item.name || "")));
-            if (!hasWhaleRecord && seasonalItems.length === 0) {
-                const fallbackWhale = defaultData.items.find(item => /ballena/i.test(String(item.name || "")));
-                if (fallbackWhale) seasonalItems.push(fallbackWhale);
-            }
-            seasonalItems.sort((a, b) => (/ballena/i.test(String(a.name || '')) ? 0 : 1) - (/ballena/i.test(String(b.name || '')) ? 0 : 1));
-            const section = document.getElementById('seasonalSection');
-            const grid = document.getElementById('seasonalGrid');
-
-            if (seasonalItems.length === 0) {
-                section.classList.add('hidden');
-                grid.innerHTML = '';
-                return;
-            }
-
+            const hasWhaleRecord=db.items.some(item=>/ballena/i.test(String(item.name||"")));
+            if(!hasWhaleRecord && !seasonalItems.length){const fallback=defaultData.items.find(item=>/ballena/i.test(String(item.name||"")));if(fallback)seasonalItems.push(fallback);}
+            seasonalItems.sort((a,b)=>(/ballena/i.test(String(a.name||''))?0:1)-(/ballena/i.test(String(b.name||''))?0:1));
+            const section=document.getElementById('seasonalSection'), grid=document.getElementById('seasonalGrid');
+            if(!seasonalItems.length){section.classList.add('hidden');grid.innerHTML='';return;}
             section.classList.remove('hidden');
-            grid.innerHTML = seasonalItems.map(item => `
-                <div class="${/ballena/i.test(item.name) ? 'bg-slate-950 border-2 border-amber-400 ring-2 ring-amber-400/20' : 'bg-slate-950/80 border border-amber-500/30'} rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group ${/ballena/i.test(item.name) ? 'md:col-span-2 lg:col-span-2' : ''}">
-                    <div class="w-full aspect-[16/9] sm:aspect-[2/1] relative overflow-hidden bg-slate-950 flex items-center justify-center">
-                        ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" class="block max-w-full max-h-full w-auto h-auto object-contain object-center mx-auto my-auto">` : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
-                        <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${/ballena/i.test(item.name) ? '🐋 Temporada de ballenas' : '⭐ Temporada'}</span>
-                        ${/ballena/i.test(item.name) ? '<div class="absolute bottom-3 left-3 flex flex-col items-start gap-2"><span class="max-w-[calc(100vw-3rem)] bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold leading-tight px-3 py-2 rounded-xl shadow-lg">'+item.price+'</span><span class="max-w-[calc(100vw-3rem)] bg-slate-950/90 text-white text-[10px] sm:text-xs font-bold leading-tight px-3 py-2 rounded-xl border border-amber-300/60">Avistamiento en el Pacífico</span></div>' : ''}
-                    </div>
-                    <div class="p-4 sm:p-5 flex flex-col flex-grow">
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <h3 class="text-lg font-bold text-white min-w-0 flex-1">${item.name}</h3>
-                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-amber-400 mr-1.5"></i>${item.capacity}</span>
-                        </div>
-                        <p class="text-slate-400 text-xs mb-5 flex-grow">${item.desc}</p>
-                        <button onclick="openModal('${item.name}')" class="w-full ${/ballena/i.test(item.name) ? 'bg-amber-400 hover:bg-amber-300' : 'bg-amber-500 hover:bg-amber-400'} text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
-                            <i class="fa-brands fa-whatsapp text-lg"></i>
-                            <span>${/ballena/i.test(item.name) ? 'Cotizar avistamiento de ballenas' : 'Reservar Temporada'}</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            grid.innerHTML=seasonalItems.map(item=>{
+                const whale=/ballena/i.test(String(item.name||'')), name=escapeHtml(item.name), image=escapeHtml(safeImageUrl(item.image));
+                const price=escapeHtml(item.price), capacity=escapeHtml(item.capacity), desc=escapeHtml(item.desc);
+                return `<div class="${whale?'bg-slate-950 border-2 border-amber-400 ring-2 ring-amber-400/20':'bg-slate-950/80 border border-amber-500/30'} rounded-2xl overflow-hidden shadow-xl hover:border-amber-400/60 transition flex flex-col group ${whale?'md:col-span-2 lg:col-span-2':''}">
+                <div class="w-full aspect-[16/9] sm:aspect-[2/1] relative overflow-hidden bg-slate-950 flex items-center justify-center">
+                ${image?`<img src="${image}" alt="${name}" loading="lazy" class="block max-w-full max-h-full w-auto h-auto object-contain object-center mx-auto my-auto">`:`<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 text-cyan-200"><div class="text-center"><i class="fa-solid fa-water text-6xl mb-3"></i><p class="text-xs uppercase tracking-[.25em]">Pacífico · Mazatlán</p></div></div>`}
+                <span class="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] leading-tight text-center px-2.5 sm:px-3 py-1.5 rounded-full uppercase tracking-wide sm:tracking-wider shadow whitespace-normal break-words">${whale?'🐋 Temporada de ballenas':'⭐ Temporada'}</span>
+                ${whale?'<div class="absolute bottom-3 left-3 flex flex-col items-start gap-2"><span class="max-w-[calc(100vw-3rem)] bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold leading-tight px-3 py-2 rounded-xl shadow-lg">'+price+'</span><span class="max-w-[calc(100vw-3rem)] bg-slate-950/90 text-white text-[10px] sm:text-xs font-bold leading-tight px-3 py-2 rounded-xl border border-amber-300/60">Avistamiento en el Pacífico</span></div>':''}</div>
+                <div class="p-4 sm:p-5 flex flex-col flex-grow"><div class="flex items-start justify-between gap-3 mb-3"><h3 class="text-lg font-bold text-white min-w-0 flex-1">${name}</h3>
+                <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-amber-400 mr-1.5"></i>${capacity}</span></div><p class="text-slate-400 text-xs mb-5 flex-grow">${desc}</p>
+                <button data-item-name="${name}" onclick="openModal(this.dataset.itemName)" class="w-full ${whale?'bg-amber-400 hover:bg-amber-300':'bg-amber-500 hover:bg-amber-400'} text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md"><i class="fa-brands fa-whatsapp text-lg"></i><span>${whale?'Cotizar avistamiento de ballenas':'Reservar Temporada'}</span></button></div></div>`;
+            }).join('');
         }
-
+        
         function getBoatImageStyle(item) {
             const view = item.imageView || {};
             return "object-fit:" + (view.fit || "contain") + ";object-position:" + (view.x ?? 50) + "% " + (view.y ?? 50) + "%;transform:scale(" + ((view.zoom ?? 100)/100) + ");";
@@ -645,17 +624,17 @@
         let detailGalleryItemId = null;
         let detailGalleryIndex = 0;
         function renderDetailGallery(item) {
-            const photos = Array.isArray(item.images) && item.images.length ? item.images : [item.image].filter(Boolean);
-            if (!photos.length) return;
-            detailGalleryIndex = ((detailGalleryIndex % photos.length) + photos.length) % photos.length;
-            const view = item.imageView || {};
-            const frame = document.getElementById("detailGalleryFrame");
-            const counter = document.getElementById("detailGalleryCounter");
-            const thumbs = document.getElementById("detailGalleryThumbs");
-            if (frame) frame.innerHTML = '<img src="' + escapeHtml(photos[detailGalleryIndex]) + '" alt="' + escapeHtml(item.name) + ' ' + (detailGalleryIndex + 1) + '" class="w-full h-full" style="object-fit:' + (view.fit || "contain") + ';object-position:' + (view.x ?? 50) + '% ' + (view.y ?? 50) + '%;transform:scale(' + ((view.zoom ?? 100)/100) + ');">';
-            if (counter) counter.textContent = (detailGalleryIndex + 1) + " / " + photos.length;
-            if (thumbs) thumbs.innerHTML = photos.map((src, i) => '<button type="button" onclick="setDetailGalleryImage(' + i + ')" class="w-14 h-12 sm:w-16 sm:h-14 rounded-lg overflow-hidden border-2 ' + (i === detailGalleryIndex ? 'border-cyan-400' : 'border-slate-700') + '"><img src="' + escapeHtml(src) + '" alt="Miniatura ' + (i+1) + '" class="w-full h-full object-cover"></button>').join("");
+            const photos=Array.isArray(item.images)&&item.images.length?item.images:[item.image].filter(Boolean);
+            if(!photos.length)return;
+            detailGalleryIndex=((detailGalleryIndex%photos.length)+photos.length)%photos.length;
+            const view=item.imageView||{}, fit=view.fit==='cover'?'cover':'contain';
+            const x=safeViewNumber(view.x,50,0,100), y=safeViewNumber(view.y,50,0,100), zoom=safeViewNumber(view.zoom,100,100,160)/100;
+            const frame=document.getElementById("detailGalleryFrame"), counter=document.getElementById("detailGalleryCounter"), thumbs=document.getElementById("detailGalleryThumbs");
+            if(frame)frame.innerHTML='<img src="'+escapeHtml(safeImageUrl(photos[detailGalleryIndex]))+'" alt="'+escapeHtml(item.name)+' '+(detailGalleryIndex+1)+'" class="w-full h-full" style="object-fit:'+fit+';object-position:'+x+'% '+y+'%;transform:scale('+zoom+');">';
+            if(counter)counter.textContent=(detailGalleryIndex+1)+" / "+photos.length;
+            if(thumbs)thumbs.innerHTML=photos.map((src,i)=>'<button type="button" onclick="setDetailGalleryImage('+i+')" class="w-14 h-12 sm:w-16 sm:h-14 rounded-lg overflow-hidden border-2 '+(i===detailGalleryIndex?'border-cyan-400':'border-slate-700')+'"><img src="'+escapeHtml(safeImageUrl(src))+'" alt="Miniatura '+(i+1)+'" loading="lazy" class="w-full h-full object-cover"></button>').join("");
         }
+        
         function moveDetailGallery(direction) {
             const item = db.items.find(entry => String(entry.id) === String(detailGalleryItemId));
             if (!item) return;
@@ -672,29 +651,20 @@
 
         function renderCards(itemsToRender) {
             const grid = document.getElementById('cardsGrid');
-            if (itemsToRender.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500">No se encontraron experiencias con ese criterio.</div>';
-                return;
-            }
-            grid.innerHTML = itemsToRender.map(item => `
-                <button type="button" onclick="openDetail(${JSON.stringify(item.id)})" aria-label="Ver detalles de ${item.name}" class="text-left bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-cyan-400 transition flex flex-col group focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                    <div class="h-52 sm:h-60 relative overflow-hidden">
-                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">${normalizeCategory(item.category)}</span>
-                        <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${item.price}</span>
-                    </div>
-                    <div class="p-4 sm:p-6 flex flex-col flex-grow">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-xl font-bold text-white">${item.name}</h3>
-                            <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>${item.capacity || ''}</span>
-                        </div>
-                        <p class="text-slate-400 text-sm mb-6 flex-grow">${item.desc || ''}</p>
-                        <span class="w-full bg-slate-800 group-hover:bg-cyan-500 group-hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 border border-slate-700"><i class="fa-regular fa-eye"></i><span>Ver información</span></span>
-                    </div>
-                </button>
-            `).join('');
+            if (!itemsToRender.length) { grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500">No se encontraron experiencias con ese criterio.</div>'; return; }
+            grid.innerHTML = itemsToRender.map(item => {
+                const id=escapeHtml(item.id), name=escapeHtml(item.name), image=escapeHtml(safeImageUrl(item.image));
+                const price=escapeHtml(item.price), capacity=escapeHtml(item.capacity || ''), desc=escapeHtml(item.desc || ''), category=escapeHtml(normalizeCategory(item.category));
+                return `<button type="button" data-item-id="${id}" onclick="openDetail(this.dataset.itemId)" aria-label="Ver detalles de ${name}" class="text-left bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-cyan-400 transition flex flex-col group focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                <div class="h-52 sm:h-60 relative overflow-hidden"><img src="${image}" alt="${name}" loading="lazy" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">${category}</span>
+                <span class="absolute bottom-3 right-3 bg-cyan-500 text-slate-950 font-extrabold text-sm px-3 py-1 rounded-xl shadow-lg">${price}</span></div>
+                <div class="p-4 sm:p-6 flex flex-col flex-grow"><div class="flex items-center justify-between mb-2"><h3 class="text-xl font-bold text-white">${name}</h3>
+                <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-cyan-400 mr-1.5"></i>${capacity}</span></div>
+                <p class="text-slate-400 text-sm mb-6 flex-grow">${desc}</p><span class="w-full bg-slate-800 group-hover:bg-cyan-500 group-hover:text-slate-950 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center">Ver detalles</span></div></button>`;
+            }).join('');
         }
-
+        
         function renderCategoryNav() {
             const visibleItems = Array.isArray(db.items) ? db.items : [];
             const counts = { all: visibleItems.length, trimaran: 0, yate: 0, tour: 0 };
@@ -743,6 +713,15 @@
             updateCategoryNav();
         }
 
+        function safeImageUrl(value) {
+            const raw = String(value ?? '').trim();
+            if (/^https:\/\//i.test(raw) || /^blob:/i.test(raw) || /^data:image\/(?:png|jpeg|jpg|webp|gif);base64,/i.test(raw)) return raw;
+            return '';
+        }
+        function safeViewNumber(value, fallback, min, max) {
+            const n = Number(value);
+            return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+        }
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
         function openDetail(itemId) {
             const item = db.items.find(entry => String(entry.id) === String(itemId));
@@ -752,7 +731,7 @@
             detailGalleryIndex = 0;
             const rows = [["Duración",item.duration],["Horarios",item.schedule],["Ubicación",item.location],["Capacidad",item.capacity],["Incluye",item.includes],["No incluye",item.excludes],["Disponibilidad",item.availability]].filter(row => row[1]);
             const gallery = '<div class="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800"><div id="detailGalleryFrame" class="h-56 sm:h-80 flex items-center justify-center"></div>' + (photos.length > 1 ? '<button type="button" onclick="moveDetailGallery(-1)" aria-label="Foto anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button><button type="button" onclick="moveDetailGallery(1)" aria-label="Foto siguiente" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>' : '') + '<span id="detailGalleryCounter" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-950/80 text-white text-xs px-3 py-1 rounded-full"></span></div><div id="detailGalleryThumbs" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>';
-            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">' + escapeHtml(item.name) + '</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-cyan-300">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-slate-500 line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button onclick="closeDetail();openModal(' + JSON.stringify(item.name) + ')" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">' + row[0] + '</div><div class="text-sm text-slate-200 whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
+            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">' + escapeHtml(item.name) + '</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-cyan-300">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-slate-500 line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button data-item-name="' + escapeHtml(item.name) + '" onclick="closeDetail();openModal(this.dataset.itemName)" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">' + row[0] + '</div><div class="text-sm text-slate-200 whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
             renderDetailGallery(item);
             const modal = document.getElementById("detailModal"); modal.classList.remove("hidden"); modal.classList.add("flex"); document.body.style.overflow = "hidden";
         }

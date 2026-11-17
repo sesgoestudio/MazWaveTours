@@ -270,31 +270,31 @@
             container.innerHTML = db.items.map((item, index) => `
                 <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
                     <div class="relative w-24 h-24 flex-shrink-0">
-                        <img src="${item.image}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">
+                        <img src="${adminSafeImageUrl(item.image)}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">
                         ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
                     </div>
                     <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-                        <input type="text" value="${item.name}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Nombre">
+                        <input type="text" value="${adminEscapeHtml(item.name)}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Nombre">
                         <select onchange="updateItemField(${index}, 'category', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500">
                             <option value="trimaran" ${item.category==='trimaran'?'selected':''}>Trimarán</option>
                             <option value="yate" ${item.category==='yate'?'selected':''}>Yate / Lancha</option>
                             <option value="tour" ${item.category==='tour'?'selected':''}>Tour / Experiencia</option>
                         </select>
-                        <input type="text" value="${item.price}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
-                        <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
+                        <input type="text" value="${adminEscapeHtml(item.price)}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
+                        <input type="text" value="${adminEscapeHtml(item.capacity)}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
                         <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2">
-                            <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); document.getElementById('item-image-preview-${index}').src=this.value" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
+                            <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); setAdminImagePreview(${index}, this.value)" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
                             <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
                         </div>
-                        <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
-                        <input type="text" value="${item.duration || ''}" onchange="updateItemField(${index}, 'duration', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
-                        <input type="text" value="${item.schedule || ''}" onchange="updateItemField(${index}, 'schedule', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Horarios">
-                        <input type="text" value="${item.location || ''}" onchange="updateItemField(${index}, 'location', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Ubicación">
-                        <input type="text" value="${item.oldPrice || ''}" onchange="updateItemField(${index}, 'oldPrice', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Precio anterior / promoción">
-                        <textarea onchange="updateItemField(${index}, 'includes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué incluye" rows="2">${item.includes || ''}</textarea>
-                        <textarea onchange="updateItemField(${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${item.excludes || ''}</textarea>
-                        <input type="text" value="${item.availability || ''}" onchange="updateItemField(${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
-                        <input type="text" value="${(item.images || []).join(', ')}" onchange="updateItemField(${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
+                        <input type="text" value="${adminEscapeHtml(item.desc)}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
+                        <input type="text" value="${adminEscapeHtml(item.duration || '')}" onchange="updateItemField(${index}, 'duration', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
+                        <input type="text" value="${adminEscapeHtml(item.schedule || '')}" onchange="updateItemField(${index}, 'schedule', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Horarios">
+                        <input type="text" value="${adminEscapeHtml(item.location || '')}" onchange="updateItemField(${index}, 'location', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Ubicación">
+                        <input type="text" value="${adminEscapeHtml(item.oldPrice || '')}" onchange="updateItemField(${index}, 'oldPrice', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Precio anterior / promoción">
+                        <textarea onchange="updateItemField(${index}, 'includes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué incluye" rows="2">${adminEscapeHtml(item.includes || '')}</textarea>
+                        <textarea onchange="updateItemField(${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${adminEscapeHtml(item.excludes || '')}</textarea>
+                        <input type="text" value="${adminEscapeHtml(item.availability || '')}" onchange="updateItemField(${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
+                        <input type="text" value="${adminEscapeHtml((item.images || []).join(', '))}" onchange="updateItemField(${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
 <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
   <label class="text-xs text-slate-400">Ajuste de imagen
     <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
@@ -325,9 +325,15 @@
             `).join('');
         }
 
+        
+        function adminEscapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+        function adminSafeImageUrl(value){const raw=String(value??'').trim();return (/^https:\/\//i.test(raw)||/^blob:/i.test(raw)||/^data:image\/(?:png|jpeg|jpg|webp|gif);base64,/i.test(raw))?raw:'';}
+        function adminSafeNumber(value,fallback,min,max){const n=Number(value);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback;}
+        function setAdminImagePreview(index,value){const el=document.getElementById('item-image-preview-'+index);if(el)el.src=adminSafeImageUrl(value);}
         function getAdminImageStyle(item) {
-            const view = item.imageView || {};
-            return "object-fit:" + (view.fit || "contain") + ";object-position:" + (view.x ?? 50) + "% " + (view.y ?? 50) + "%;transform:scale(" + ((view.zoom ?? 100)/100) + ");";
+            const view=item.imageView||{}, fit=view.fit==='cover'?'cover':'contain';
+            const x=adminSafeNumber(view.x,50,0,100), y=adminSafeNumber(view.y,50,0,100), zoom=adminSafeNumber(view.zoom,100,100,160)/100;
+            return "object-fit:"+fit+";object-position:"+x+"% "+y+"%;transform:scale("+zoom+");";
         }
 
         function updateItemView(index, field, value) {
