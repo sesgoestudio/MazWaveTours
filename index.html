@@ -337,9 +337,18 @@
     </div>
 
     <!-- Mobile Sticky Bar -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-5 py-3 flex items-center justify-between gap-4">
-        <a href="#catalogo" class="text-sm font-semibold text-slate-200 flex items-center gap-2"><i class="fa-solid fa-sailboat text-cyan-400 text-lg"></i><span>Flota</span></a>
-        <a id="mobileWpBar" href="https://wa.me/526693285696" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-7 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg"><i class="fa-brands fa-whatsapp text-lg"></i><span>Cotizar</span></a>
+    <div class="md:hidden fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 pointer-events-none">
+        <nav aria-label="Navegación rápida" class="pointer-events-auto mx-auto max-w-md flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/90 backdrop-blur-2xl px-3 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+            <a href="#catalogo" class="group flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5 active:scale-[0.98]">
+                <i class="fa-solid fa-sailboat text-cyan-300 text-lg transition group-hover:-translate-y-0.5"></i>
+                <span>Flota</span>
+            </a>
+            <a id="mobileWpBar" href="https://wa.me/526693285696" target="_blank" rel="noopener noreferrer" class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-extrabold tracking-wide text-slate-950 shadow-lg shadow-cyan-400/20 transition hover:bg-cyan-300 active:scale-[0.98]">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                <span>Cotizar</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-70"></i>
+            </a>
+        </nav>
     </div>
 
     <!-- Footer -->
