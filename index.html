@@ -581,9 +581,10 @@
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
 
-            document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
-            document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
-            document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
+            const whatsappPhone = String(db.phone || '526693285696').replace(/\D/g, '');
+            document.getElementById('heroWpBtn').href = `https://wa.me/${whatsappPhone}`;
+            document.getElementById('footerWp').href = `https://wa.me/${whatsappPhone}`;
+            document.getElementById('mobileWpBar').href = `https://wa.me/${whatsappPhone}`;
 
             renderSeasonal();
             renderCategoryNav();
