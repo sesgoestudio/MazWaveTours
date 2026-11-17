@@ -129,6 +129,18 @@
         @media (prefers-reduced-motion: reduce) { .scroll-reveal, .scroll-reveal.is-visible { opacity: 1; transform: none; transition: none; } #scrollProgress { display:none; } }
 
     
+        /* Separación compacta entre secciones en teléfonos */
+        @media (max-width: 640px) {
+            .hero-bg { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+            #seasonalSection { margin-top: -1.5rem !important; margin-bottom: .25rem !important; }
+            #seasonalSection > div { padding-top: .75rem !important; padding-bottom: .75rem !important; }
+            section[aria-labelledby="bookingGuideTitle"] { padding-top: .25rem !important; padding-bottom: .25rem !important; }
+            section[aria-labelledby="bookingGuideTitle"] > div { padding-top: .75rem !important; padding-bottom: .75rem !important; }
+            #catalogo { padding-top: .25rem !important; }
+            #catalogo > section { margin-bottom: .5rem !important; }
+            footer { margin-top: .25rem !important; }
+        }
+
         @media (max-width: 640px) {
             #bookingModal { align-items: flex-start !important; justify-content: center !important; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important; overflow-y: auto; }
             #bookingModal .booking-modal-card { width: 100%; max-width: 430px; max-height: calc(100dvh - 24px); overflow-y: auto; box-sizing: border-box; padding: 20px 16px 18px !important; margin: auto 0; border-radius: 22px; }
