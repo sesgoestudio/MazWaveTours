@@ -165,6 +165,8 @@
             slogan: "Haciendo de Mazatlán tu paraíso marítimo",
             heroTitle: "Vive el Mar de Mazatlán al Máximo",
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
+            heroImage: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794868743240.jpg",
+            heroImageDisabled: false,
             items: [
                 { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
@@ -241,8 +243,9 @@
             document.getElementById('cfgHeroTitle').value = db.heroTitle || '';
             document.getElementById('cfgHeroSubtitle').value = db.heroSubtitle || '';
             const savedHeroImage = typeof db.heroImage === 'string' ? db.heroImage.trim() : '';
-            const currentHeroImage = savedHeroImage.includes('photo-1544551763-46a013bb70d5') ? '' : savedHeroImage;
+            const currentHeroImage = db.heroImageDisabled === true ? '' : (savedHeroImage || defaultData.heroImage);
             db.heroImage = currentHeroImage;
+            if (currentHeroImage) db.heroImageDisabled = false;
             document.getElementById('cfgHeroImageUrl').value = currentHeroImage;
             const heroPreview = document.getElementById('cfgHeroImagePreview');
             const heroEmpty = document.getElementById('cfgHeroImageEmpty');
@@ -529,7 +532,7 @@
                 db.heroImageDisabled = false;
                 document.getElementById('cfgHeroImageUrl').value = publicUrl;
                 updateHeroImagePreview(publicUrl);
-                if (oldPath && oldPath !== data.path) {
+                if (oldPath && oldPath !== data.path && oldPath !== 'hero/index-1794868743240.jpg') {
                     const { error: removeError } = await supabaseClient.storage.from('mazwave-images').remove([oldPath]);
                     if (removeError) console.warn('La nueva portada está vinculada; no se pudo limpiar la anterior:', removeError.message);
                 }

@@ -450,11 +450,12 @@
                 .find(key => Object.prototype.hasOwnProperty.call(remote, key));
             const remoteHero = heroKey ? remote[heroKey] : '';
             const heroDisabled = remote.heroImageDisabled === true;
+            const resolvedHero = typeof remoteHero === 'string' && remoteHero.trim() ? remoteHero.trim() : (heroDisabled ? '' : defaultData.heroImage);
             db = {
                 ...defaultData,
                 ...remote,
                 heroImageDisabled: heroDisabled,
-                heroImage: heroDisabled ? '' : (typeof remoteHero === 'string' ? remoteHero.trim() : ''),
+                heroImage: heroDisabled ? '' : resolvedHero,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
@@ -497,7 +498,7 @@
             const hero = document.querySelector('.hero-bg');
             const image = document.getElementById('heroBackgroundImage');
             if (!hero || !image) return;
-            const url = "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794868743240.jpg"; // Portada solicitada: independiente de la configuración anterior del administrador.
+            const url = String(db.heroImage || '').trim();
             const x = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
             const y = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
             const zoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
