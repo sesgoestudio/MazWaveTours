@@ -629,13 +629,16 @@
                             <span class="text-xs text-slate-400 font-medium flex items-center"><i class="fa-solid fa-user-group text-amber-400 mr-1.5"></i>${item.capacity}</span>
                         </div>
                         <p class="text-slate-400 text-xs mb-5 flex-grow">${item.desc}</p>
-                        <button onclick="openModal('${item.name}')" class="w-full ${/ballena/i.test(item.name) ? 'bg-amber-400 hover:bg-amber-300' : 'bg-amber-500 hover:bg-amber-400'} text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
+                        <button type="button" data-seasonal-item-name="${escapeHtml(item.name)}" class="w-full ${/ballena/i.test(item.name) ? 'bg-amber-400 hover:bg-amber-300' : 'bg-amber-500 hover:bg-amber-400'} text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
                             <i class="fa-brands fa-whatsapp text-lg"></i>
                             <span>${/ballena/i.test(item.name) ? 'Cotizar avistamiento de ballenas' : 'Reservar Temporada'}</span>
                         </button>
                     </div>
                 </div>
             `).join('');
+            grid.querySelectorAll('[data-seasonal-item-name]').forEach(button => {
+                button.addEventListener('click', () => openModal(button.dataset.seasonalItemName));
+            });
         }
 
         function getBoatImageStyle(item) {
@@ -677,7 +680,7 @@
                 return;
             }
             grid.innerHTML = itemsToRender.map(item => `
-                <button type="button" onclick="openDetail(${JSON.stringify(item.id)})" aria-label="Ver detalles de ${item.name}" class="text-left bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-cyan-400 transition flex flex-col group focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                <button type="button" data-open-item-id="${escapeHtml(item.id)}" aria-label="Ver detalles de ${escapeHtml(item.name)}" class="text-left bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-cyan-400 transition flex flex-col group focus:outline-none focus:ring-2 focus:ring-cyan-400">
                     <div class="h-52 sm:h-60 relative overflow-hidden">
                         <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
                         <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-slate-700 uppercase tracking-wider">${normalizeCategory(item.category)}</span>
@@ -693,6 +696,9 @@
                     </div>
                 </button>
             `).join('');
+            grid.querySelectorAll('[data-open-item-id]').forEach(button => {
+                button.addEventListener('click', () => openDetail(button.dataset.openItemId));
+            });
         }
 
         function renderCategoryNav() {
@@ -752,8 +758,13 @@
             detailGalleryIndex = 0;
             const rows = [["Duración",item.duration],["Horarios",item.schedule],["Ubicación",item.location],["Capacidad",item.capacity],["Incluye",item.includes],["No incluye",item.excludes],["Disponibilidad",item.availability]].filter(row => row[1]);
             const gallery = '<div class="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800"><div id="detailGalleryFrame" class="h-56 sm:h-80 flex items-center justify-center"></div>' + (photos.length > 1 ? '<button type="button" onclick="moveDetailGallery(-1)" aria-label="Foto anterior" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">‹</button><button type="button" onclick="moveDetailGallery(1)" aria-label="Foto siguiente" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/80 text-white border border-white/20">›</button>' : '') + '<span id="detailGalleryCounter" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-950/80 text-white text-xs px-3 py-1 rounded-full"></span></div><div id="detailGalleryThumbs" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>';
-            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">' + escapeHtml(item.name) + '</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-cyan-300">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-slate-500 line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button onclick="closeDetail();openModal(' + JSON.stringify(item.name) + ')" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">' + row[0] + '</div><div class="text-sm text-slate-200 whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
+            document.getElementById("detailContent").innerHTML = '<div class="p-4 sm:p-7"><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div>' + gallery + '</div><div><span class="text-cyan-400 text-xs uppercase tracking-widest font-bold">' + escapeHtml(normalizeCategory(item.category)) + '</span><h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">' + escapeHtml(item.name) + '</h2><p class="text-slate-300 leading-relaxed mt-4 whitespace-pre-line">' + escapeHtml(item.desc || "") + '</p><div class="mt-5 text-2xl font-black text-cyan-300">' + escapeHtml(item.price || "") + '</div>' + (item.oldPrice ? '<p class="text-slate-500 line-through">' + escapeHtml(item.oldPrice) + '</p>' : '') + '<button type="button" id="detailReserveButton" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>Reservar / Cotizar</button></div></div>' + (rows.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">' + rows.map(row => '<div class="bg-slate-950 border border-slate-800 rounded-xl p-4"><div class="text-xs uppercase text-cyan-400 font-bold mb-1">' + row[0] + '</div><div class="text-sm text-slate-200 whitespace-pre-line">' + escapeHtml(row[1]) + '</div></div>').join("") + '</div>' : '') + '</div>';
             renderDetailGallery(item);
+            const reserveButton = document.getElementById('detailReserveButton');
+            if (reserveButton) reserveButton.addEventListener('click', () => {
+                closeDetail();
+                openModal(item.name);
+            });
             const modal = document.getElementById("detailModal"); modal.classList.remove("hidden"); modal.classList.add("flex"); document.body.style.overflow = "hidden";
         }
                 function closeDetail() { const modal = document.getElementById('detailModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow = ''; }
