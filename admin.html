@@ -265,38 +265,66 @@
         }
 
         function renderAdminItems() {
-            db.items.forEach(item=>{item.category=String(item.category||'tour').toLowerCase();if(!Array.isArray(item.images))item.images=item.image?[item.image]:[];});
-            const container=document.getElementById('adminItemsList');
-            container.innerHTML=db.items.map((item,index)=>{
-                const e=adminEscapeHtml, img=e(adminSafeImageUrl(item.image)), category=['trimaran','yate','tour'].includes(item.category)?item.category:'tour', view=item.imageView||{};
-                const x=adminSafeNumber(view.x,50,0,100),y=adminSafeNumber(view.y,50,0,100),z=adminSafeNumber(view.zoom,100,100,160);
-                return `<div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
-                <div class="relative w-24 h-24 flex-shrink-0"><img src="${img}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" alt="Vista previa" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">${item.isSeasonal?'<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>':''}</div>
-                <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-                <input type="text" value="${e(item.name)}" onchange="updateItemField(${index},'name',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm" placeholder="Nombre">
-                <select onchange="updateItemField(${index},'category',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm"><option value="trimaran" ${category==='trimaran'?'selected':''}>Trimarán</option><option value="yate" ${category==='yate'?'selected':''}>Yate / Lancha</option><option value="tour" ${category==='tour'?'selected':''}>Tour / Experiencia</option></select>
-                <input type="text" value="${e(item.price)}" onchange="updateItemField(${index},'price',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm" placeholder="Precio">
-                <input type="text" value="${e(item.capacity)}" onchange="updateItemField(${index},'capacity',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm" placeholder="Capacidad">
-                <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2"><input type="text" value="${e(item.image||'')}" onchange="updateItemField(${index},'image',this.value);setAdminImagePreview(${index},this.value)" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs" placeholder="URL de imagen"><label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index},this.files[0],this)"></label></div>
-                <input type="text" value="${e(item.desc)}" onchange="updateItemField(${index},'desc',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2" placeholder="Descripción">
-                <input type="text" value="${e(item.duration)}" onchange="updateItemField(${index},'duration',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
-                <input type="text" value="${e(item.schedule)}" onchange="updateItemField(${index},'schedule',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Horarios">
-                <input type="text" value="${e(item.location)}" onchange="updateItemField(${index},'location',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Ubicación">
-                <input type="text" value="${e(item.oldPrice)}" onchange="updateItemField(${index},'oldPrice',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Precio anterior / promoción">
-                <textarea onchange="updateItemField(${index},'includes',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué incluye" rows="2">${e(item.includes)}</textarea>
-                <textarea onchange="updateItemField(${index},'excludes',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${e(item.excludes)}</textarea>
-                <input type="text" value="${e(item.availability)}" onchange="updateItemField(${index},'availability',this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
-                <input type="text" value="${e((item.images||[]).join(', '))}" onchange="updateItemField(${index},'images',this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
-                <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-                <label class="text-xs text-slate-400">Ajuste de imagen<select onchange="updateItemView(${index},'fit',this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="contain" ${(view.fit||'contain')==='contain'?'selected':''}>Mostrar completa</option><option value="cover" ${(view.fit||'contain')==='cover'?'selected':''}>Llenar el marco</option></select></label>
-                <label class="text-xs text-slate-400">Posición horizontal<input type="range" min="0" max="100" value="${x}" onchange="updateItemView(${index},'x',this.value)" class="mt-2 w-full accent-cyan-500"></label>
-                <label class="text-xs text-slate-400">Posición vertical<input type="range" min="0" max="100" value="${y}" onchange="updateItemView(${index},'y',this.value)" class="mt-2 w-full accent-cyan-500"></label>
-                <label class="text-xs text-slate-400">Zoom<input type="range" min="100" max="160" step="5" value="${z}" onchange="updateItemView(${index},'zoom',this.value)" class="mt-2 w-full accent-cyan-500"></label></div>
-                <label class="flex items-center gap-2 text-xs text-emerald-300"><input type="checkbox" ${item.published!==false?'checked':''} onchange="updateItemField(${index},'published',this.checked)"> Publicado en la web</label></div>
-                <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2"><label class="flex items-center space-x-2 text-xs text-amber-400 cursor-pointer bg-amber-500/10 border border-amber-500/30 px-3 py-2 rounded-xl"><input type="checkbox" ${item.isSeasonal?'checked':''} onchange="updateItemField(${index},'isSeasonal',this.checked)" class="rounded accent-amber-500"><span class="font-bold">Temporada</span></label>
-                <button onclick="deleteItem(${index})" class="text-rose-400 hover:text-rose-300 p-2 transition"><i class="fa-solid fa-trash text-lg"></i></button></div></div>`;
-            }).join('');
+            db.items.forEach(item => { item.category = String(item.category || 'tour').toLowerCase(); if (!Array.isArray(item.images)) item.images = item.image ? [item.image] : []; });
+            const container = document.getElementById('adminItemsList');
+            container.innerHTML = db.items.map((item, index) => `
+                <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
+                    <div class="relative w-24 h-24 flex-shrink-0">
+                        <img src="${adminSafeImageUrl(item.image)}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">
+                        ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
+                    </div>
+                    <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+                        <input type="text" value="${adminEscapeHtml(item.name)}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Nombre">
+                        <select onchange="updateItemField(${index}, 'category', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500">
+                            <option value="trimaran" ${item.category==='trimaran'?'selected':''}>Trimarán</option>
+                            <option value="yate" ${item.category==='yate'?'selected':''}>Yate / Lancha</option>
+                            <option value="tour" ${item.category==='tour'?'selected':''}>Tour / Experiencia</option>
+                        </select>
+                        <input type="text" value="${adminEscapeHtml(item.price)}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
+                        <input type="text" value="${adminEscapeHtml(item.capacity)}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
+                        <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2">
+                            <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); setAdminImagePreview(${index}, this.value)" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
+                            <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
+                        </div>
+                        <input type="text" value="${adminEscapeHtml(item.desc)}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
+                        <input type="text" value="${adminEscapeHtml(item.duration || '')}" onchange="updateItemField(${index}, 'duration', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
+                        <input type="text" value="${adminEscapeHtml(item.schedule || '')}" onchange="updateItemField(${index}, 'schedule', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Horarios">
+                        <input type="text" value="${adminEscapeHtml(item.location || '')}" onchange="updateItemField(${index}, 'location', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Ubicación">
+                        <input type="text" value="${adminEscapeHtml(item.oldPrice || '')}" onchange="updateItemField(${index}, 'oldPrice', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Precio anterior / promoción">
+                        <textarea onchange="updateItemField(${index}, 'includes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué incluye" rows="2">${adminEscapeHtml(item.includes || '')}</textarea>
+                        <textarea onchange="updateItemField(${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${adminEscapeHtml(item.excludes || '')}</textarea>
+                        <input type="text" value="${adminEscapeHtml(item.availability || '')}" onchange="updateItemField(${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
+                        <input type="text" value="${adminEscapeHtml((item.images || []).join(', '))}" onchange="updateItemField(${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
+<div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+  <label class="text-xs text-slate-400">Ajuste de imagen
+    <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+      <option value="contain" ${(item.imageView?.fit || 'contain')==='contain'?'selected':''}>Mostrar completa</option>
+      <option value="cover" ${(item.imageView?.fit || 'contain')==='cover'?'selected':''}>Llenar el marco</option>
+    </select>
+  </label>
+  <label class="text-xs text-slate-400">Posición horizontal
+    <input type="range" min="0" max="100" value="${item.imageView?.x ?? 50}" onchange="updateItemView(${index}, 'x', this.value)" class="mt-2 w-full accent-cyan-500">
+  </label>
+  <label class="text-xs text-slate-400">Posición vertical
+    <input type="range" min="0" max="100" value="${item.imageView?.y ?? 50}" onchange="updateItemView(${index}, 'y', this.value)" class="mt-2 w-full accent-cyan-500">
+  </label>
+  <label class="text-xs text-slate-400">Zoom
+    <input type="range" min="100" max="160" step="5" value="${item.imageView?.zoom ?? 100}" onchange="updateItemView(${index}, 'zoom', this.value)" class="mt-2 w-full accent-cyan-500">
+  </label>
+</div>
+                        <label class="flex items-center gap-2 text-xs text-emerald-300"><input type="checkbox" ${item.published !== false ? 'checked' : ''} onchange="updateItemField(${index}, 'published', this.checked)"> Publicado en la web</label>
+                    </div>
+                    <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2">
+                        <label class="flex items-center space-x-2 text-xs text-amber-400 cursor-pointer bg-amber-500/10 border border-amber-500/30 px-3 py-2 rounded-xl">
+                            <input type="checkbox" ${item.isSeasonal ? 'checked' : ''} onchange="updateItemField(${index}, 'isSeasonal', this.checked)" class="rounded accent-amber-500">
+                            <span class="font-bold">Temporada</span>
+                        </label>
+                        <button onclick="deleteItem(${index})" class="text-rose-400 hover:text-rose-300 p-2 transition"><i class="fa-solid fa-trash text-lg"></i></button>
+                    </div>
+                </div>
+            `).join('');
         }
+
         
         function adminEscapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
         function adminSafeImageUrl(value){const raw=String(value??'').trim();return (/^https:\/\//i.test(raw)||/^blob:/i.test(raw)||/^data:image\/(?:png|jpeg|jpg|webp|gif);base64,/i.test(raw))?raw:'';}
