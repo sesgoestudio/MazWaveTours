@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /admin/
 
-Sitemap: https://sesgoestudio.github.io/MazWaveTours/sitemap.xml
+Sitemap: https://mazwavetours.com/sitemap.xml
