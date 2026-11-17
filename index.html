@@ -497,7 +497,7 @@
             const hero = document.querySelector('.hero-bg');
             const image = document.getElementById('heroBackgroundImage');
             if (!hero || !image) return;
-            const url = String(db.heroImage || '').trim();
+            const url = "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794868743240.jpg"; // Portada solicitada: independiente de la configuración anterior del administrador.
             const x = Math.max(0, Math.min(100, Number(db.heroImagePositionX ?? 50)));
             const y = Math.max(0, Math.min(100, Number(db.heroImagePositionY ?? 50)));
             const zoom = Math.max(1, Math.min(2.5, Number(db.heroImageZoom ?? 1)));
