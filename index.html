@@ -311,14 +311,14 @@
 
     <div id="detailModal" class="fixed inset-0 z-[60] bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5" onclick="if(event.target===this)closeDetail()">
         <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative">
-            <button type="button" onclick="closeDetail()" aria-label="Cerrar detalles" title="Cerrar" class="sticky top-3 float-right mr-3 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-slate-950/90 text-white shadow-lg backdrop-blur-md transition hover:bg-rose-500 hover:border-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"><i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i></button>
+            <button type="button" onclick="closeDetail()" aria-label="Cerrar detalles" title="Cerrar" class="sticky top-3 float-right mr-3 z-20 flex h-12 w-12 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/25 bg-slate-950/95 text-white shadow-lg backdrop-blur-md transition hover:bg-rose-500 hover:border-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"><i class="fa-solid fa-xmark text-2xl sm:text-lg" aria-hidden="true"></i></button>
             <div id="detailContent" class="clear-both"></div>
         </div>
     </div>
     <!-- Modal Reserva WhatsApp -->
     <div id="bookingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
         <div class="booking-modal-card bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl">
-            <button type="button" onclick="closeModal()" aria-label="Cerrar reservación" title="Cerrar" class="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-slate-950/90 text-slate-200 shadow-lg backdrop-blur-md transition hover:bg-rose-500 hover:text-white hover:border-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"><i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i></button>
+            <button type="button" onclick="closeModal()" aria-label="Cerrar reservación" title="Cerrar" class="absolute top-4 right-4 z-20 flex h-12 w-12 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/25 bg-slate-950/95 text-slate-200 shadow-lg backdrop-blur-md transition hover:bg-rose-500 hover:text-white hover:border-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:scale-95"><i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i></button>
             <h3 id="modalTitle" class="text-xl font-bold text-white mb-1">Reservar Experiencia</h3>
             <p class="text-slate-400 text-xs mb-6">Completa tus datos para coordinar la salida por WhatsApp.</p>
             <div class="space-y-4">
