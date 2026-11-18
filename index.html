@@ -631,6 +631,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
 
+            // Recalcular los contadores con los artículos definitivos cargados desde Supabase.
+            renderCategoryNav();
+
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
