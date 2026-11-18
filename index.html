@@ -507,10 +507,15 @@
             db = {
                 ...defaultData,
                 ...remote,
-                activityVideos: {
-                    ...(defaultData.activityVideos || {}),
-                    ...(remote.activityVideos && typeof remote.activityVideos === "object" ? remote.activityVideos : {})
-                },
+                activityVideos: Object.fromEntries(
+                    Object.keys(defaultData.activityVideos || {}).map(key => {
+                        const remoteUrl = remote.activityVideos && typeof remote.activityVideos === "object"
+                            ? String(remote.activityVideos[key] || "").trim()
+                            : "";
+                        const fallbackUrl = String((defaultData.activityVideos || {})[key] || "").trim();
+                        return [key, remoteUrl || fallbackUrl];
+                    })
+                ),
                 heroImageDisabled: heroDisabled,
                 heroImage: heroDisabled ? '' : resolvedHero,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
