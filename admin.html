@@ -297,7 +297,8 @@
             if (!Object.prototype.hasOwnProperty.call(activityVideoLabels, key)) return;
             if (!db.activityVideos || typeof db.activityVideos !== 'object') db.activityVideos = {};
             db.activityVideos[key] = String(value || '').trim();
-            if (!db.activityVideosDisabled) db.activityVideosDisabled = {};\n            db.activityVideosDisabled[key] = !db.activityVideos[key] && key === 'whales';
+            if (!db.activityVideosDisabled) db.activityVideosDisabled = {};
+            db.activityVideosDisabled[key] = !db.activityVideos[key] && key === 'whales';
             renderActivityVideoAdmin();
             scheduleAutoPublish();
         }
