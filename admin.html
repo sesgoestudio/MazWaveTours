@@ -225,12 +225,12 @@
                     ...defaultData,
                     ...remoteData,
                     items: Array.isArray(remoteData.items) ? remoteData.items : defaultData.items,
-                    activityVideos: { ...(remoteData.activityVideos && typeof remoteData.activityVideos === "object" ? remoteData.activityVideos : {}), whales: (remoteData.activityVideosDisabled && remoteData.activityVideosDisabled.whales === true) ? "" : ((remoteData.activityVideos && remoteData.activityVideos.whales) || DEFAULT_WHALE_VIDEO_URL), surf: String(remoteData.activityVideos && remoteData.activityVideos.surf || ""), trimaranes: String(remoteData.activityVideos && remoteData.activityVideos.trimaranes || "") },
+                    activityVideos: { whales: String(remoteData.activityVideos && remoteData.activityVideos.whales || ""), surf: String(remoteData.activityVideos && remoteData.activityVideos.surf || ""), trimaranes: String(remoteData.activityVideos && remoteData.activityVideos.trimaranes || "") },
                     activityVideosDisabled: remoteData.activityVideosDisabled && typeof remoteData.activityVideosDisabled === "object" ? remoteData.activityVideosDisabled : {}
                 };
             } else {
                 db = JSON.parse(JSON.stringify(defaultData));
-                db.activityVideos = { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "" };
+                db.activityVideos = { whales: "", surf: "", trimaranes: "" };
                 db.activityVideosDisabled = {};
                 const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
                 if (seedError) { alert('Inicio de sesión correcto, pero no se pudo crear la configuración inicial: ' + seedError.message); return; }
@@ -250,7 +250,6 @@
 
 
         const ACTIVITY_VIDEO_BUCKET = 'mazwave-videos';
-        const DEFAULT_WHALE_VIDEO_URL = 'https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4';
         const activityVideoLabels = { whales:'Ballenas', surf:'Surf', trimaranes:'Trimaranes' };
         function getActivityVideoStoragePath(url) {
             try {
