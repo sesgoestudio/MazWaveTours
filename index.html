@@ -74,9 +74,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .activity-video-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 180px; overflow: hidden; }
-        .activity-video-player { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
-
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -277,21 +274,6 @@
     </section>
 
     <!-- Catálogo Completo -->
-
-    <!-- Videos de las actividades principales -->
-    <section id="activityVideosSection" class="max-w-7xl mx-auto w-full px-4 py-8 md:py-14" aria-labelledby="activityVideosTitle">
-        <div class="text-center max-w-2xl mx-auto mb-6 md:mb-9">
-            <span class="text-cyan-400 text-xs font-extrabold uppercase tracking-[.22em]">Vive Mazatlán</span>
-            <h2 id="activityVideosTitle" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mt-2">Descubre nuestras experiencias</h2>
-            <p class="text-sm text-slate-400 mt-3">Conoce en video lo que te espera en el mar, las olas y la bahía.</p>
-        </div>
-        <div id="activityVideosGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-            <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><div class="aspect-video rounded-xl bg-slate-950"></div><h3 class="font-bold text-white mt-3">Avistamiento de Ballenas</h3></article>
-            <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><div class="aspect-video rounded-xl bg-slate-950"></div><h3 class="font-bold text-white mt-3">Clases de Surf</h3></article>
-            <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><div class="aspect-video rounded-xl bg-slate-950"></div><h3 class="font-bold text-white mt-3">Paseos en Trimaranes</h3></article>
-        </div>
-    </section>
-
     <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 pt-3 pb-20 md:py-12 w-full">
         <section class="mb-6 md:mb-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/40 p-3.5 sm:p-5 md:p-7" aria-label="Categorías del catálogo">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1.5 sm:gap-2 mb-3 md:mb-5">
@@ -426,7 +408,6 @@
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
             // Imagen publicada confirmada en Supabase: respaldo si la lectura remota falla.
             heroImage: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794868743240.jpg",
-            activityVideos: { whales: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4", surf: "", trimaranes: "" },
             items: [
                 { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
@@ -510,15 +491,6 @@
             db = {
                 ...defaultData,
                 ...remote,
-                activityVideos: Object.fromEntries(
-                    Object.keys(defaultData.activityVideos || {}).map(key => {
-                        const remoteUrl = remote.activityVideos && typeof remote.activityVideos === "object"
-                            ? String(remote.activityVideos[key] || "").trim()
-                            : "";
-                        const fallbackUrl = String((defaultData.activityVideos || {})[key] || "").trim();
-                        return [key, remoteUrl || fallbackUrl];
-                    })
-                ),
                 heroImageDisabled: heroDisabled,
                 heroImage: heroDisabled ? '' : resolvedHero,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
@@ -602,124 +574,12 @@
             }
         }
 
-
-        function getActivityVideoEmbed(url) {
-            const value = String(url || '').trim();
-            if (!value) return '';
-            try {
-                const parsed = new URL(value);
-                const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
-                if (host === 'youtu.be') {
-                    const id = parsed.pathname.split('/').filter(Boolean)[0];
-                    return id ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) : '';
-                }
-                if (host.endsWith('youtube.com')) {
-                    const id = parsed.searchParams.get('v') || (parsed.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/) || [])[1];
-                    return id ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) : '';
-                }
-                if (host.endsWith('vimeo.com')) {
-                    const id = parsed.pathname.split('/').filter(Boolean).pop();
-                    return id && /^\d+$/.test(id) ? 'https://player.vimeo.com/video/' + id : '';
-                }
-            } catch (_) {}
-            return '';
-        }
-        function renderActivityVideos() {
-            const grid = document.getElementById('activityVideosGrid');
-            if (!grid) return;
-
-            // La URL conocida se mantiene como respaldo incluso si site_config no devuelve
-            // activityVideos o si una versión antigua del panel guardó el objeto vacío.
-            const knownWhalesVideo = 'https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4';
-            const configured = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
-            const videos = {
-                whales: String(configured.whales || knownWhalesVideo).trim(),
-                surf: String(configured.surf || '').trim(),
-                trimaranes: String(configured.trimaranes || '').trim()
-            };
-            const cards = [
-                { key: 'whales', title: 'Avistamiento de Ballenas', description: 'Observa la magia de los gigantes del Pacífico.' },
-                { key: 'surf', title: 'Clases de Surf', description: 'Siente la energía de las olas de Mazatlán.' },
-                { key: 'trimaranes', title: 'Paseos en Trimaranes', description: 'Disfruta la bahía con familia y amigos.' }
-            ];
-
-            grid.replaceChildren();
-            cards.forEach(card => {
-                const url = videos[card.key];
-                const article = document.createElement('article');
-                article.className = 'group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40';
-
-                const frame = document.createElement('div');
-                frame.className = 'activity-video-frame rounded-xl bg-black';
-                frame.style.cssText = 'position:relative;width:100%;height:auto;min-height:180px;aspect-ratio:16/9;overflow:hidden;background:#000;';
-
-                if (url) {
-                    const embed = getActivityVideoEmbed(url);
-                    if (embed) {
-                        const iframe = document.createElement('iframe');
-                        iframe.src = embed;
-                        iframe.title = card.title;
-                        iframe.loading = 'lazy';
-                        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-                        iframe.allowFullscreen = true;
-                        iframe.style.cssText = 'display:block;position:absolute;inset:0;width:100%;height:100%;border:0;';
-                        frame.appendChild(iframe);
-                    } else if (/^https:\/\//i.test(url)) {
-                        const video = document.createElement('video');
-                        video.controls = true;
-                        video.playsInline = true;
-                        video.preload = 'auto';
-                        video.setAttribute('playsinline', '');
-                        video.setAttribute('webkit-playsinline', '');
-                        video.setAttribute('controlsList', 'nodownload');
-                        video.style.cssText = 'display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;';
-                        const source = document.createElement('source');
-                        source.src = url;
-                        source.type = /\.webm(?:$|\?)/i.test(url) ? 'video/webm' : (/\.mov(?:$|\?)/i.test(url) ? 'video/quicktime' : 'video/mp4');
-                        video.appendChild(source);
-                        video.addEventListener('loadedmetadata', () => {
-                            frame.dataset.videoStatus = 'ready';
-                        }, { once: true });
-                        video.addEventListener('error', () => {
-                            const code = video.error ? video.error.code : 'desconocido';
-                            frame.replaceChildren();
-                            const message = document.createElement('p');
-                            message.className = 'p-4 text-center text-sm text-white';
-                            message.textContent = 'No se pudo cargar el video (código ' + code + ').';
-                            frame.appendChild(message);
-                            console.error('MazWaveTours: error al cargar video', card.key, url, video.error);
-                        }, { once: true });
-                        frame.appendChild(video);
-                        video.load();
-                    } else {
-                        frame.textContent = 'El enlace del video no es válido.';
-                    }
-                } else {
-                    frame.classList.add('flex', 'items-center', 'justify-center');
-                    const empty = document.createElement('p');
-                    empty.className = 'text-xs text-slate-500';
-                    empty.textContent = 'Video próximamente';
-                    frame.appendChild(empty);
-                }
-
-                const title = document.createElement('h3');
-                title.className = 'font-bold text-white mt-4';
-                title.textContent = card.title;
-                const description = document.createElement('p');
-                description.className = 'text-xs text-slate-400 mt-1';
-                description.textContent = card.description;
-                article.append(frame, title, description);
-                grid.appendChild(article);
-            });
-        }
-
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
             document.getElementById('heroTitle').innerText = db.heroTitle;
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
-            renderActivityVideos();
 
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
