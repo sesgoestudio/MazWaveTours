@@ -225,11 +225,13 @@
                     ...defaultData,
                     ...remoteData,
                     items: Array.isArray(remoteData.items) ? remoteData.items : defaultData.items,
-                    activityVideos: { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "", ...(remoteData.activityVideos && typeof remoteData.activityVideos === "object" ? remoteData.activityVideos : {}) },\n                    activityVideosDisabled: remoteData.activityVideosDisabled && typeof remoteData.activityVideosDisabled === "object" ? remoteData.activityVideosDisabled : {}
+                    activityVideos: { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "", ...(remoteData.activityVideos && typeof remoteData.activityVideos === "object" ? remoteData.activityVideos : {}) },
+                    activityVideosDisabled: remoteData.activityVideosDisabled && typeof remoteData.activityVideosDisabled === "object" ? remoteData.activityVideosDisabled : {}
                 };
             } else {
                 db = JSON.parse(JSON.stringify(defaultData));
-                db.activityVideos = { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "" };\n                db.activityVideosDisabled = {};
+                db.activityVideos = { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "" };
+                db.activityVideosDisabled = {};
                 const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
                 if (seedError) { alert('Inicio de sesión correcto, pero no se pudo crear la configuración inicial: ' + seedError.message); return; }
             }
@@ -294,7 +296,8 @@
         function updateActivityVideoUrl(key, value) {
             if (!Object.prototype.hasOwnProperty.call(activityVideoLabels, key)) return;
             if (!db.activityVideos || typeof db.activityVideos !== 'object') db.activityVideos = {};
-            db.activityVideos[key] = String(value || '').trim();\n            if (!db.activityVideosDisabled) db.activityVideosDisabled = {};\n            db.activityVideosDisabled[key] = !db.activityVideos[key] && key === 'whales';
+            db.activityVideos[key] = String(value || '').trim();
+            if (!db.activityVideosDisabled) db.activityVideosDisabled = {};\n            db.activityVideosDisabled[key] = !db.activityVideos[key] && key === 'whales';
             renderActivityVideoAdmin();
             scheduleAutoPublish();
         }
@@ -316,7 +319,8 @@
                 uploadedPath = result.data.path;
                 const pub = supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).getPublicUrl(uploadedPath);
                 if (!pub.data || !pub.data.publicUrl) throw new Error('Supabase no devolvió la URL pública.');
-                db.activityVideos = { ...(db.activityVideos || {}), [key]:pub.data.publicUrl };\n                db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:false };
+                db.activityVideos = { ...(db.activityVideos || {}), [key]:pub.data.publicUrl };
+                db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:false };
                 renderActivityVideoAdmin();
                 status.textContent = 'Video subido; guardando vínculo en el catálogo…';
                 const saved = await publishSiteChanges();
