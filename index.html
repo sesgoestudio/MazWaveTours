@@ -633,23 +633,52 @@
                 { key: 'surf', title: 'Clases de Surf', description: 'Siente la energía de las olas de Mazatlán.' },
                 { key: 'trimaranes', title: 'Paseos en Trimaranes', description: 'Disfruta la bahía con familia y amigos.' }
             ];
-            grid.innerHTML = cards.map(card => {
+            grid.replaceChildren();
+            cards.forEach(card => {
                 const url = String(videos[card.key] || '').trim();
-                const embed = getActivityVideoEmbed(url);
-                let media = '<div class="activity-video-frame flex items-center justify-center rounded-xl bg-slate-950 text-slate-600"><i class="fa-solid fa-circle-play text-3xl"></i></div>';
-                if (embed) {
-                    const safeEmbed = embed.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                    media = '<div class="activity-video-frame rounded-xl bg-black"><iframe class="activity-video-player" src="' + safeEmbed + '" title="' + card.title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
-                } else if (url && /^https:\/\//i.test(url)) {
-                    const safe = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                    const ext = (url.split(/[?#]/)[0].split('.').pop() || '').toLowerCase();
-                    const mime = ext === 'webm' ? 'video/webm' : (ext === 'mov' ? 'video/quicktime' : 'video/mp4');
-                    media = '<div class="activity-video-frame rounded-xl bg-black"><video class="activity-video-player" controls playsinline preload="metadata" webkit-playsinline><source src="' + safe + '" type="' + mime + '">Tu navegador no puede reproducir este video.</video></div>';
+                const article = document.createElement('article');
+                article.className = 'group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40';
+                const frame = document.createElement('div');
+                frame.className = 'activity-video-frame rounded-xl bg-black';
+                if (url) {
+                    const embed = getActivityVideoEmbed(url);
+                    if (embed) {
+                        const iframe = document.createElement('iframe');
+                        iframe.className = 'activity-video-player';
+                        iframe.src = embed;
+                        iframe.title = card.title;
+                        iframe.loading = 'lazy';
+                        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                        iframe.allowFullscreen = true;
+                        frame.appendChild(iframe);
+                    } else if (/^https:\/\//i.test(url)) {
+                        const video = document.createElement('video');
+                        video.className = 'activity-video-player';
+                        video.controls = true;
+                        video.playsInline = true;
+                        video.preload = 'metadata';
+                        video.setAttribute('webkit-playsinline', '');
+                        video.src = url;
+                        video.addEventListener('error', () => {
+                            frame.innerHTML = '<p class="p-4 text-center text-sm text-white">No se pudo cargar este video. Verifica el enlace en el administrador.</p>';
+                        }, { once: true });
+                        frame.appendChild(video);
+                        video.load();
+                    }
+                } else {
+                    frame.classList.add('flex', 'items-center', 'justify-center');
+                    frame.innerHTML = '<i class="fa-solid fa-circle-play text-3xl text-slate-600"></i>';
                 }
-                return '<article class="group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40"><div class="overflow-hidden rounded-xl">' + media + '</div><h3 class="font-bold text-white mt-4">' + card.title + '</h3><p class="text-xs text-slate-400 mt-1">' + card.description + '</p></article>';
-            }).join('');
+                const title = document.createElement('h3');
+                title.className = 'font-bold text-white mt-4';
+                title.textContent = card.title;
+                const description = document.createElement('p');
+                description.className = 'text-xs text-slate-400 mt-1';
+                description.textContent = card.description;
+                article.append(frame, title, description);
+                grid.appendChild(article);
+            });
         }
-
 
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
