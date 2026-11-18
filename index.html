@@ -559,9 +559,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             setTimeout(() => { splash.style.display = 'none'; }, 320);
         }
 
-        // La intro no debe esperar a que terminen de cargar imágenes o recursos externos.
-        // El script está al final del documento, así que podemos iniciar el cierre inmediatamente.
-        window.setTimeout(enterSite, 850);
+        // La marca se muestra brevemente y el catálogo queda disponible sin tocar nada.
+        window.addEventListener('load', () => {
+            window.setTimeout(enterSite, 850);
+        }, { once: true });
 
         function normalizeCategory(value) {
             const v = String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -616,11 +617,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function renderSite() {
-            // Al entrar a la página, iniciar siempre con el catálogo completo.
-            const categoryFilter = document.getElementById('categoryFilter');
-            const searchInput = document.getElementById('searchInput');
-            if (categoryFilter) categoryFilter.value = 'all';
-            if (searchInput) searchInput.value = '';
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
             document.getElementById('heroTitle').innerText = db.heroTitle;
@@ -632,11 +628,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
 
             renderSeasonal();
-            // Mantener Todas las experiencias activa después de cargar Supabase.
-            categoryFilter.value = 'all';
-            searchInput.value = '';
             renderCategoryNav();
-            filterItems();
+            renderCards(db.items);
         }
 
         function renderSeasonal() {
@@ -774,10 +767,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 button.classList.toggle('border-slate-700', !selected);
                 button.classList.toggle('bg-slate-950/70', !selected);
                 button.setAttribute('aria-pressed', String(selected));
-                // Refuerzo visual independiente de las clases Tailwind.
-                button.style.borderColor = selected ? '#22d3ee' : '';
-                button.style.backgroundColor = selected ? 'rgba(6, 182, 212, 0.15)' : '';
-                button.style.boxShadow = selected ? '0 0 0 1px rgba(34, 211, 238, 0.18)' : '';
             });
         }
 
@@ -936,18 +925,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
         })();
 
-        // Estado inicial visible: Todas las experiencias y sus tarjetas, sin esperar a Supabase.
-        const initialCategoryFilter = document.getElementById('categoryFilter');
-        const initialSearchInput = document.getElementById('searchInput');
-        if (initialCategoryFilter) initialCategoryFilter.value = 'all';
-        if (initialSearchInput) initialSearchInput.value = '';
-        try {
-            renderCategoryNav();
-            renderCards(db.items.filter(item => item.published !== false));
-            renderSeasonal();
-        } catch (initialRenderError) {
-            console.error('No se pudo renderizar el catálogo inicial.', initialRenderError);
-        }
+        // Render inmediato del catálogo de respaldo: los contadores no esperan a la red.
+        try { renderCategoryNav(); renderSeasonal(); } catch (counterError) { console.error('No se pudo renderizar inicialmente el catálogo o la sección de temporada.', counterError); }
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
