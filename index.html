@@ -612,10 +612,10 @@
             } catch (_) {}
             return '';
         }
-        function renderActivityVideos() {
+        function renderActivityVideos(videoOverrides = {}) {
             const grid = document.getElementById('activityVideosGrid'); if (!grid) return;
             const cfg = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
-            const urls = { whales: (db.activityVideosDisabled && db.activityVideosDisabled.whales === true) ? '' : (String(cfg.whales || '').trim() || "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4"), surf: String(cfg.surf || '').trim(), trimaranes: String(cfg.trimaranes || '').trim() };
+            const urls = { whales: (db.activityVideosDisabled && db.activityVideosDisabled.whales === true) ? '' : (String(videoOverrides.whales || cfg.whales || '').trim() || "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4"), surf: String(videoOverrides.surf || cfg.surf || '').trim(), trimaranes: String(videoOverrides.trimaranes || cfg.trimaranes || '').trim() };
             const cards = [{key:'whales',title:'Avistamiento de Ballenas',desc:'Observa a los gigantes del Pacífico en su hábitat natural.'},{key:'surf',title:'Clases de Surf',desc:'Aprende y disfruta las olas de Mazatlán con acompañamiento.'},{key:'trimaranes',title:'Paseos en Trimaranes',desc:'Descubre la bahía y disfruta el mar con tu grupo.'}];
             grid.replaceChildren();
             cards.forEach(card => {
@@ -631,6 +631,48 @@
                 const desc=document.createElement('p');desc.className='mt-1 text-sm text-slate-400';desc.textContent=card.desc;article.append(frame,title,desc);grid.appendChild(article);
             });
         }
+
+        // Segunda lectura independiente: si el administrador alcanzó a subir el archivo
+        // pero el enlace no quedó guardado en site_config, lo detectamos por el nombre
+        // del archivo dentro del bucket y lo mostramos de todos modos.
+        async function loadPublishedActivityVideos() {
+            const overrides = {};
+            try {
+                const response = await fetch(SUPABASE_PUBLIC_URL + '/rest/v1/site_config?select=data&id=eq.1', {
+                    headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY },
+                    cache: 'no-store'
+                });
+                if (response.ok) {
+                    const rows = await response.json();
+                    const data = rows && rows[0] && rows[0].data;
+                    const saved = data && data.activityVideos;
+                    if (saved && typeof saved === 'object') {
+                        ['whales','surf','trimaranes'].forEach(key => {
+                            if (typeof saved[key] === 'string' && saved[key].trim()) overrides[key] = saved[key].trim();
+                        });
+                    }
+                }
+            } catch (error) { console.warn('No se pudieron releer los enlaces de video:', error); }
+            try {
+                const response = await fetch(SUPABASE_PUBLIC_URL + '/storage/v1/object/list/mazwave-videos', {
+                    method: 'POST',
+                    headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prefix: 'activity-videos', limit: 100, offset: 0, sortBy: { column: 'created_at', order: 'desc' } }),
+                    cache: 'no-store'
+                });
+                if (response.ok) {
+                    const files = await response.json();
+                    ['whales','surf','trimaranes'].forEach(key => {
+                        if (overrides[key]) return;
+                        const match = (Array.isArray(files) ? files : []).filter(file => file && typeof file.name === 'string' && file.name.startsWith(key + '-') && /\.(mp4|webm|mov)$/i.test(file.name)).sort((a,b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
+                        if (match) overrides[key] = SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-videos/activity-videos/' + encodeURIComponent(match.name);
+                    });
+                } else { console.warn('No se pudo listar los videos del bucket:', response.status); }
+            } catch (error) { console.warn('No se pudo detectar el video subido en Storage:', error); }
+            renderActivityVideos(overrides);
+            console.info('MazWaveTours: videos publicados detectados', Object.keys(overrides));
+        }
+
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
@@ -949,6 +991,7 @@
             finally {
                 db = cleanLocationReferences(db);
                 renderSite();
+                await loadPublishedActivityVideos();
                 const dateInput = document.getElementById('clientDate');
                 if (dateInput) {
                     const today = new Date();
