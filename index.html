@@ -617,6 +617,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function renderSite() {
+            // Al entrar a la página, iniciar siempre con el catálogo completo.
+            const categoryFilter = document.getElementById('categoryFilter');
+            const searchInput = document.getElementById('searchInput');
+            if (categoryFilter) categoryFilter.value = 'all';
+            if (searchInput) searchInput.value = '';
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
             document.getElementById('heroTitle').innerText = db.heroTitle;
@@ -925,6 +930,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
         })();
 
+        // Estado inicial: Todas las experiencias, incluso antes de terminar la carga remota.
+        const initialCategoryFilter = document.getElementById('categoryFilter');
+        if (initialCategoryFilter) initialCategoryFilter.value = 'all';
         // Render inmediato del catálogo de respaldo: los contadores no esperan a la red.
         try { renderCategoryNav(); renderSeasonal(); } catch (counterError) { console.error('No se pudo renderizar inicialmente el catálogo o la sección de temporada.', counterError); }
         window.addEventListener('load', async () => {
