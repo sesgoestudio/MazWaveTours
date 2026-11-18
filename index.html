@@ -74,6 +74,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .activity-video-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 180px; overflow: hidden; }
+        .activity-video-player { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -632,16 +635,21 @@
             ];
             grid.innerHTML = cards.map(card => {
                 const url = String(videos[card.key] || '').trim();
-                let media = '<div class="aspect-video rounded-xl bg-slate-950 flex items-center justify-center text-slate-600"><i class="fa-solid fa-circle-play text-3xl"></i></div>';
-                if (url) {
-                    const embed = getActivityVideoEmbed(url);
+                const embed = getActivityVideoEmbed(url);
+                let media = '<div class="activity-video-frame flex items-center justify-center rounded-xl bg-slate-950 text-slate-600"><i class="fa-solid fa-circle-play text-3xl"></i></div>';
+                if (embed) {
+                    const safeEmbed = embed.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                    media = '<div class="activity-video-frame rounded-xl bg-black"><iframe class="activity-video-player" src="' + safeEmbed + '" title="' + card.title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
+                } else if (url && /^https:\/\//i.test(url)) {
                     const safe = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                    if (embed) media = '<div class="aspect-video overflow-hidden rounded-xl bg-black"><iframe class="w-full h-full" src="' + embed + '" title="' + card.title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
-                    else if (/\.(mp4|webm|mov)(?:[?#].*)?$/i.test(url)) media = '<div class="aspect-video overflow-hidden rounded-xl bg-black"><video class="w-full h-full object-cover" controls playsinline preload="metadata" src="' + safe + '"></video></div>';
+                    const ext = (url.split(/[?#]/)[0].split('.').pop() || '').toLowerCase();
+                    const mime = ext === 'webm' ? 'video/webm' : (ext === 'mov' ? 'video/quicktime' : 'video/mp4');
+                    media = '<div class="activity-video-frame rounded-xl bg-black"><video class="activity-video-player" controls playsinline preload="metadata" webkit-playsinline><source src="' + safe + '" type="' + mime + '">Tu navegador no puede reproducir este video.</video></div>';
                 }
                 return '<article class="group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40"><div class="overflow-hidden rounded-xl">' + media + '</div><h3 class="font-bold text-white mt-4">' + card.title + '</h3><p class="text-xs text-slate-400 mt-1">' + card.description + '</p></article>';
             }).join('');
         }
+
 
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
