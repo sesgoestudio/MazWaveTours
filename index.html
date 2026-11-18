@@ -680,7 +680,6 @@
                     keys.forEach(key => {
                         const matches = normalized.filter(item =>
                             item.filename.startsWith(key + '-') && ['.mp4','.webm','.mov'].some(ext => item.filename.toLowerCase().endsWith(ext))
-                            /\\.(mp4|webm|mov)$/i.test(item.filename)
                         ).sort((a,b) => String(b.file.created_at || '').localeCompare(String(a.file.created_at || '')));
                         if (matches.length) {
                             // El objeto más reciente de cada categoría es la fuente actual.
