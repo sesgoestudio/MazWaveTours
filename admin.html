@@ -284,7 +284,7 @@
                         <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
                         <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2">
                             <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); document.getElementById('item-image-preview-${index}').src=this.value" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
-                            <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
+                            <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Agregar fotos<input type="file" accept="image/*" multiple class="hidden" onchange="uploadItemImages(${index}, this.files, this)"></label>
                         </div>
                         <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
                         <input type="text" value="${item.duration || ''}" onchange="updateItemField(${index}, 'duration', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
@@ -295,6 +295,7 @@
                         <textarea onchange="updateItemField(${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${item.excludes || ''}</textarea>
                         <input type="text" value="${item.availability || ''}" onchange="updateItemField(${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
                         <input type="text" value="${(item.images || []).join(', ')}" onchange="updateItemField(${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
+                        ${renderAdminGallery(index, item)}
 <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
   <label class="text-xs text-slate-400">Ajuste de imagen
     <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
@@ -559,27 +560,96 @@
             }
         }
 
-        async function uploadItemImage(index, file, input) {
-            if (!file) return;
-            if (!file.type.startsWith('image/')) { alert('Selecciona un archivo de imagen.'); input.value=''; return; }
-            if (file.size > 8 * 1024 * 1024) { alert('La imagen debe pesar menos de 8 MB.'); input.value=''; return; }
-            const status = document.getElementById('saveStatus');
-            if (status) status.textContent = 'Subiendo fotografía…';
-            const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-            const path = 'catalog/' + db.items[index].id + '-' + Date.now() + '.' + extension;
-            const { data, error } = await supabaseClient.storage.from('mazwave-images').upload(path, file, { upsert: true, contentType: file.type });
-            if (error) { alert('No se pudo subir la imagen: ' + error.message + '. Verifica que ejecutaste el SQL actualizado.'); if (status) status.textContent=''; input.value=''; return; }
-            const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
-            db.items[index].image = publicData.publicUrl;
-            db.items[index].images = [publicData.publicUrl, ...(db.items[index].images || []).slice(1)];
-            const preview = document.getElementById('item-image-preview-' + index);
-            if (preview) preview.src = publicData.publicUrl;
-            const urlInput = input.parentElement.querySelector('input[type="text"]');
-            if (urlInput) urlInput.value = publicData.publicUrl;
-            if (status) status.textContent = 'Foto subida; guardando catálogo…';
-            await publishSiteChanges();
-            input.value = '';
+        function renderAdminGallery(index, item) {
+            const photos = Array.isArray(item.images) ? item.images : [];
+            const esc = value => String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            if (!photos.length) return '<div class="lg:col-span-4 text-xs text-slate-500">Aún no hay fotos en la galería.</div>';
+            return '<div class="lg:col-span-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">' + photos.map((url, photoIndex) =>
+                '<div class="rounded-xl border ' + (url === item.image ? 'border-cyan-400/70' : 'border-slate-700') + ' bg-slate-900 p-2">' +
+                '<img src="' + esc(url) + '" alt="Foto ' + (photoIndex + 1) + '" class="w-full h-24 object-cover rounded-lg bg-slate-950">' +
+                '<p class="text-[10px] text-slate-400 mt-1 truncate">' + (url === item.image ? 'Portada' : 'Foto ' + (photoIndex + 1)) + '</p>' +
+                '<div class="flex gap-1 mt-2">' +
+                (url !== item.image ? '<button type="button" onclick="setItemCover(' + index + ',' + photoIndex + ')" class="flex-1 text-[10px] rounded-lg bg-cyan-500/15 text-cyan-300 px-2 py-1">Hacer portada</button>' : '<span class="flex-1 text-center text-[10px] text-cyan-300 py-1">Principal</span>') +
+                '<button type="button" onclick="removeItemPhoto(' + index + ',' + photoIndex + ')" class="text-[10px] rounded-lg bg-rose-500/10 text-rose-300 px-2 py-1">Quitar</button>' +
+                '</div></div>'
+            ).join('') + '</div>';
         }
+
+        function getCatalogStoragePath(publicUrl) {
+            try {
+                const parsed = new URL(publicUrl);
+                const marker = '/storage/v1/object/public/mazwave-images/';
+                const position = parsed.pathname.indexOf(marker);
+                if (position < 0) return '';
+                const path = decodeURIComponent(parsed.pathname.slice(position + marker.length));
+                return path.startsWith('catalog/') && !path.includes('..') ? path : '';
+            } catch (_) { return ''; }
+        }
+
+        async function uploadItemImages(index, files, input) {
+            const selected = Array.from(files || []);
+            if (!selected.length) return;
+            if (!supabaseClient) { alert('No hay conexión con Supabase. Inicia sesión nuevamente.'); input.value = ''; return; }
+            const invalid = selected.find(file => !file.type.startsWith('image/') || file.size > 8 * 1024 * 1024);
+            if (invalid) { alert('Cada archivo debe ser una imagen y pesar menos de 8 MB. No se subió ningún archivo.'); input.value = ''; return; }
+            const item = db.items[index];
+            const status = document.getElementById('saveStatus');
+            const uploaded = [];
+            try {
+                for (let i = 0; i < selected.length; i++) {
+                    const file = selected[i];
+                    if (status) status.textContent = 'Subiendo foto ' + (i + 1) + ' de ' + selected.length + '…';
+                    const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+                    const path = 'catalog/' + item.id + '-' + Date.now() + '-' + i + '.' + extension;
+                    const { data, error } = await supabaseClient.storage.from('mazwave-images').upload(path, file, { upsert: false, contentType: file.type, cacheControl: '3600' });
+                    if (error) throw error;
+                    const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
+                    if (!publicData?.publicUrl) throw new Error('No se pudo obtener la URL pública de una fotografía.');
+                    uploaded.push(publicData.publicUrl);
+                }
+                item.images = Array.from(new Set([...(item.images || []), ...uploaded]));
+                if (!item.image || !item.images.includes(item.image)) item.image = item.images[0];
+                renderAdminItems();
+                if (status) status.textContent = 'Fotos subidas; guardando galería…';
+                const saved = await publishSiteChanges();
+                if (!saved) throw new Error('Las fotos se subieron, pero no se confirmó el guardado de la galería. Vuelve a guardar.');
+            } catch (error) {
+                if (status) status.textContent = 'No se completó la carga de fotografías';
+                alert('No se pudieron guardar todas las fotos: ' + (error.message || 'Error desconocido'));
+            } finally { input.value = ''; }
+        }
+
+        async function setItemCover(index, photoIndex) {
+            const item = db.items[index];
+            if (!item || !item.images?.[photoIndex]) return;
+            const [cover] = item.images.splice(photoIndex, 1);
+            item.images.unshift(cover);
+            item.image = cover;
+            renderAdminItems();
+            await publishSiteChanges();
+        }
+
+        async function removeItemPhoto(index, photoIndex) {
+            const item = db.items[index];
+            if (!item || !item.images?.[photoIndex]) return;
+            if (!confirm('¿Quitar esta fotografía de la galería?')) return;
+            const [removed] = item.images.splice(photoIndex, 1);
+            if (item.image === removed) item.image = item.images[0] || '';
+            const saved = await publishSiteChanges();
+            if (saved) {
+                const path = getCatalogStoragePath(removed);
+                if (path) {
+                    const { error } = await supabaseClient.storage.from('mazwave-images').remove([path]);
+                    if (error) console.warn('La foto se quitó de la galería, pero no se pudo borrar de Storage:', error.message);
+                }
+                renderAdminItems();
+            } else {
+                item.images.splice(photoIndex, 0, removed);
+                if (!item.image) item.image = removed;
+                renderAdminItems();
+            }
+        }
+
 
         function addNewItem() {
             db.items.unshift({
