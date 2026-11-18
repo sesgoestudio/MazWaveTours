@@ -274,6 +274,21 @@
     </section>
 
     <!-- Catálogo Completo -->
+
+    <!-- Videos de las actividades principales -->
+    <section id="activityVideosSection" class="max-w-7xl mx-auto w-full px-4 py-8 md:py-14" aria-labelledby="activityVideosTitle">
+        <div class="text-center max-w-2xl mx-auto mb-6 md:mb-9">
+            <span class="text-cyan-400 text-xs font-extrabold uppercase tracking-[.22em]">Vive Mazatlán</span>
+            <h2 id="activityVideosTitle" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mt-2">Descubre nuestras experiencias</h2>
+            <p class="text-sm text-slate-400 mt-3">Conoce en video lo que te espera en el mar, las olas y la bahía.</p>
+        </div>
+        <div id="activityVideosGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+            <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><div class="aspect-video rounded-xl bg-slate-950"></div><h3 class="font-bold text-white mt-3">Avistamiento de Ballenas</h3></article>
+            <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><div class="aspect-video rounded-xl bg-slate-950"></div><h3 class="font-bold text-white mt-3">Clases de Surf</h3></article>
+            <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><div class="aspect-video rounded-xl bg-slate-950"></div><h3 class="font-bold text-white mt-3">Paseos en Trimaranes</h3></article>
+        </div>
+    </section>
+
     <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 pt-3 pb-20 md:py-12 w-full">
         <section class="mb-6 md:mb-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/40 p-3.5 sm:p-5 md:p-7" aria-label="Categorías del catálogo">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1.5 sm:gap-2 mb-3 md:mb-5">
@@ -408,6 +423,7 @@
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
             // Imagen publicada confirmada en Supabase: respaldo si la lectura remota falla.
             heroImage: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794868743240.jpg",
+            activityVideos: { whales: "", surf: "", trimaranes: "" },
             items: [
                 { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
@@ -574,12 +590,57 @@
             }
         }
 
+
+        function getActivityVideoEmbed(url) {
+            const value = String(url || '').trim();
+            if (!value) return '';
+            try {
+                const parsed = new URL(value);
+                const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+                if (host === 'youtu.be') {
+                    const id = parsed.pathname.split('/').filter(Boolean)[0];
+                    return id ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) : '';
+                }
+                if (host.endsWith('youtube.com')) {
+                    const id = parsed.searchParams.get('v') || (parsed.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/) || [])[1];
+                    return id ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) : '';
+                }
+                if (host.endsWith('vimeo.com')) {
+                    const id = parsed.pathname.split('/').filter(Boolean).pop();
+                    return id && /^\d+$/.test(id) ? 'https://player.vimeo.com/video/' + id : '';
+                }
+            } catch (_) {}
+            return '';
+        }
+        function renderActivityVideos() {
+            const grid = document.getElementById('activityVideosGrid');
+            if (!grid) return;
+            const videos = db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
+            const cards = [
+                { key: 'whales', title: 'Avistamiento de Ballenas', description: 'Observa la magia de los gigantes del Pacífico.' },
+                { key: 'surf', title: 'Clases de Surf', description: 'Siente la energía de las olas de Mazatlán.' },
+                { key: 'trimaranes', title: 'Paseos en Trimaranes', description: 'Disfruta la bahía con familia y amigos.' }
+            ];
+            grid.innerHTML = cards.map(card => {
+                const url = String(videos[card.key] || '').trim();
+                let media = '<div class="aspect-video rounded-xl bg-slate-950 flex items-center justify-center text-slate-600"><i class="fa-solid fa-circle-play text-3xl"></i></div>';
+                if (url) {
+                    const embed = getActivityVideoEmbed(url);
+                    const safe = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                    if (embed) media = '<div class="aspect-video overflow-hidden rounded-xl bg-black"><iframe class="w-full h-full" src="' + embed + '" title="' + card.title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
+                    else if (/\.(mp4|webm|mov)(?:[?#].*)?$/i.test(url)) media = '<div class="aspect-video overflow-hidden rounded-xl bg-black"><video class="w-full h-full object-cover" controls playsinline preload="metadata" src="' + safe + '"></video></div>';
+                }
+                return '<article class="group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40"><div class="overflow-hidden rounded-xl">' + media + '</div><h3 class="font-bold text-white mt-4">' + card.title + '</h3><p class="text-xs text-slate-400 mt-1">' + card.description + '</p></article>';
+            }).join('');
+        }
+
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
             document.getElementById('heroTitle').innerText = db.heroTitle;
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
+            renderActivityVideos();
 
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
