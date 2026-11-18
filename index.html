@@ -559,10 +559,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             setTimeout(() => { splash.style.display = 'none'; }, 320);
         }
 
-        // La marca se muestra brevemente y el catálogo queda disponible sin tocar nada.
-        window.addEventListener('load', () => {
-            window.setTimeout(enterSite, 850);
-        }, { once: true });
+        // La intro no debe esperar a que terminen de cargar imágenes o recursos externos.
+        // El script está al final del documento, así que podemos iniciar el cierre inmediatamente.
+        window.setTimeout(enterSite, 850);
 
         function normalizeCategory(value) {
             const v = String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -937,12 +936,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
         })();
 
-        // Estado inicial: Todas las experiencias, incluso antes de terminar la carga remota.
+        // Estado inicial visible: Todas las experiencias y sus tarjetas, sin esperar a Supabase.
         const initialCategoryFilter = document.getElementById('categoryFilter');
+        const initialSearchInput = document.getElementById('searchInput');
         if (initialCategoryFilter) initialCategoryFilter.value = 'all';
-        // Renderizar toda la página y todas las tarjetas locales inmediatamente, sin esperar a Supabase.
-        // Cuando llegue la configuración remota, renderSite() actualizará el contenido conservando "all".
-        try { renderSite(); } catch (initialRenderError) { console.error('No se pudo renderizar el catálogo inicial.', initialRenderError); }
+        if (initialSearchInput) initialSearchInput.value = '';
+        try {
+            renderCategoryNav();
+            renderCards(db.items.filter(item => item.published !== false));
+            renderSeasonal();
+        } catch (initialRenderError) {
+            console.error('No se pudo renderizar el catálogo inicial.', initialRenderError);
+        }
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
