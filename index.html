@@ -628,9 +628,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
 
             renderSeasonal();
-            document.getElementById('categoryFilter').value = 'all';
-            renderCategoryNav();
-            filterItems();
+            setCategory('all');
         }
 
         function renderSeasonal() {
