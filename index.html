@@ -627,48 +627,81 @@
         function renderActivityVideos() {
             const grid = document.getElementById('activityVideosGrid');
             if (!grid) return;
-            const videos = db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
+
+            // La URL conocida se mantiene como respaldo incluso si site_config no devuelve
+            // activityVideos o si una versión antigua del panel guardó el objeto vacío.
+            const knownWhalesVideo = 'https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4';
+            const configured = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
+            const videos = {
+                whales: String(configured.whales || knownWhalesVideo).trim(),
+                surf: String(configured.surf || '').trim(),
+                trimaranes: String(configured.trimaranes || '').trim()
+            };
             const cards = [
                 { key: 'whales', title: 'Avistamiento de Ballenas', description: 'Observa la magia de los gigantes del Pacífico.' },
                 { key: 'surf', title: 'Clases de Surf', description: 'Siente la energía de las olas de Mazatlán.' },
                 { key: 'trimaranes', title: 'Paseos en Trimaranes', description: 'Disfruta la bahía con familia y amigos.' }
             ];
+
             grid.replaceChildren();
             cards.forEach(card => {
-                const url = String(videos[card.key] || '').trim();
+                const url = videos[card.key];
                 const article = document.createElement('article');
                 article.className = 'group rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40';
+
                 const frame = document.createElement('div');
                 frame.className = 'activity-video-frame rounded-xl bg-black';
+                frame.style.cssText = 'position:relative;width:100%;height:auto;min-height:180px;aspect-ratio:16/9;overflow:hidden;background:#000;';
+
                 if (url) {
                     const embed = getActivityVideoEmbed(url);
                     if (embed) {
                         const iframe = document.createElement('iframe');
-                        iframe.className = 'activity-video-player';
                         iframe.src = embed;
                         iframe.title = card.title;
                         iframe.loading = 'lazy';
                         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
                         iframe.allowFullscreen = true;
+                        iframe.style.cssText = 'display:block;position:absolute;inset:0;width:100%;height:100%;border:0;';
                         frame.appendChild(iframe);
                     } else if (/^https:\/\//i.test(url)) {
                         const video = document.createElement('video');
-                        video.className = 'activity-video-player';
                         video.controls = true;
                         video.playsInline = true;
-                        video.preload = 'metadata';
+                        video.preload = 'auto';
+                        video.setAttribute('playsinline', '');
                         video.setAttribute('webkit-playsinline', '');
-                        video.src = url;
+                        video.setAttribute('controlsList', 'nodownload');
+                        video.style.cssText = 'display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;';
+                        const source = document.createElement('source');
+                        source.src = url;
+                        source.type = /\.webm(?:$|\?)/i.test(url) ? 'video/webm' : (/\.mov(?:$|\?)/i.test(url) ? 'video/quicktime' : 'video/mp4');
+                        video.appendChild(source);
+                        video.addEventListener('loadedmetadata', () => {
+                            frame.dataset.videoStatus = 'ready';
+                        }, { once: true });
                         video.addEventListener('error', () => {
-                            frame.innerHTML = '<p class="p-4 text-center text-sm text-white">No se pudo cargar este video. Verifica el enlace en el administrador.</p>';
+                            const code = video.error ? video.error.code : 'desconocido';
+                            frame.replaceChildren();
+                            const message = document.createElement('p');
+                            message.className = 'p-4 text-center text-sm text-white';
+                            message.textContent = 'No se pudo cargar el video (código ' + code + ').';
+                            frame.appendChild(message);
+                            console.error('MazWaveTours: error al cargar video', card.key, url, video.error);
                         }, { once: true });
                         frame.appendChild(video);
                         video.load();
+                    } else {
+                        frame.textContent = 'El enlace del video no es válido.';
                     }
                 } else {
                     frame.classList.add('flex', 'items-center', 'justify-center');
-                    frame.innerHTML = '<i class="fa-solid fa-circle-play text-3xl text-slate-600"></i>';
+                    const empty = document.createElement('p');
+                    empty.className = 'text-xs text-slate-500';
+                    empty.textContent = 'Video próximamente';
+                    frame.appendChild(empty);
                 }
+
                 const title = document.createElement('h3');
                 title.className = 'font-bold text-white mt-4';
                 title.textContent = card.title;
