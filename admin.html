@@ -225,7 +225,7 @@
                     ...defaultData,
                     ...remoteData,
                     items: Array.isArray(remoteData.items) ? remoteData.items : defaultData.items,
-                    activityVideos: { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "", ...(remoteData.activityVideos && typeof remoteData.activityVideos === "object" ? remoteData.activityVideos : {}) },
+                    activityVideos: { whales: (remoteData.activityVideosDisabled && remoteData.activityVideosDisabled.whales === true) ? "" : ((remoteData.activityVideos && remoteData.activityVideos.whales) || DEFAULT_WHALE_VIDEO_URL), surf: "", trimaranes: "", ...(remoteData.activityVideos && typeof remoteData.activityVideos === "object" ? remoteData.activityVideos : {}) },
                     activityVideosDisabled: remoteData.activityVideosDisabled && typeof remoteData.activityVideosDisabled === "object" ? remoteData.activityVideosDisabled : {}
                 };
             } else {
