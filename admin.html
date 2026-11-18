@@ -583,19 +583,71 @@
             input.value = '';
         }
 
-        function addNewItem() {
-            db.items.unshift({
-                id: Date.now(),
-                name: "Nueva Embarcación",
-                category: "trimaran",
-                price: "$5,000 MXN",
-                capacity: "Hasta 10 pax",
-                isSeasonal: false, published: true, images: [], duration: "", schedule: "", location: "", includes: "", excludes: "", availability: "", oldPrice: "",
-                desc: "Descripción de la embarcación.",
-                image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
-            });
-            renderAdminItems();
-            scheduleAutoPublish();
+        async function addNewItem() {
+            const status = document.getElementById('saveStatus');
+            if (!supabaseClient || !db || !Array.isArray(db.items)) {
+                alert('No hay una sesión activa con Supabase. Vuelve a iniciar sesión.');
+                return;
+            }
+
+            const button = document.querySelector('button[onclick="addNewItem()"]');
+            if (button) button.disabled = true;
+            if (status) status.textContent = 'Preparando nuevo artículo…';
+
+            try {
+                // Espera cualquier guardado pendiente para evitar que un snapshot antiguo
+                // sobrescriba el artículo recién agregado.
+                if (saveTimer) {
+                    clearTimeout(saveTimer);
+                    saveTimer = null;
+                }
+                await publishQueue;
+
+                const newItem = {
+                    id: Date.now(),
+                    name: "Nueva Embarcación",
+                    category: "trimaran",
+                    price: "$5,000 MXN",
+                    capacity: "Hasta 10 pax",
+                    isSeasonal: false, published: true, images: [], duration: "", schedule: "", location: "", includes: "", excludes: "", availability: "", oldPrice: "",
+                    desc: "Descripción de la embarcación.",
+                    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
+                };
+
+                if (status) status.textContent = 'Guardando nuevo artículo en Supabase…';
+                const { data: rpcResult, error: rpcError } = await supabaseClient.rpc('add_mazwave_item', {
+                    new_item: newItem
+                });
+                if (rpcError) {
+                    throw new Error('No se pudo agregar el artículo. Comprueba que ejecutaste en Supabase el SQL de add_mazwave_item(jsonb). ' + rpcError.message);
+                }
+                if (!rpcResult || rpcResult.success !== true) {
+                    throw new Error('Supabase no confirmó la creación del artículo.');
+                }
+
+                const { data: row, error: readError } = await supabaseClient
+                    .from('site_config')
+                    .select('data')
+                    .eq('id', 1)
+                    .single();
+                if (readError) throw new Error('El artículo se agregó, pero no se pudo recargar el catálogo: ' + readError.message);
+                if (!row || !row.data || !Array.isArray(row.data.items)) {
+                    throw new Error('Supabase respondió, pero el catálogo guardado no tiene una lista válida de artículos.');
+                }
+
+                db = {
+                    ...defaultData,
+                    ...row.data,
+                    items: row.data.items
+                };
+                renderAdminItems();
+                if (status) status.textContent = 'Artículo guardado en Supabase. Total: ' + row.data.items.length;
+            } catch (error) {
+                if (status) status.textContent = 'No se pudo agregar el artículo';
+                alert(error.message || 'Error al guardar el artículo.');
+            } finally {
+                if (button) button.disabled = false;
+            }
         }
 
         function deleteItem(index) {
