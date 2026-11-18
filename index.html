@@ -423,7 +423,7 @@
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
             // Imagen publicada confirmada en Supabase: respaldo si la lectura remota falla.
             heroImage: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-images/hero/index-1794868743240.jpg",
-            activityVideos: { whales: "", surf: "", trimaranes: "" },
+            activityVideos: { whales: "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4", surf: "", trimaranes: "" },
             items: [
                 { id: 1, name: "Victoria Sunset", category: "trimaran", price: "$6,500 MXN", capacity: "Hasta 25 pax", isSeasonal: false, desc: "Trimarán amplio ideal para atardeceres y eventos grupales. Incluye sonido, hieleras y tripulación.", image: "https://images.unsplash.com/photo-1569263979104-865ab9cd8d5c?auto=format&fit=crop&w=800&q=80" },
                 { id: 2, name: "Black Mamba", category: "trimaran", price: "$7,000 MXN", capacity: "Hasta 30 pax", isSeasonal: false, desc: "Diseño deportivo, excelente sistema de sonido y cubierta de sol amplia.", image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" },
@@ -507,6 +507,10 @@
             db = {
                 ...defaultData,
                 ...remote,
+                activityVideos: {
+                    ...(defaultData.activityVideos || {}),
+                    ...(remote.activityVideos && typeof remote.activityVideos === "object" ? remote.activityVideos : {})
+                },
                 heroImageDisabled: heroDisabled,
                 heroImage: heroDisabled ? '' : resolvedHero,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
