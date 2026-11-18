@@ -637,6 +637,8 @@
         // del archivo dentro del bucket y lo mostramos de todos modos.
         async function loadPublishedActivityVideos() {
             const overrides = {};
+            const keys = ['whales','surf','trimaranes'];
+            // Leer primero las URLs guardadas por el administrador.
             try {
                 const response = await fetch(SUPABASE_PUBLIC_URL + '/rest/v1/site_config?select=data&id=eq.1', {
                     headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY },
@@ -647,28 +649,54 @@
                     const data = rows && rows[0] && rows[0].data;
                     const saved = data && data.activityVideos;
                     if (saved && typeof saved === 'object') {
-                        ['whales','surf','trimaranes'].forEach(key => {
-                            if (typeof saved[key] === 'string' && saved[key].trim()) overrides[key] = saved[key].trim();
+                        keys.forEach(key => {
+                            const value = typeof saved[key] === 'string' ? saved[key].trim() : '';
+                            if (value) overrides[key] = value;
                         });
                     }
+                } else {
+                    console.warn('No se pudieron leer los enlaces de video de site_config:', response.status);
                 }
-            } catch (error) { console.warn('No se pudieron releer los enlaces de video:', error); }
+            } catch (error) { console.warn('Lectura de enlaces de video falló:', error); }
+
+            // Reconciliar contra Storage. La API puede devolver el nombre relativo
+            // o el path completo; normalizamos ambos para no perder archivos subidos.
             try {
                 const response = await fetch(SUPABASE_PUBLIC_URL + '/storage/v1/object/list/mazwave-videos', {
                     method: 'POST',
                     headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prefix: 'activity-videos', limit: 100, offset: 0, sortBy: { column: 'created_at', order: 'desc' } }),
+                    body: JSON.stringify({ prefix: 'activity-videos/', limit: 100, offset: 0, sortBy: { column: 'created_at', order: 'desc' } }),
                     cache: 'no-store'
                 });
                 if (response.ok) {
                     const files = await response.json();
-                    ['whales','surf','trimaranes'].forEach(key => {
-                        if (overrides[key]) return;
-                        const match = (Array.isArray(files) ? files : []).filter(file => file && typeof file.name === 'string' && file.name.startsWith(key + '-') && /\.(mp4|webm|mov)$/i.test(file.name)).sort((a,b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
-                        if (match) overrides[key] = SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-videos/activity-videos/' + encodeURIComponent(match.name);
+                    const normalized = (Array.isArray(files) ? files : []).map(file => {
+                        const raw = String(file && file.name || '');
+                        const cleanRaw = raw.startsWith('/') ? raw.slice(1) : raw;
+                        const path = cleanRaw.startsWith('activity-videos/') ? cleanRaw : 'activity-videos/' + cleanRaw;
+                        const filename = path.slice('activity-videos/'.length);
+                        return { file, path, filename };
                     });
-                } else { console.warn('No se pudo listar los videos del bucket:', response.status); }
+                    keys.forEach(key => {
+                        const matches = normalized.filter(item =>
+                            item.filename.startsWith(key + '-') && ['.mp4','.webm','.mov'].some(ext => item.filename.toLowerCase().endsWith(ext))
+                        ).sort((a,b) => String(b.file.created_at || '').localeCompare(String(a.file.created_at || '')));
+                        if (matches.length) {
+                            // El objeto más reciente de cada categoría es la fuente actual.
+                            const newestUrl = SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-videos/' +
+                                matches[0].path.split('/').map(encodeURIComponent).join('/');
+                            overrides[key] = newestUrl;
+                        }
+                    });
+                    console.info('MazWaveTours: objetos de video encontrados en Storage', normalized.map(x => x.path));
+                } else {
+                    console.warn('No se pudo listar el bucket de videos:', response.status, await response.text());
+                }
             } catch (error) { console.warn('No se pudo detectar el video subido en Storage:', error); }
+
+            // Actualiza también el modelo local para que todas las representaciones
+            // del inicio utilicen los mismos enlaces confirmados.
+            db.activityVideos = { ...(db.activityVideos || {}), ...overrides };
             renderActivityVideos(overrides);
             console.info('MazWaveTours: videos publicados detectados', Object.keys(overrides));
         }
