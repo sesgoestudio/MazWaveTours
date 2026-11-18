@@ -134,6 +134,15 @@
                 </div>
             </div>
 
+
+            <section class="bg-slate-900/60 border border-cyan-500/20 rounded-2xl p-6 backdrop-blur-sm">
+              <div class="mb-5"><h3 class="text-base font-bold text-white"><i class="fa-solid fa-film text-cyan-400 mr-2"></i>Videos destacados del inicio</h3><p class="text-xs text-slate-400 mt-1">Sube MP4, WebM o MOV de hasta 50 MB, o pega un enlace directo o de YouTube/Vimeo. Se guarda en Supabase y aparece en el inicio.</p></div>
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-3"><b class="text-white text-sm">Ballenas</b><div id="activityVideoPreview-whales" class="aspect-video rounded-lg bg-black overflow-hidden flex items-center justify-center text-xs text-slate-500">Sin video</div><label class="block text-xs text-slate-400">Subir video<input type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" class="block w-full mt-2 text-xs text-slate-300" onchange="uploadActivityVideo('whales',this.files[0],this)"></label><input id="activityVideoUrl-whales" type="url" placeholder="URL MP4, YouTube o Vimeo" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" onchange="updateActivityVideoUrl('whales',this.value)"><button type="button" onclick="clearActivityVideo('whales')" class="w-full border border-slate-700 text-slate-300 text-xs rounded-lg px-3 py-2">Quitar video</button></div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-3"><b class="text-white text-sm">Surf</b><div id="activityVideoPreview-surf" class="aspect-video rounded-lg bg-black overflow-hidden flex items-center justify-center text-xs text-slate-500">Sin video</div><label class="block text-xs text-slate-400">Subir video<input type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" class="block w-full mt-2 text-xs text-slate-300" onchange="uploadActivityVideo('surf',this.files[0],this)"></label><input id="activityVideoUrl-surf" type="url" placeholder="URL MP4, YouTube o Vimeo" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" onchange="updateActivityVideoUrl('surf',this.value)"><button type="button" onclick="clearActivityVideo('surf')" class="w-full border border-slate-700 text-slate-300 text-xs rounded-lg px-3 py-2">Quitar video</button></div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-3"><b class="text-white text-sm">Trimaranes</b><div id="activityVideoPreview-trimaranes" class="aspect-video rounded-lg bg-black overflow-hidden flex items-center justify-center text-xs text-slate-500">Sin video</div><label class="block text-xs text-slate-400">Subir video<input type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" class="block w-full mt-2 text-xs text-slate-300" onchange="uploadActivityVideo('trimaranes',this.files[0],this)"></label><input id="activityVideoUrl-trimaranes" type="url" placeholder="URL MP4, YouTube o Vimeo" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" onchange="updateActivityVideoUrl('trimaranes',this.value)"><button type="button" onclick="clearActivityVideo('trimaranes')" class="w-full border border-slate-700 text-slate-300 text-xs rounded-lg px-3 py-2">Quitar video</button></div>
+              </div><p id="activityVideosStatus" class="text-xs text-cyan-200 mt-4" aria-live="polite"></p>
+            </section>
             <!-- Items List -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                 <div class="mb-5 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/5">
@@ -215,10 +224,14 @@
                 db = {
                     ...defaultData,
                     ...remoteData,
-                    items: Array.isArray(remoteData.items) ? remoteData.items : defaultData.items
+                    items: Array.isArray(remoteData.items) ? remoteData.items : defaultData.items,
+                    activityVideos: { ...(remoteData.activityVideos && typeof remoteData.activityVideos === "object" ? remoteData.activityVideos : {}), whales: (remoteData.activityVideosDisabled && remoteData.activityVideosDisabled.whales === true) ? "" : ((remoteData.activityVideos && remoteData.activityVideos.whales) || DEFAULT_WHALE_VIDEO_URL), surf: String(remoteData.activityVideos && remoteData.activityVideos.surf || ""), trimaranes: String(remoteData.activityVideos && remoteData.activityVideos.trimaranes || "") },
+                    activityVideosDisabled: remoteData.activityVideosDisabled && typeof remoteData.activityVideosDisabled === "object" ? remoteData.activityVideosDisabled : {}
                 };
             } else {
                 db = JSON.parse(JSON.stringify(defaultData));
+                db.activityVideos = { whales: DEFAULT_WHALE_VIDEO_URL, surf: "", trimaranes: "" };
+                db.activityVideosDisabled = {};
                 const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
                 if (seedError) { alert('Inicio de sesión correcto, pero no se pudo crear la configuración inicial: ' + seedError.message); return; }
             }
@@ -235,6 +248,119 @@
             return value;
         }
 
+
+        const ACTIVITY_VIDEO_BUCKET = 'mazwave-videos';
+        const DEFAULT_WHALE_VIDEO_URL = 'https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4';
+        const activityVideoLabels = { whales:'Ballenas', surf:'Surf', trimaranes:'Trimaranes' };
+        function getActivityVideoStoragePath(url) {
+            try {
+                const u = new URL(url);
+                const marker = '/storage/v1/object/public/' + ACTIVITY_VIDEO_BUCKET + '/';
+                const p = u.pathname.indexOf(marker);
+                if (p < 0) return '';
+                const path = decodeURIComponent(u.pathname.slice(p + marker.length));
+                return path.startsWith('activity-videos/') && !path.includes('..') ? path : '';
+            } catch (_) { return ''; }
+        }
+        function renderActivityVideoAdmin() {
+            if (!db.activityVideos || typeof db.activityVideos !== 'object') db.activityVideos = {};
+            Object.keys(activityVideoLabels).forEach(key => {
+                const url = String(db.activityVideos[key] || '').trim();
+                const input = document.getElementById('activityVideoUrl-' + key);
+                const preview = document.getElementById('activityVideoPreview-' + key);
+                if (input && input.value !== url) input.value = url;
+                if (!preview) return;
+                preview.replaceChildren();
+                if (!url) { preview.textContent = 'Sin video asignado'; return; }
+                let media = null;
+                if (/youtu\.be|youtube\.com|vimeo\.com/i.test(url)) {
+                    let embed = '';
+                    try {
+                        const u = new URL(url);
+                        if (u.hostname.includes('youtu')) {
+                            const id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : (u.searchParams.get('v') || (u.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/) || [])[1]);
+                            if (id) embed = 'https://www.youtube-nocookie.com/embed/' + id;
+                        } else {
+                            const id = (u.pathname.match(/\/(\d+)/) || [])[1];
+                            if (id) embed = 'https://player.vimeo.com/video/' + id;
+                        }
+                    } catch (_) {}
+                    if (embed) { media = document.createElement('iframe'); media.src = embed; media.allowFullscreen = true; }
+                } else {
+                    media = document.createElement('video'); media.src = url; media.controls = true; media.playsInline = true; media.preload = 'metadata';
+                }
+                if (media) { media.className = 'w-full h-full object-contain'; preview.appendChild(media); }
+                else preview.textContent = 'Enlace no válido';
+            });
+        }
+        function updateActivityVideoUrl(key, value) {
+            if (!Object.prototype.hasOwnProperty.call(activityVideoLabels, key)) return;
+            if (!db.activityVideos || typeof db.activityVideos !== 'object') db.activityVideos = {};
+            db.activityVideos[key] = String(value || '').trim();
+            if (!db.activityVideosDisabled) db.activityVideosDisabled = {};
+            db.activityVideosDisabled[key] = !db.activityVideos[key] && key === 'whales';
+            renderActivityVideoAdmin();
+            scheduleAutoPublish();
+        }
+        async function uploadActivityVideo(key, file, input) {
+            if (!file || !Object.prototype.hasOwnProperty.call(activityVideoLabels, key)) return;
+            const status = document.getElementById('activityVideosStatus');
+            if (!['video/mp4','video/webm','video/quicktime'].includes(file.type)) { status.textContent = 'Formato no compatible. Usa MP4, WebM o MOV.'; input.value = ''; return; }
+            if (file.size > 50 * 1024 * 1024) { status.textContent = 'El video supera el máximo de 50 MB.'; input.value = ''; return; }
+            const oldUrl = String(db.activityVideos && db.activityVideos[key] || '').trim();
+            const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g,'') || 'mp4';
+            const path = 'activity-videos/' + key + '-' + Date.now() + '.' + ext;
+            let uploadedPath = '';
+            try {
+                if (saveTimer) clearTimeout(saveTimer);
+                await publishQueue;
+                status.textContent = 'Subiendo video de ' + activityVideoLabels[key] + '…';
+                const result = await supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).upload(path, file, { upsert:false, contentType:file.type, cacheControl:'3600' });
+                if (result.error) throw new Error(result.error.message + '. Comprueba el bucket ' + ACTIVITY_VIDEO_BUCKET + ' y sus permisos.');
+                uploadedPath = result.data.path;
+                const pub = supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).getPublicUrl(uploadedPath);
+                if (!pub.data || !pub.data.publicUrl) throw new Error('Supabase no devolvió la URL pública.');
+                db.activityVideos = { ...(db.activityVideos || {}), [key]:pub.data.publicUrl };
+                db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:false };
+                renderActivityVideoAdmin();
+                status.textContent = 'Video subido; guardando vínculo en el catálogo…';
+                const saved = await publishSiteChanges();
+                if (!saved) {
+                    await supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).remove([uploadedPath]);
+                    db.activityVideos[key] = oldUrl;
+                    renderActivityVideoAdmin();
+                    status.textContent = 'No se guardó el vínculo; se restauró el anterior.';
+                    return;
+                }
+                const oldPath = getActivityVideoStoragePath(oldUrl);
+                if (oldPath && oldPath !== uploadedPath) await supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).remove([oldPath]);
+                status.textContent = 'Video de ' + activityVideoLabels[key] + ' guardado y vinculado al inicio.';
+            } catch (error) {
+                if (uploadedPath) await supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).remove([uploadedPath]);
+                status.textContent = 'Error al subir: ' + (error.message || 'Error desconocido');
+            } finally { input.value = ''; }
+        }
+        async function clearActivityVideo(key) {
+            if (!Object.prototype.hasOwnProperty.call(activityVideoLabels, key)) return;
+            const status = document.getElementById('activityVideosStatus');
+            const oldUrl = String(db.activityVideos && db.activityVideos[key] || '').trim();
+            if (!oldUrl || !confirm('¿Quitar el video de ' + activityVideoLabels[key] + ' del inicio?')) return;
+            db.activityVideos[key] = '';
+            db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:true };
+            renderActivityVideoAdmin();
+            status.textContent = 'Quitando video…';
+            const saved = await publishSiteChanges();
+            if (saved) {
+                const path = getActivityVideoStoragePath(oldUrl);
+                if (path) await supabaseClient.storage.from(ACTIVITY_VIDEO_BUCKET).remove([path]);
+                status.textContent = 'Video quitado del inicio.';
+            } else {
+                db.activityVideos[key] = oldUrl;
+                db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:false };
+                renderActivityVideoAdmin();
+                status.textContent = 'No se pudo quitar; se restauró el vínculo anterior.';
+            }
+        }
         function loadAdminData() {
             db = cleanLocationReferences(db);
             document.getElementById('cfgBrand').value = db.brand;
@@ -262,6 +388,7 @@
             document.getElementById('cfgHeroImageZoomValue').textContent = Math.round(db.heroImageZoom * 100) + '%';
             document.getElementById('cfgHeroDragHint').classList.toggle('hidden', !currentHeroImage);
             renderAdminItems();
+            renderActivityVideoAdmin();
         }
 
         function renderAdminItems() {
@@ -630,6 +757,11 @@
 
                 const savedData = data && data.data && typeof data.data === 'object' ? data.data : {};
                 const savedHero = typeof savedData.heroImage === 'string' ? savedData.heroImage.trim() : '';
+                const expectedVideos = snapshot.activityVideos && typeof snapshot.activityVideos === 'object' ? snapshot.activityVideos : {};
+                const savedVideos = savedData.activityVideos && typeof savedData.activityVideos === 'object' ? savedData.activityVideos : {};
+                for (const key of ['whales','surf','trimaranes']) {
+                    if (String(savedVideos[key] || '') !== String(expectedVideos[key] || '')) throw new Error('Supabase no confirmó el video de ' + key + '.');
+                }
                 if (savedHero !== expectedHero) {
                     throw new Error('Supabase no confirmó la URL de la imagen principal. La imagen puede estar en Storage, pero no quedó vinculada a la portada.');
                 }
