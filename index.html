@@ -166,7 +166,35 @@
         .activity-video-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:190px;overflow:hidden;border-radius:1rem;background:#020617}
         .activity-video-frame video,.activity-video-frame iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;object-fit:contain;background:#000}
         .activity-video-message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;text-align:center;color:#cbd5e1;font-size:.8rem}
-    </style>
+    /* Ajustes de experiencia móvil */
+@media(max-width:640px){
+ html{scroll-padding-top:14px;-webkit-text-size-adjust:100%} body{overflow-x:hidden}
+ .hero-bg{min-height:440px!important;padding:2.5rem 1rem 2rem!important}
+ .hero-bg h1{font-size:clamp(2rem,9vw,3rem)!important;line-height:1.08!important;letter-spacing:-.04em;text-wrap:balance}
+ .hero-bg p{font-size:.98rem!important;line-height:1.55!important}
+ .hero-bg a{min-height:48px;width:100%;justify-content:center}
+ #seasonalSection,section[aria-labelledby="bookingGuideTitle"],#catalogo{padding-left:12px!important;padding-right:12px!important}
+ #seasonalSection>div,section[aria-labelledby="bookingGuideTitle"]>div{border-radius:22px!important}
+ #seasonalSection h2,#bookingGuideTitle{font-size:1.25rem!important;line-height:1.25!important}
+ #categoryNav{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #categoryNav .category-chip{min-width:0;padding:12px!important;border-radius:16px!important}
+ #categoryNav .category-chip:first-child{grid-column:1/-1}
+ #categoryNav .category-chip span{min-width:0}
+ #categoryNav .category-chip .block{overflow-wrap:anywhere}
+ #cardsGrid{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+ #cardsGrid>*{min-width:0;width:100%}
+ #catalogo input,#bookingModal input,#bookingModal textarea{font-size:16px!important}
+ #detailModal{align-items:flex-start!important;padding:max(10px,env(safe-area-inset-top)) 10px max(16px,env(safe-area-inset-bottom))!important;overflow-y:auto}
+ #detailModal>div{max-height:calc(100dvh - 20px)!important;border-radius:22px!important}
+ .booking-modal-card{max-height:calc(100dvh - 24px)}
+ footer{padding-bottom:112px!important} footer>div{gap:18px!important} footer a{overflow-wrap:anywhere}
+ .md\\:hidden.fixed.inset-x-0.bottom-0{padding-left:12px!important;padding-right:12px!important}
+ .md\\:hidden.fixed.inset-x-0.bottom-0 nav{max-width:100%;padding:8px!important;gap:8px!important}
+ .md\\:hidden.fixed.inset-x-0.bottom-0 nav a{min-height:48px;padding:10px 12px!important}
+}
+@media(max-width:380px){#heroTitle{font-size:1.9rem!important}#categoryNav .category-chip{padding:10px!important}.md\\:hidden.fixed.inset-x-0.bottom-0 nav a{font-size:12px!important}}
+@media(hover:none){.category-chip:hover,#cardsGrid a:hover,#cardsGrid button:hover{transform:none!important}}
+</style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
 
