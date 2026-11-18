@@ -940,8 +940,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         // Estado inicial: Todas las experiencias, incluso antes de terminar la carga remota.
         const initialCategoryFilter = document.getElementById('categoryFilter');
         if (initialCategoryFilter) initialCategoryFilter.value = 'all';
-        // Render inmediato del catálogo de respaldo: los contadores no esperan a la red.
-        try { renderCategoryNav(); renderSeasonal(); } catch (counterError) { console.error('No se pudo renderizar inicialmente el catálogo o la sección de temporada.', counterError); }
+        // Renderizar toda la página y todas las tarjetas locales inmediatamente, sin esperar a Supabase.
+        // Cuando llegue la configuración remota, renderSite() actualizará el contenido conservando "all".
+        try { renderSite(); } catch (initialRenderError) { console.error('No se pudo renderizar el catálogo inicial.', initialRenderError); }
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
