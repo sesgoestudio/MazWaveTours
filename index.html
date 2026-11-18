@@ -926,8 +926,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
         })();
 
-        // Render inmediato del catálogo de respaldo: los contadores no esperan a la red.
-        try { renderCategoryNav(); renderSeasonal(); } catch (counterError) { console.error('No se pudo renderizar inicialmente el catálogo o la sección de temporada.', counterError); }
+        // Mostrar todas las experiencias desde el primer render, sin esperar a Supabase.
+        try {
+            document.getElementById('categoryFilter').value = 'all';
+            renderCategoryNav();
+            filterItems();
+            renderSeasonal();
+        } catch (counterError) { console.error('No se pudo renderizar inicialmente el catálogo o la sección de temporada.', counterError); }
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
