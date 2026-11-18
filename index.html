@@ -283,23 +283,7 @@
         <h2 id="activityVideosTitle" class="text-2xl md:text-3xl font-black text-white mt-2">Descubre nuestras experiencias</h2>
         <p class="text-sm text-slate-400 mt-3">Conoce en video lo que te espera en el mar, las olas y la bahía.</p>
       </div>
-      <div id="activityVideosGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-        <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-xl shadow-black/10">
-          <div class="activity-video-frame"><video src="https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4" controls playsinline webkit-playsinline preload="metadata" aria-label="Video de avistamiento de ballenas" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video></div>
-          <h3 class="mt-4 text-base font-bold text-white">Avistamiento de Ballenas</h3>
-          <p class="mt-1 text-sm text-slate-400">Observa a los gigantes del Pacífico en su hábitat natural.</p>
-        </article>
-        <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-xl shadow-black/10">
-          <div class="activity-video-frame flex items-center justify-center text-sm text-slate-400">Próximamente</div>
-          <h3 class="mt-4 text-base font-bold text-white">Clases de Surf</h3>
-          <p class="mt-1 text-sm text-slate-400">Aprende y disfruta las olas de Mazatlán con acompañamiento.</p>
-        </article>
-        <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-xl shadow-black/10">
-          <div class="activity-video-frame flex items-center justify-center text-sm text-slate-400">Próximamente</div>
-          <h3 class="mt-4 text-base font-bold text-white">Paseos en Trimaranes</h3>
-          <p class="mt-1 text-sm text-slate-400">Descubre la bahía y disfruta el mar con tu grupo.</p>
-        </article>
-      </div>
+      <div id="activityVideosGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6"></div>/div>
     </section>
     <!-- Catálogo Completo -->
     <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 pt-3 pb-20 md:py-12 w-full">
@@ -615,7 +599,7 @@
         function renderActivityVideos(videoOverrides = {}) {
             const grid = document.getElementById('activityVideosGrid'); if (!grid) return;
             const cfg = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
-            const urls = { whales: (db.activityVideosDisabled && db.activityVideosDisabled.whales === true) ? '' : (String(videoOverrides.whales || cfg.whales || '').trim() || "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4"), surf: String(videoOverrides.surf || cfg.surf || '').trim(), trimaranes: String(videoOverrides.trimaranes || cfg.trimaranes || '').trim() };
+            const urls = { whales: (db.activityVideosDisabled && db.activityVideosDisabled.whales === true) ? '' : (String(videoOverrides.whales || cfg.whales || '').trim()), surf: String(videoOverrides.surf || cfg.surf || '').trim(), trimaranes: String(videoOverrides.trimaranes || cfg.trimaranes || '').trim() };
             const cards = [{key:'whales',title:'Avistamiento de Ballenas',desc:'Observa a los gigantes del Pacífico en su hábitat natural.'},{key:'surf',title:'Clases de Surf',desc:'Aprende y disfruta las olas de Mazatlán con acompañamiento.'},{key:'trimaranes',title:'Paseos en Trimaranes',desc:'Descubre la bahía y disfruta el mar con tu grupo.'}];
             grid.replaceChildren();
             cards.forEach(card => {
@@ -632,74 +616,6 @@
             });
         }
 
-        // Segunda lectura independiente: si el administrador alcanzó a subir el archivo
-        // pero el enlace no quedó guardado en site_config, lo detectamos por el nombre
-        // del archivo dentro del bucket y lo mostramos de todos modos.
-        async function loadPublishedActivityVideos() {
-            const overrides = {};
-            const keys = ['whales','surf','trimaranes'];
-            // Leer primero las URLs guardadas por el administrador.
-            try {
-                const response = await fetch(SUPABASE_PUBLIC_URL + '/rest/v1/site_config?select=data&id=eq.1', {
-                    headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY },
-                    cache: 'no-store'
-                });
-                if (response.ok) {
-                    const rows = await response.json();
-                    const data = rows && rows[0] && rows[0].data;
-                    const saved = data && data.activityVideos;
-                    if (saved && typeof saved === 'object') {
-                        keys.forEach(key => {
-                            const value = typeof saved[key] === 'string' ? saved[key].trim() : '';
-                            if (value) overrides[key] = value;
-                        });
-                    }
-                } else {
-                    console.warn('No se pudieron leer los enlaces de video de site_config:', response.status);
-                }
-            } catch (error) { console.warn('Lectura de enlaces de video falló:', error); }
-
-            // Reconciliar contra Storage. La API puede devolver el nombre relativo
-            // o el path completo; normalizamos ambos para no perder archivos subidos.
-            try {
-                const response = await fetch(SUPABASE_PUBLIC_URL + '/storage/v1/object/list/mazwave-videos', {
-                    method: 'POST',
-                    headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prefix: 'activity-videos/', limit: 100, offset: 0, sortBy: { column: 'created_at', order: 'desc' } }),
-                    cache: 'no-store'
-                });
-                if (response.ok) {
-                    const files = await response.json();
-                    const normalized = (Array.isArray(files) ? files : []).map(file => {
-                        const raw = String(file && file.name || '');
-                        const cleanRaw = raw.startsWith('/') ? raw.slice(1) : raw;
-                        const path = cleanRaw.startsWith('activity-videos/') ? cleanRaw : 'activity-videos/' + cleanRaw;
-                        const filename = path.slice('activity-videos/'.length);
-                        return { file, path, filename };
-                    });
-                    keys.forEach(key => {
-                        const matches = normalized.filter(item =>
-                            item.filename.startsWith(key + '-') && ['.mp4','.webm','.mov'].some(ext => item.filename.toLowerCase().endsWith(ext))
-                        ).sort((a,b) => String(b.file.created_at || '').localeCompare(String(a.file.created_at || '')));
-                        if (matches.length) {
-                            // El objeto más reciente de cada categoría es la fuente actual.
-                            const newestUrl = SUPABASE_PUBLIC_URL + '/storage/v1/object/public/mazwave-videos/' +
-                                matches[0].path.split('/').map(encodeURIComponent).join('/');
-                            overrides[key] = newestUrl;
-                        }
-                    });
-                    console.info('MazWaveTours: objetos de video encontrados en Storage', normalized.map(x => x.path));
-                } else {
-                    console.warn('No se pudo listar el bucket de videos:', response.status, await response.text());
-                }
-            } catch (error) { console.warn('No se pudo detectar el video subido en Storage:', error); }
-
-            // Actualiza también el modelo local para que todas las representaciones
-            // del inicio utilicen los mismos enlaces confirmados.
-            db.activityVideos = { ...(db.activityVideos || {}), ...overrides };
-            renderActivityVideos(overrides);
-            console.info('MazWaveTours: videos publicados detectados', Object.keys(overrides));
-        }
 
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
@@ -1019,7 +935,6 @@
             finally {
                 db = cleanLocationReferences(db);
                 renderSite();
-                await loadPublishedActivityVideos();
                 const dateInput = document.getElementById('clientDate');
                 if (dateInput) {
                     const today = new Date();
