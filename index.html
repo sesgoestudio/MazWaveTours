@@ -617,6 +617,60 @@
         }
 
 
+        // Obtiene los archivos reales desde Supabase Storage. No usa videos de respaldo
+        // ni depende de que exista una URL antigua en site_config.
+        async function loadActivityVideosFromStorage() {
+            const keys = ['whales', 'surf', 'trimaranes'];
+            const bucket = 'mazwave-videos';
+            const found = {};
+            try {
+                const response = await fetch(SUPABASE_PUBLIC_URL + '/storage/v1/object/list/' + bucket, {
+                    method: 'POST',
+                    headers: {
+                        apikey: SUPABASE_PUBLIC_KEY,
+                        Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prefix: 'activity-videos',
+                        limit: 100,
+                        offset: 0,
+                        sortBy: { column: 'created_at', order: 'desc' }
+                    }),
+                    cache: 'no-store'
+                });
+                if (!response.ok) {
+                    const detail = await response.text();
+                    throw new Error('Storage respondió ' + response.status + ': ' + detail);
+                }
+                const objects = await response.json();
+                const files = (Array.isArray(objects) ? objects : []).map(file => {
+                    const name = String(file && file.name || '');
+                    const path = name.startsWith('activity-videos/') ? name : 'activity-videos/' + name;
+                    return { file, name: path.slice('activity-videos/'.length), path };
+                });
+                keys.forEach(key => {
+                    const matches = files.filter(entry =>
+                        entry.name.toLowerCase().startsWith(key + '-') &&
+                        ['.mp4', '.webm', '.mov'].some(ext => entry.name.toLowerCase().endsWith(ext))
+                    ).sort((a, b) => String(b.file.created_at || '').localeCompare(String(a.file.created_at || '')));
+                    if (matches.length) {
+                        found[key] = SUPABASE_PUBLIC_URL + '/storage/v1/object/public/' + bucket + '/' +
+                            matches[0].path.split('/').map(encodeURIComponent).join('/');
+                    }
+                });
+                db.activityVideos = { whales: '', surf: '', trimaranes: '', ...(db.activityVideos || {}), ...found };
+                // Los archivos encontrados en Storage son la fuente de verdad.
+                Object.keys(found).forEach(key => { db.activityVideos[key] = found[key]; });
+                console.info('MazWaveTours: videos encontrados directamente en Storage', {
+                    files: files.map(entry => entry.path),
+                    categories: Object.keys(found)
+                });
+            } catch (error) {
+                console.error('No se pudieron leer los videos directamente desde Supabase Storage.', error);
+            }
+        }
+
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
@@ -932,6 +986,8 @@
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
+            try { await loadActivityVideosFromStorage(); }
+            catch (videoLoadError) { console.error('Error leyendo videos de Supabase Storage.', videoLoadError); }
             finally {
                 db = cleanLocationReferences(db);
                 renderSite();
