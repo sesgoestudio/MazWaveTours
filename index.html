@@ -633,8 +633,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
 
             renderSeasonal();
+            // Al entrar y después de cargar Supabase, dejar Todas las experiencias activa.
+            const categoryFilter = document.getElementById('categoryFilter');
+            const searchInput = document.getElementById('searchInput');
+            if (categoryFilter) categoryFilter.value = 'all';
+            if (searchInput) searchInput.value = '';
             renderCategoryNav();
-            renderCards(db.items);
+            filterItems();
         }
 
         function renderSeasonal() {
@@ -772,6 +777,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 button.classList.toggle('border-slate-700', !selected);
                 button.classList.toggle('bg-slate-950/70', !selected);
                 button.setAttribute('aria-pressed', String(selected));
+                // Refuerzo visual independiente de las clases Tailwind.
+                button.style.borderColor = selected ? '#22d3ee' : '';
+                button.style.backgroundColor = selected ? 'rgba(6, 182, 212, 0.15)' : '';
+                button.style.boxShadow = selected ? '0 0 0 1px rgba(34, 211, 238, 0.18)' : '';
             });
         }
 
