@@ -346,6 +346,7 @@
             const oldUrl = String(db.activityVideos && db.activityVideos[key] || '').trim();
             if (!oldUrl || !confirm('¿Quitar el video de ' + activityVideoLabels[key] + ' del inicio?')) return;
             db.activityVideos[key] = '';
+            db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:true };
             renderActivityVideoAdmin();
             status.textContent = 'Quitando video…';
             const saved = await publishSiteChanges();
@@ -355,6 +356,7 @@
                 status.textContent = 'Video quitado del inicio.';
             } else {
                 db.activityVideos[key] = oldUrl;
+                db.activityVideosDisabled = { ...(db.activityVideosDisabled || {}), [key]:false };
                 renderActivityVideoAdmin();
                 status.textContent = 'No se pudo quitar; se restauró el vínculo anterior.';
             }
