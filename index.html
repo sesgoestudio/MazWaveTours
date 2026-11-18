@@ -599,7 +599,7 @@
         function renderActivityVideos() {
             const grid = document.getElementById('activityVideosGrid'); if (!grid) return;
             const cfg = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
-            const urls = { whales: cfg.whalesDisabled === true ? '' : (String(cfg.whales || '').trim() || "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4"), surf: String(cfg.surf || '').trim(), trimaranes: String(cfg.trimaranes || '').trim() };
+            const urls = { whales: (db.activityVideosDisabled && db.activityVideosDisabled.whales === true) ? '' : (String(cfg.whales || '').trim() || "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4"), surf: String(cfg.surf || '').trim(), trimaranes: String(cfg.trimaranes || '').trim() };
             const cards = [{key:'whales',title:'Avistamiento de Ballenas',desc:'Observa a los gigantes del Pacífico en su hábitat natural.'},{key:'surf',title:'Clases de Surf',desc:'Aprende y disfruta las olas de Mazatlán con acompañamiento.'},{key:'trimaranes',title:'Paseos en Trimaranes',desc:'Descubre la bahía y disfruta el mar con tu grupo.'}];
             grid.replaceChildren();
             cards.forEach(card => {
