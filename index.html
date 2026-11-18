@@ -163,7 +163,10 @@
             #bookingModal label { line-height: 1.35; }
         }
 
-        .activity-video-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:190px;overflow:hidden;border-radius:1rem;background:#020617}\n        .activity-video-frame video,.activity-video-frame iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;object-fit:contain;background:#000}\n        .activity-video-message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;text-align:center;color:#cbd5e1;font-size:.8rem}\n    </style>
+        .activity-video-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:190px;overflow:hidden;border-radius:1rem;background:#020617}
+        .activity-video-frame video,.activity-video-frame iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;object-fit:contain;background:#000}
+        .activity-video-message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;text-align:center;color:#cbd5e1;font-size:.8rem}
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
 
@@ -596,7 +599,7 @@
         function renderActivityVideos() {
             const grid = document.getElementById('activityVideosGrid'); if (!grid) return;
             const cfg = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
-            const urls = { whales: Object.prototype.hasOwnProperty.call(cfg,'whales') ? String(cfg.whales || '').trim() : "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4", surf: String(cfg.surf || '').trim(), trimaranes: String(cfg.trimaranes || '').trim() };
+            const urls = { whales: cfg.whalesDisabled === true ? '' : (String(cfg.whales || '').trim() || "https://vwtthqywcuzjvzzbzzps.supabase.co/storage/v1/object/public/mazwave-videos/activity-videos/whales-1794973204018.mp4"), surf: String(cfg.surf || '').trim(), trimaranes: String(cfg.trimaranes || '').trim() };
             const cards = [{key:'whales',title:'Avistamiento de Ballenas',desc:'Observa a los gigantes del Pacífico en su hábitat natural.'},{key:'surf',title:'Clases de Surf',desc:'Aprende y disfruta las olas de Mazatlán con acompañamiento.'},{key:'trimaranes',title:'Paseos en Trimaranes',desc:'Descubre la bahía y disfruta el mar con tu grupo.'}];
             grid.replaceChildren();
             cards.forEach(card => {
@@ -625,7 +628,8 @@
 
             renderSeasonal();
             renderCategoryNav();
-            renderCards(db.items);\n            renderActivityVideos();
+            renderCards(db.items);
+            renderActivityVideos();
         }
 
         function renderSeasonal() {
