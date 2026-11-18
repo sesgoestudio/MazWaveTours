@@ -671,14 +671,15 @@
                 if (response.ok) {
                     const files = await response.json();
                     const normalized = (Array.isArray(files) ? files : []).map(file => {
-                        const raw = String(file && file.name || '').replace(/^\\/+/, '');
-                        const path = raw.startsWith('activity-videos/') ? raw : 'activity-videos/' + raw;
+                        const raw = String(file && file.name || '');
+                        const cleanRaw = raw.startsWith('/') ? raw.slice(1) : raw;
+                        const path = cleanRaw.startsWith('activity-videos/') ? cleanRaw : 'activity-videos/' + cleanRaw;
                         const filename = path.slice('activity-videos/'.length);
                         return { file, path, filename };
                     });
                     keys.forEach(key => {
                         const matches = normalized.filter(item =>
-                            item.filename.startsWith(key + '-') &&
+                            item.filename.startsWith(key + '-') && ['.mp4','.webm','.mov'].some(ext => item.filename.toLowerCase().endsWith(ext))
                             /\\.(mp4|webm|mov)$/i.test(item.filename)
                         ).sort((a,b) => String(b.file.created_at || '').localeCompare(String(a.file.created_at || '')));
                         if (matches.length) {
