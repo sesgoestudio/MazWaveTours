@@ -291,7 +291,7 @@
         function getActivityVideoStoragePath(url) {
             try {
                 const parsed = new URL(url);
-                const marker = '/storage/v1/object/public/mazwave-images/';
+                const marker = '/storage/v1/object/public/mazwave-videos/';
                 const pos = parsed.pathname.indexOf(marker);
                 if (pos < 0) return '';
                 const path = decodeURIComponent(parsed.pathname.slice(pos + marker.length));
@@ -322,28 +322,28 @@
                 const ext = file.type === 'video/webm' ? 'webm' : (file.type === 'video/quicktime' ? 'mov' : 'mp4');
                 const path = 'activity-videos/' + key + '-' + Date.now() + '.' + ext;
                 if (status) status.textContent = 'Subiendo video de ' + activityVideoLabels[key] + '…';
-                const { data, error } = await supabaseClient.storage.from('mazwave-images').upload(path, file, { upsert: false, contentType: file.type, cacheControl: '3600' });
+                const { data, error } = await supabaseClient.storage.from('mazwave-videos').upload(path, file, { upsert: false, contentType: file.type, cacheControl: '3600' });
                 if (error) throw error;
-                const { data: publicData } = supabaseClient.storage.from('mazwave-images').getPublicUrl(data.path);
+                const { data: publicData } = supabaseClient.storage.from('mazwave-videos').getPublicUrl(data.path);
                 if (!publicData?.publicUrl) throw new Error('No se pudo obtener la URL pública del video.');
                 db.activityVideos = db.activityVideos || {};
                 db.activityVideos[key] = publicData.publicUrl;
                 const saved = await publishSiteChanges();
                 if (!saved) {
                     db.activityVideos[key] = previous;
-                    await supabaseClient.storage.from('mazwave-images').remove([data.path]);
+                    await supabaseClient.storage.from('mazwave-videos').remove([data.path]);
                     throw new Error('Supabase no confirmó el guardado del video.');
                 }
                 const oldPath = getActivityVideoStoragePath(previous);
                 if (oldPath && oldPath !== data.path) {
-                    const { error: removeError } = await supabaseClient.storage.from('mazwave-images').remove([oldPath]);
+                    const { error: removeError } = await supabaseClient.storage.from('mazwave-videos').remove([oldPath]);
                     if (removeError) console.warn('No se pudo borrar el video anterior:', removeError.message);
                 }
                 renderActivityVideoAdmin();
                 if (status) status.textContent = 'Video de ' + activityVideoLabels[key] + ' guardado y publicado.';
             } catch (error) {
                 if (status) status.textContent = 'No se pudo guardar el video.';
-                alert('Error al subir el video: ' + (error.message || 'Error desconocido'));
+                alert('Error al subir el video: ' + (error.message || 'Error desconocido') + (String(error.message || '').toLowerCase().includes('bucket') || String(error.message || '').toLowerCase().includes('mime') || String(error.message || '').toLowerCase().includes('policy') ? '\\n\\nRevisa que se haya ejecutado el archivo supabase/activity-videos-storage.sql en Supabase → SQL Editor.' : ''));
             } finally { input.value = ''; }
         }
         async function clearActivityVideo(key) {
@@ -356,7 +356,7 @@
             if (!saved) { db.activityVideos[key] = current; return; }
             const path = getActivityVideoStoragePath(current);
             if (path) {
-                const { error } = await supabaseClient.storage.from('mazwave-images').remove([path]);
+                const { error } = await supabaseClient.storage.from('mazwave-videos').remove([path]);
                 if (error) console.warn('El video se quitó del sitio, pero no se pudo borrar de Storage:', error.message);
             }
             renderActivityVideoAdmin();
