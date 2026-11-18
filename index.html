@@ -276,15 +276,6 @@
         </div>
     </section>
 
-    <!-- Videos de actividades: Ballenas, Surf y Trimaranes -->
-    <section id="activityVideosSection" class="max-w-7xl mx-auto w-full px-4 py-10 md:py-14" aria-labelledby="activityVideosTitle">
-      <div class="text-center max-w-2xl mx-auto mb-7 md:mb-9">
-        <span class="text-cyan-400 text-xs font-extrabold uppercase tracking-[.22em]">Vive la experiencia</span>
-        <h2 id="activityVideosTitle" class="text-2xl md:text-3xl font-black text-white mt-2">Descubre nuestras experiencias</h2>
-        <p class="text-sm text-slate-400 mt-3">Conoce en video lo que te espera en el mar, las olas y la bahía.</p>
-      </div>
-      <div id="activityVideosGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6"></div>
-    </section>
     <!-- Catálogo Completo -->
     <main id="catalogo" class="flex-grow max-w-7xl mx-auto px-4 pt-3 pb-20 md:py-12 w-full">
         <section class="mb-6 md:mb-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/40 p-3.5 sm:p-5 md:p-7" aria-label="Categorías del catálogo">
@@ -586,91 +577,6 @@
             }
         }
 
-        function getActivityVideoEmbedUrl(rawUrl) {
-            try {
-                const url = new URL(rawUrl);
-                const host = url.hostname.replace(/^www\./, '').toLowerCase();
-                if (host === 'youtu.be') return 'https://www.youtube-nocookie.com/embed/' + url.pathname.slice(1).split('/')[0];
-                if (host.endsWith('youtube.com')) { const id = url.searchParams.get('v') || (url.pathname.match(/\/(?:embed|shorts|live)\/([^/?]+)/) || [])[1]; return id ? 'https://www.youtube-nocookie.com/embed/' + id : ''; }
-                if (host === 'vimeo.com' || host.endsWith('.vimeo.com')) { const id = (url.pathname.match(/\/(?:video\/)?(\d+)/) || [])[1]; return id ? 'https://player.vimeo.com/video/' + id : ''; }
-            } catch (_) {}
-            return '';
-        }
-        function renderActivityVideos(videoOverrides = {}) {
-            const grid = document.getElementById('activityVideosGrid'); if (!grid) return;
-            const cfg = db && db.activityVideos && typeof db.activityVideos === 'object' ? db.activityVideos : {};
-            const urls = { whales: (db.activityVideosDisabled && db.activityVideosDisabled.whales === true) ? '' : (String(videoOverrides.whales || cfg.whales || '').trim()), surf: String(videoOverrides.surf || cfg.surf || '').trim(), trimaranes: String(videoOverrides.trimaranes || cfg.trimaranes || '').trim() };
-            const cards = [{key:'whales',title:'Avistamiento de Ballenas',desc:'Observa a los gigantes del Pacífico en su hábitat natural.'},{key:'surf',title:'Clases de Surf',desc:'Aprende y disfruta las olas de Mazatlán con acompañamiento.'},{key:'trimaranes',title:'Paseos en Trimaranes',desc:'Descubre la bahía y disfruta el mar con tu grupo.'}];
-            grid.replaceChildren();
-            cards.forEach(card => {
-                const article=document.createElement('article'); article.className='rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-xl shadow-black/10';
-                const frame=document.createElement('div'); frame.className='activity-video-frame'; const url=urls[card.key];
-                if(url){
-                    const embed=getActivityVideoEmbedUrl(url); let media=null;
-                    if(embed){ media=document.createElement('iframe'); media.src=embed; media.title=card.title; media.loading='lazy'; media.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'; media.allowFullscreen=true; }
-                    else if(/^https:\/\//i.test(url)){ media=document.createElement('video'); media.src=url; media.controls=true; media.playsInline=true; media.preload='metadata'; media.setAttribute('playsinline',''); media.setAttribute('webkit-playsinline',''); media.addEventListener('error',()=>{frame.replaceChildren();const msg=document.createElement('div');msg.className='activity-video-message';msg.textContent='No se pudo cargar este video. Revisa el archivo o el enlace desde el administrador.';frame.appendChild(msg);console.error('MazWaveTours video error',card.key,media.error);},{once:true}); }
-                    if(media) frame.appendChild(media); else {const msg=document.createElement('div');msg.className='activity-video-message';msg.textContent='Enlace de video no válido.';frame.appendChild(msg);}
-                } else {const msg=document.createElement('div');msg.className='activity-video-message';msg.textContent='Próximamente';frame.appendChild(msg);}
-                const title=document.createElement('h3');title.className='mt-4 text-base font-bold text-white';title.textContent=card.title;
-                const desc=document.createElement('p');desc.className='mt-1 text-sm text-slate-400';desc.textContent=card.desc;article.append(frame,title,desc);grid.appendChild(article);
-            });
-        }
-
-
-        // Obtiene los archivos reales desde Supabase Storage. No usa videos de respaldo
-        // ni depende de que exista una URL antigua en site_config.
-        async function loadActivityVideosFromStorage() {
-            const keys = ['whales', 'surf', 'trimaranes'];
-            const bucket = 'mazwave-videos';
-            const found = {};
-            try {
-                const response = await fetch(SUPABASE_PUBLIC_URL + '/storage/v1/object/list/' + bucket, {
-                    method: 'POST',
-                    headers: {
-                        apikey: SUPABASE_PUBLIC_KEY,
-                        Authorization: 'Bearer ' + SUPABASE_PUBLIC_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        prefix: 'activity-videos',
-                        limit: 100,
-                        offset: 0,
-                        sortBy: { column: 'created_at', order: 'desc' }
-                    }),
-                    cache: 'no-store'
-                });
-                if (!response.ok) {
-                    const detail = await response.text();
-                    throw new Error('Storage respondió ' + response.status + ': ' + detail);
-                }
-                const objects = await response.json();
-                const files = (Array.isArray(objects) ? objects : []).map(file => {
-                    const name = String(file && file.name || '');
-                    const path = name.startsWith('activity-videos/') ? name : 'activity-videos/' + name;
-                    return { file, name: path.slice('activity-videos/'.length), path };
-                });
-                keys.forEach(key => {
-                    const matches = files.filter(entry =>
-                        entry.name.toLowerCase().startsWith(key + '-') &&
-                        ['.mp4', '.webm', '.mov'].some(ext => entry.name.toLowerCase().endsWith(ext))
-                    ).sort((a, b) => String(b.file.created_at || '').localeCompare(String(a.file.created_at || '')));
-                    if (matches.length) {
-                        found[key] = SUPABASE_PUBLIC_URL + '/storage/v1/object/public/' + bucket + '/' +
-                            matches[0].path.split('/').map(encodeURIComponent).join('/');
-                    }
-                });
-                db.activityVideos = { whales: '', surf: '', trimaranes: '', ...(db.activityVideos || {}), ...found };
-                // Los archivos encontrados en Storage son la fuente de verdad.
-                Object.keys(found).forEach(key => { db.activityVideos[key] = found[key]; });
-                console.info('MazWaveTours: videos encontrados directamente en Storage', {
-                    files: files.map(entry => entry.path),
-                    categories: Object.keys(found)
-                });
-            } catch (error) {
-                console.error('No se pudieron leer los videos directamente desde Supabase Storage.', error);
-            }
-        }
-
         function renderSite() {
             document.getElementById('navBrandName').innerText = db.brand;
             document.getElementById('splashSlogan').innerText = db.slogan;
@@ -685,7 +591,6 @@
             renderSeasonal();
             renderCategoryNav();
             renderCards(db.items);
-            renderActivityVideos();
         }
 
         function renderSeasonal() {
@@ -986,8 +891,6 @@
         window.addEventListener('load', async () => {
             try { await loadCentralCatalog(); }
             catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
-            try { await loadActivityVideosFromStorage(); }
-            catch (videoLoadError) { console.error('Error leyendo videos de Supabase Storage.', videoLoadError); }
             finally {
                 db = cleanLocationReferences(db);
                 renderSite();
