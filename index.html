@@ -500,11 +500,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             let remote = null;
             // REST primero: no dependemos del SDK de Supabase para la portada.
             try {
-                const response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1`, {
-                    method: 'GET',
-                    headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
-                    cache: 'no-store'
-                });
+                const catalogController = new AbortController();
+                const catalogTimeout = window.setTimeout(() => catalogController.abort(), 8000);
+                let response;
+                try {
+                    response = await fetch(`${SUPABASE_PUBLIC_URL}/rest/v1/site_config?select=data&id=eq.1`, {
+                        method: 'GET',
+                        headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
+                        cache: 'no-store',
+                        signal: catalogController.signal
+                    });
+                } finally {
+                    window.clearTimeout(catalogTimeout);
+                }
                 if (!response.ok) throw new Error(`REST site_config HTTP ${response.status}`);
                 const rows = await response.json();
                 remote = Array.isArray(rows) && rows[0] && rows[0].data && typeof rows[0].data === 'object' ? rows[0].data : null;
