@@ -633,11 +633,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
 
             renderSeasonal();
-            // Al entrar y después de cargar Supabase, dejar Todas las experiencias activa.
-            const categoryFilter = document.getElementById('categoryFilter');
-            const searchInput = document.getElementById('searchInput');
-            if (categoryFilter) categoryFilter.value = 'all';
-            if (searchInput) searchInput.value = '';
+            // Mantener Todas las experiencias activa después de cargar Supabase.
+            categoryFilter.value = 'all';
+            searchInput.value = '';
             renderCategoryNav();
             filterItems();
         }
