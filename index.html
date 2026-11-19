@@ -361,6 +361,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     </button>
                     <div id="sortMenuPanel" class="hidden absolute right-0 top-full mt-2 z-40 w-56 rounded-xl border border-slate-700/90 bg-slate-950/95 backdrop-blur-xl shadow-2xl p-1.5">
                         <p class="px-3 py-2 text-[10px] uppercase tracking-[.16em] text-slate-500 font-semibold">Ordenar experiencias</p>
+                        <button type="button" data-sort="category-default" onclick="chooseCatalogSort('category-default')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-cyan-300 bg-cyan-500/10"><span>Orden definido por categoría</span><i class="fa-solid fa-check text-[10px]"></i></button>
                         <button type="button" data-sort="price-asc" onclick="chooseCatalogSort('price-asc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-cyan-300 bg-cyan-500/10"><span>Precio: menor a mayor</span><i class="fa-solid fa-check text-[10px]"></i></button>
                         <button type="button" data-sort="price-desc" onclick="chooseCatalogSort('price-desc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800"><span>Precio: mayor a menor</span><i class="fa-solid fa-check text-[10px] opacity-0"></i></button>
                         <button type="button" data-sort="name-asc" onclick="chooseCatalogSort('name-asc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800"><span>Nombre: A–Z</span><i class="fa-solid fa-check text-[10px] opacity-0"></i></button>
@@ -368,7 +369,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     </div>
                 </div>
                 <select id="sortFilter" onchange="filterItems()" aria-label="Ordenar experiencias" class="hidden">
-                    <option value="price-asc" selected>Precio: menor a mayor</option><option value="price-desc">Precio: mayor a menor</option><option value="name-asc">Nombre: A–Z</option><option value="name-desc">Nombre: Z–A</option>
+                    <option value="category-default" selected>Orden definido por categoría</option><option value="price-asc">Precio: menor a mayor</option><option value="price-desc">Precio: mayor a menor</option><option value="name-asc">Nombre: A–Z</option><option value="name-desc">Nombre: Z–A</option>
                 </select>
                 <select id="categoryFilter" onchange="filterItems()" aria-label="Filtrar por categoría" class="sr-only">
                     <option value="all">Todas las categorías</option><option value="trimaran">Trimaranes</option><option value="yate">Yates y Lanchas</option><option value="tour">Tours y Experiencias</option>
@@ -845,7 +846,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             button.setAttribute('aria-expanded', opening ? 'true' : 'false');
         }
         function chooseCatalogSort(mode) {
-            const allowed = ['price-asc', 'price-desc', 'name-asc', 'name-desc'];
+            const allowed = ['category-default', 'price-asc', 'price-desc', 'name-asc', 'name-desc'];
             if (!allowed.includes(mode)) return;
             const select = document.getElementById('sortFilter');
             if (select) select.value = mode;
@@ -877,20 +878,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             const value = Number(raw);
             return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
         }
+        function getPublicCategorySortMode(category) {
+            const modes = ['manual', 'price-asc', 'price-desc', 'name-asc', 'name-desc'];
+            const saved = db.categorySorts && db.categorySorts[category];
+            return modes.includes(saved) ? saved : 'price-asc';
+        }
+        function compareItemsForCategory(a, b, mode) {
+            if (mode === 'price-asc') return getCatalogPrice(a) - getCatalogPrice(b);
+            if (mode === 'price-desc') return getCatalogPrice(b) - getCatalogPrice(a);
+            if (mode === 'name-asc' || mode === 'name-desc') {
+                const comparison = String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+                return mode === 'name-desc' ? -comparison : comparison;
+            }
+            const aOrder = Number(a.categoryOrder ?? db.items.indexOf(a));
+            const bOrder = Number(b.categoryOrder ?? db.items.indexOf(b));
+            return aOrder - bOrder;
+        }
         function filterItems() {
             const query = document.getElementById('searchInput').value.trim().toLocaleLowerCase('es');
             const cat = document.getElementById('categoryFilter').value;
-            const sort = document.getElementById('sortFilter')?.value || 'price-asc';
+            const sort = document.getElementById('sortFilter')?.value || 'category-default';
             const filtered = db.items.filter(item => {
                 const matchesQuery = String(item.name || '').toLocaleLowerCase('es').includes(query) || String(item.desc || '').toLocaleLowerCase('es').includes(query);
                 const matchesCat = cat === 'all' || normalizeCategory(item.category) === cat;
                 return matchesQuery && matchesCat;
             });
             filtered.sort((a, b) => {
-                if (sort === 'price-asc') return getCatalogPrice(a) - getCatalogPrice(b);
-                if (sort === 'price-desc') return getCatalogPrice(b) - getCatalogPrice(a);
-                const comparison = String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
-                return sort === 'name-desc' ? -comparison : comparison;
+                if (sort !== 'category-default') return compareItemsForCategory(a, b, sort);
+                const categoryA = normalizeCategory(a.category);
+                const categoryB = normalizeCategory(b.category);
+                if (categoryA !== categoryB) {
+                    const categoryOrder = ['trimaran', 'yate', 'tour'];
+                    const aRank = categoryOrder.indexOf(categoryA);
+                    const bRank = categoryOrder.indexOf(categoryB);
+                    return (aRank < 0 ? 99 : aRank) - (bRank < 0 ? 99 : bRank);
+                }
+                return compareItemsForCategory(a, b, getPublicCategorySortMode(categoryA));
             });
             renderCards(filtered);
             updateCategoryNav();
