@@ -619,7 +619,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             if (!splash) return;
             splash.style.opacity = '0';
             splash.style.pointerEvents = 'none';
-            setTimeout(() => { splash.style.display = 'none'; }, 320);
+            setTimeout(() => {
+                splash.style.display = 'none';
+                window.dispatchEvent(new Event('mazwave:intro-finished'));
+            }, 320);
         }
 
         // La marca se muestra brevemente y el catálogo queda disponible sin tocar nada.
@@ -1083,31 +1086,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
         })();
 
-        // Contador breve: se activa una sola vez cuando la franja entra en pantalla.
+        // El contador espera a que termine la intro y luego se anima al entrar en pantalla.
         (function initTrustCounter() {
             const number = document.querySelector('[data-count-to]');
             if (!number) return;
             const target = Number(number.dataset.countTo);
             const suffix = number.dataset.countSuffix || '';
             const finish = () => { number.textContent = target.toLocaleString('es-MX') + suffix; };
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) { finish(); return; }
+            let introFinished = false;
             let started = false;
-            const observer = new IntersectionObserver(entries => {
-                if (!entries.some(entry => entry.isIntersecting) || started) return;
-                started = true;
-                observer.disconnect();
-                const duration = 850;
-                const startTime = performance.now();
-                const tick = now => {
-                    const progress = Math.min(1, (now - startTime) / duration);
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    number.textContent = Math.round(target * eased).toLocaleString('es-MX') + suffix;
-                    if (progress < 1) requestAnimationFrame(tick);
-                    else finish();
-                };
-                requestAnimationFrame(tick);
-            }, { threshold: .35 });
-            observer.observe(number);
+            const startObserver = () => {
+                if (introFinished || started) return;
+                introFinished = true;
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) { finish(); return; }
+                const observer = new IntersectionObserver(entries => {
+                    if (!entries.some(entry => entry.isIntersecting) || started) return;
+                    started = true;
+                    observer.disconnect();
+                    const duration = 850;
+                    const startTime = performance.now();
+                    const tick = now => {
+                        const progress = Math.min(1, (now - startTime) / duration);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        number.textContent = Math.round(target * eased).toLocaleString('es-MX') + suffix;
+                        if (progress < 1) requestAnimationFrame(tick);
+                        else finish();
+                    };
+                    requestAnimationFrame(tick);
+                }, { threshold: .35 });
+                observer.observe(number);
+            };
+            window.addEventListener('mazwave:intro-finished', startObserver, { once: true });
+            // Respaldo por si la intro no se renderiza o ya fue omitida.
+            if (!document.getElementById('splashScreen')) startObserver();
         })();
 
         // Los contadores permanecen en estado de carga hasta recibir el catálogo real de Supabase.
