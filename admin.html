@@ -163,14 +163,8 @@
                         <span>Agregar Nuevo Tour / Yate</span>
                     </button>
                 </div>
-                <div class="mb-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                    <div><label for="adminSortMode" class="block text-xs font-semibold text-slate-400 mb-1">Orden de los artículos</label>
-                    <select id="adminSortMode" onchange="setAdminSortMode(this.value)" class="w-full sm:w-64 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
-                        <option value="manual">Orden manual</option>
-                        <option value="price-asc">Precio: menor a mayor</option>
-                        <option value="price-desc">Precio: mayor a menor</option>
-                    </select></div>
-                    <p class="text-xs text-slate-500 sm:max-w-sm">Los artículos se agrupan por categoría. El orden manual se guarda y se conserva al cambiar de categoría.</p>
+                <div class="mb-5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+                    <p class="text-xs text-slate-300"><i class="fa-solid fa-sliders text-cyan-300 mr-2"></i>Configura el orden de cada categoría por separado. La página principal respetará estos ajustes automáticamente.</p>
                 </div>
                 <div id="adminItemsList" class="space-y-6"></div>
             </div>
@@ -302,16 +296,23 @@
             renderAdminItems();
         }
 
-        let adminSortMode = 'manual';
         const adminCategoryLabels = { trimaran: 'Trimaranes', yate: 'Yates y lanchas', tour: 'Tours y experiencias' };
+        const categorySortModes = ['manual', 'price-asc', 'price-desc', 'name-asc', 'name-desc'];
         function getItemPriceNumber(item) {
             const raw = String(item.price || '').replace(/[^0-9.,]/g, '').replace(/,/g, '');
             const value = Number(raw);
             return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
         }
-        function setAdminSortMode(mode) {
-            adminSortMode = ['manual', 'price-asc', 'price-desc'].includes(mode) ? mode : 'manual';
+        function getCategorySortMode(category) {
+            const saved = db.categorySorts && db.categorySorts[category];
+            return categorySortModes.includes(saved) ? saved : 'price-asc';
+        }
+        function setCategorySortMode(category, mode) {
+            if (!categorySortModes.includes(mode)) return;
+            if (!db.categorySorts || typeof db.categorySorts !== 'object') db.categorySorts = {};
+            db.categorySorts[category] = mode;
             renderAdminItems();
+            scheduleAutoPublish();
         }
         function moveItemManual(index, direction) {
             const item = db.items[index];
@@ -327,13 +328,13 @@
             const [moving] = peers.splice(position, 1);
             peers.splice(target, 0, moving);
             peers.forEach((entry, order) => { entry.entry.categoryOrder = order; });
-            adminSortMode = 'manual';
-            const selector = document.getElementById('adminSortMode');
-            if (selector) selector.value = 'manual';
+            if (!db.categorySorts || typeof db.categorySorts !== 'object') db.categorySorts = {};
+            db.categorySorts[category] = 'manual';
             renderAdminItems();
             scheduleAutoPublish();
         }
         function renderAdminItems() {
+            if (!db.categorySorts || typeof db.categorySorts !== 'object') db.categorySorts = {};
             db.items.forEach((item, index) => {
                 item.category = String(item.category || 'tour').toLowerCase();
                 if (!Array.isArray(item.images)) item.images = item.image ? [item.image] : [];
@@ -347,15 +348,20 @@
                 let entries = db.items.map((item, index) => ({ item, index }))
                     .filter(entry => entry.item.category === category);
                 if (!entries.length) return '';
+                const categorySortMode = getCategorySortMode(category);
                 entries.sort((a, b) => {
-                    if (adminSortMode === 'price-asc') return getItemPriceNumber(a.item) - getItemPriceNumber(b.item);
-                    if (adminSortMode === 'price-desc') return getItemPriceNumber(b.item) - getItemPriceNumber(a.item);
+                    if (categorySortMode === 'price-asc') return getItemPriceNumber(a.item) - getItemPriceNumber(b.item);
+                    if (categorySortMode === 'price-desc') return getItemPriceNumber(b.item) - getItemPriceNumber(a.item);
+                    if (categorySortMode === 'name-asc' || categorySortMode === 'name-desc') {
+                        const comparison = String(a.item.name || '').localeCompare(String(b.item.name || ''), 'es', { sensitivity: 'base' });
+                        return categorySortMode === 'name-desc' ? -comparison : comparison;
+                    }
                     return Number(a.item.categoryOrder) - Number(b.item.categoryOrder);
                 });
                 const label = adminCategoryLabels[category] || category.charAt(0).toUpperCase() + category.slice(1);
                 const cards = entries.map((entry, position) => {
                     const item = entry.item, index = entry.index;
-                    const manualControls = adminSortMode === 'manual' ? `
+                    const manualControls = categorySortMode === 'manual' ? `
                         <div class="flex items-center gap-1" aria-label="Cambiar orden">
                             <button type="button" onclick="moveItemManual(${index},-1)" ${position===0?'disabled':''} title="Mover arriba" class="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:text-cyan-300 disabled:opacity-25 disabled:cursor-not-allowed"><i class="fa-solid fa-arrow-up"></i></button>
                             <button type="button" onclick="moveItemManual(${index},1)" ${position===entries.length-1?'disabled':''} title="Mover abajo" class="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:text-cyan-300 disabled:opacity-25 disabled:cursor-not-allowed"><i class="fa-solid fa-arrow-down"></i></button>
@@ -426,7 +432,19 @@
                                 <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 group-open:rotate-180"></i>
                             </div>
                         </summary>
-                        <div class="border-t border-slate-800 p-3 sm:p-4 space-y-4">${cards}</div>
+                        <div class="border-t border-slate-800 p-3 sm:p-4 space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                                <label class="text-xs font-semibold text-slate-400" for="category-sort-${category}">Orden de esta categoría</label>
+                                <select id="category-sort-${category}" onchange="setCategorySortMode('${category}', this.value)" class="w-full sm:w-64 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                                    <option value="manual" ${categorySortMode==='manual'?'selected':''}>Manual (usar flechas)</option>
+                                    <option value="price-asc" ${categorySortMode==='price-asc'?'selected':''}>Precio: menor a mayor</option>
+                                    <option value="price-desc" ${categorySortMode==='price-desc'?'selected':''}>Precio: mayor a menor</option>
+                                    <option value="name-asc" ${categorySortMode==='name-asc'?'selected':''}>Nombre: A–Z</option>
+                                    <option value="name-desc" ${categorySortMode==='name-desc'?'selected':''}>Nombre: Z–A</option>
+                                </select>
+                            </div>
+                            ${cards}
+                        </div>
                     </details>`;
             }).join('');
         }
