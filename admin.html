@@ -227,17 +227,24 @@
                 db = {
                     ...defaultData,
                     ...remoteData,
-                    items: Array.isArray(remoteData.items) ? remoteData.items : defaultData.items,
+                    items: Array.isArray(remoteData.items) ? remoteData.items : [],
                 };
             } else {
                 db = JSON.parse(JSON.stringify(defaultData));
                 const { error: seedError } = await supabaseClient.from('site_config').upsert({id: 1, data: db, updated_at: new Date().toISOString()});
                 if (seedError) { alert('Inicio de sesión correcto, pero no se pudo crear la configuración inicial: ' + seedError.message); return; }
             }
+            // Recalcular una sola vez al abrir el administrador y persistir el resumen
+            // para que la página pública lea siempre cantidades ya guardadas.
+            const calculatedCounts = calculateCatalogCounts(db.items);
+            const countsNeedSave = JSON.stringify(db.catalogCounts || null) !== JSON.stringify(calculatedCounts);
+            db.catalogCounts = calculatedCounts;
+
             // La portada se administra directamente desde este panel; no migrar ni sobrescribir al iniciar sesión.
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             loadAdminData();
+            if (countsNeedSave) await publishSiteChanges();
         }
 
         function cleanLocationReferences(value) {
@@ -666,13 +673,13 @@
             }
         }
 
-        function deleteItem(index) {
-            if (confirm('¿Eliminar esta embarcación o tour?')) {
-                db.items.splice(index, 1);
-                db.catalogCounts = calculateCatalogCounts(db.items);
-                renderAdminItems();
-                scheduleAutoPublish();
-            }
+        async function deleteItem(index) {
+            if (!confirm('¿Eliminar esta embarcación o tour?')) return;
+            db.items.splice(index, 1);
+            db.catalogCounts = calculateCatalogCounts(db.items);
+            renderAdminItems();
+            // Guardar inmediatamente el artículo eliminado y sus nuevos conteos.
+            await publishSiteChanges();
         }
 
         let saveTimer = null;

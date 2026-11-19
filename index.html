@@ -767,16 +767,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 updateCategoryNav();
                 return;
             }
-            // Calcular una sola vez a partir del mismo catálogo remoto que se muestra.
-            const counts = { all: Array.isArray(db.items) ? db.items.length : 0, trimaran: 0, yate: 0, tour: 0 };
-            (Array.isArray(db.items) ? db.items : []).forEach(item => {
-                const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '')
-                    .toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-                const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
-                    : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
-                    : 'tour';
-                counts[category]++;
-            });
+            // Mostrar el resumen persistido en Supabase. Solo calcular como respaldo
+            // si aún no existe (por ejemplo, antes de la primera sincronización del admin).
+            const counts = db.catalogCounts && typeof db.catalogCounts === 'object'
+                ? db.catalogCounts
+                : (() => {
+                    const result = { all: Array.isArray(db.items) ? db.items.length : 0, trimaran: 0, yate: 0, tour: 0 };
+                    (Array.isArray(db.items) ? db.items : []).forEach(item => {
+                        const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '')
+                            .toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+                        const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
+                            : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
+                            : 'tour';
+                        result[category]++;
+                    });
+                    return result;
+                })();
             ['all', 'trimaran', 'yate', 'tour'].forEach(category => {
                 const count = counts[category];
                 const el = document.getElementById('count-' + category);
