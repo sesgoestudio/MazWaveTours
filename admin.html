@@ -154,7 +154,16 @@
                         <span>Agregar Nuevo Tour / Yate</span>
                     </button>
                 </div>
-                <div id="adminItemsList" class="space-y-4"></div>
+                <div class="mb-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                    <div><label for="adminSortMode" class="block text-xs font-semibold text-slate-400 mb-1">Orden de los artículos</label>
+                    <select id="adminSortMode" onchange="setAdminSortMode(this.value)" class="w-full sm:w-64 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                        <option value="manual">Orden manual</option>
+                        <option value="price-asc">Precio: menor a mayor</option>
+                        <option value="price-desc">Precio: mayor a menor</option>
+                    </select></div>
+                    <p class="text-xs text-slate-500 sm:max-w-sm">Los artículos se agrupan por categoría. El orden manual se guarda y se conserva al cambiar de categoría.</p>
+                </div>
+                <div id="adminItemsList" class="space-y-6"></div>
             </div>
         </main>
     </div>
@@ -284,29 +293,84 @@
             renderAdminItems();
         }
 
+        let adminSortMode = 'manual';
+        const adminCategoryLabels = { trimaran: 'Trimaranes', yate: 'Yates y lanchas', tour: 'Tours y experiencias' };
+        function getItemPriceNumber(item) {
+            const raw = String(item.price || '').replace(/[^0-9.,]/g, '').replace(/,/g, '');
+            const value = Number(raw);
+            return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+        }
+        function setAdminSortMode(mode) {
+            adminSortMode = ['manual', 'price-asc', 'price-desc'].includes(mode) ? mode : 'manual';
+            renderAdminItems();
+        }
+        function moveItemManual(index, direction) {
+            const item = db.items[index];
+            if (!item) return;
+            const category = String(item.category || 'tour').toLowerCase();
+            const peers = db.items
+                .map((entry, originalIndex) => ({ entry, originalIndex }))
+                .filter(x => String(x.entry.category || 'tour').toLowerCase() === category)
+                .sort((a, b) => Number(a.entry.categoryOrder ?? a.originalIndex) - Number(b.entry.categoryOrder ?? b.originalIndex));
+            const position = peers.findIndex(x => x.originalIndex === index);
+            const target = position + direction;
+            if (position < 0 || target < 0 || target >= peers.length) return;
+            const [moving] = peers.splice(position, 1);
+            peers.splice(target, 0, moving);
+            peers.forEach((entry, order) => { entry.entry.categoryOrder = order; });
+            adminSortMode = 'manual';
+            const selector = document.getElementById('adminSortMode');
+            if (selector) selector.value = 'manual';
+            renderAdminItems();
+            scheduleAutoPublish();
+        }
         function renderAdminItems() {
-            db.items.forEach(item => { item.category = String(item.category || 'tour').toLowerCase(); if (!Array.isArray(item.images)) item.images = item.image ? [item.image] : []; });
+            db.items.forEach((item, index) => {
+                item.category = String(item.category || 'tour').toLowerCase();
+                if (!Array.isArray(item.images)) item.images = item.image ? [item.image] : [];
+                if (!Number.isFinite(Number(item.categoryOrder))) item.categoryOrder = index;
+            });
             const container = document.getElementById('adminItemsList');
-            container.innerHTML = db.items.map((item, index) => `
+            const categoryOrder = ['trimaran', 'yate', 'tour'];
+            const extraCategories = [...new Set(db.items.map(item => item.category))].filter(category => !categoryOrder.includes(category)).sort();
+            const categories = [...categoryOrder, ...extraCategories];
+            container.innerHTML = categories.map(category => {
+                let entries = db.items.map((item, index) => ({ item, index }))
+                    .filter(entry => entry.item.category === category);
+                if (!entries.length) return '';
+                entries.sort((a, b) => {
+                    if (adminSortMode === 'price-asc') return getItemPriceNumber(a.item) - getItemPriceNumber(b.item);
+                    if (adminSortMode === 'price-desc') return getItemPriceNumber(b.item) - getItemPriceNumber(a.item);
+                    return Number(a.item.categoryOrder) - Number(b.item.categoryOrder);
+                });
+                const label = adminCategoryLabels[category] || category.charAt(0).toUpperCase() + category.slice(1);
+                const cards = entries.map((entry, position) => {
+                    const item = entry.item, index = entry.index;
+                    const manualControls = adminSortMode === 'manual' ? `
+                        <div class="flex items-center gap-1" aria-label="Cambiar orden">
+                            <button type="button" onclick="moveItemManual(${index},-1)" ${position===0?'disabled':''} title="Mover arriba" class="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:text-cyan-300 disabled:opacity-25 disabled:cursor-not-allowed"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveItemManual(${index},1)" ${position===entries.length-1?'disabled':''} title="Mover abajo" class="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:text-cyan-300 disabled:opacity-25 disabled:cursor-not-allowed"><i class="fa-solid fa-arrow-down"></i></button>
+                        </div>` : '';
+                    return `
                 <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center">
                     <div class="relative w-24 h-24 flex-shrink-0">
-                        <img src="${item.image}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900">
+                        <img src="${item.image || ''}" id="item-image-preview-${index}" style="${getAdminImageStyle(item)}" class="w-full h-full rounded-xl border border-slate-800 bg-slate-900" alt="">
                         ${item.isSeasonal ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">TEMPORADA</span>' : ''}
                     </div>
                     <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-                        <input type="text" value="${item.name}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Nombre">
+                        <input type="text" value="${item.name || ''}" onchange="updateItemField(${index}, 'name', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Nombre">
                         <select onchange="updateItemField(${index}, 'category', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500">
                             <option value="trimaran" ${item.category==='trimaran'?'selected':''}>Trimarán</option>
                             <option value="yate" ${item.category==='yate'?'selected':''}>Yate / Lancha</option>
                             <option value="tour" ${item.category==='tour'?'selected':''}>Tour / Experiencia</option>
                         </select>
-                        <input type="text" value="${item.price}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
-                        <input type="text" value="${item.capacity}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
+                        <input type="text" value="${item.price || ''}" onchange="updateItemField(${index}, 'price', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Precio">
+                        <input type="text" value="${item.capacity || ''}" onchange="updateItemField(${index}, 'capacity', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-500" placeholder="Capacidad">
                         <div class="lg:col-span-2 flex flex-col sm:flex-row gap-2">
                             <input type="text" value="${item.image || ''}" onchange="updateItemField(${index}, 'image', this.value); document.getElementById('item-image-preview-${index}').src=this.value" class="min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-cyan-500" placeholder="URL de imagen">
                             <label class="cursor-pointer bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-xl px-3 py-2.5 text-xs font-bold text-center hover:bg-cyan-500/25">Subir foto<input type="file" accept="image/*" class="hidden" onchange="uploadItemImage(${index}, this.files[0], this)"></label>
                         </div>
-                        <input type="text" value="${item.desc}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
+                        <input type="text" value="${item.desc || ''}" onchange="updateItemField(${index}, 'desc', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs lg:col-span-2 focus:outline-none focus:border-cyan-500" placeholder="Descripción">
                         <input type="text" value="${item.duration || ''}" onchange="updateItemField(${index}, 'duration', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Duración">
                         <input type="text" value="${item.schedule || ''}" onchange="updateItemField(${index}, 'schedule', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Horarios">
                         <input type="text" value="${item.location || ''}" onchange="updateItemField(${index}, 'location', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Ubicación">
@@ -315,34 +379,38 @@
                         <textarea onchange="updateItemField(${index}, 'excludes', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Qué no incluye" rows="2">${item.excludes || ''}</textarea>
                         <input type="text" value="${item.availability || ''}" onchange="updateItemField(${index}, 'availability', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="Disponibilidad">
                         <input type="text" value="${(item.images || []).join(', ')}" onchange="updateItemField(${index}, 'images', this.value.split(',').map(x=>x.trim()).filter(Boolean))" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs lg:col-span-2" placeholder="Galería: URLs separadas por coma">
-<div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-  <label class="text-xs text-slate-400">Ajuste de imagen
-    <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-      <option value="contain" ${(item.imageView?.fit || 'contain')==='contain'?'selected':''}>Mostrar completa</option>
-      <option value="cover" ${(item.imageView?.fit || 'contain')==='cover'?'selected':''}>Llenar el marco</option>
-    </select>
-  </label>
-  <label class="text-xs text-slate-400">Posición horizontal
-    <input type="range" min="0" max="100" value="${item.imageView?.x ?? 50}" onchange="updateItemView(${index}, 'x', this.value)" class="mt-2 w-full accent-cyan-500">
-  </label>
-  <label class="text-xs text-slate-400">Posición vertical
-    <input type="range" min="0" max="100" value="${item.imageView?.y ?? 50}" onchange="updateItemView(${index}, 'y', this.value)" class="mt-2 w-full accent-cyan-500">
-  </label>
-  <label class="text-xs text-slate-400">Zoom
-    <input type="range" min="100" max="160" step="5" value="${item.imageView?.zoom ?? 100}" onchange="updateItemView(${index}, 'zoom', this.value)" class="mt-2 w-full accent-cyan-500">
-  </label>
-</div>
+                        <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+                          <label class="text-xs text-slate-400">Ajuste de imagen
+                            <select onchange="updateItemView(${index}, 'fit', this.value)" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                              <option value="contain" ${(item.imageView?.fit || 'contain')==='contain'?'selected':''}>Mostrar completa</option>
+                              <option value="cover" ${(item.imageView?.fit || 'contain')==='cover'?'selected':''}>Llenar el marco</option>
+                            </select>
+                          </label>
+                          <label class="text-xs text-slate-400">Posición horizontal<input type="range" min="0" max="100" value="${item.imageView?.x ?? 50}" onchange="updateItemView(${index}, 'x', this.value)" class="mt-2 w-full accent-cyan-500"></label>
+                          <label class="text-xs text-slate-400">Posición vertical<input type="range" min="0" max="100" value="${item.imageView?.y ?? 50}" onchange="updateItemView(${index}, 'y', this.value)" class="mt-2 w-full accent-cyan-500"></label>
+                          <label class="text-xs text-slate-400">Zoom<input type="range" min="100" max="160" step="5" value="${item.imageView?.zoom ?? 100}" onchange="updateItemView(${index}, 'zoom', this.value)" class="mt-2 w-full accent-cyan-500"></label>
+                        </div>
                         <label class="flex items-center gap-2 text-xs text-emerald-300"><input type="checkbox" ${item.published !== false ? 'checked' : ''} onchange="updateItemField(${index}, 'published', this.checked)"> Publicado en la web</label>
                     </div>
                     <div class="flex md:flex-col items-center justify-between w-full md:w-auto gap-2">
+                        ${manualControls}
                         <label class="flex items-center space-x-2 text-xs text-amber-400 cursor-pointer bg-amber-500/10 border border-amber-500/30 px-3 py-2 rounded-xl">
                             <input type="checkbox" ${item.isSeasonal ? 'checked' : ''} onchange="updateItemField(${index}, 'isSeasonal', this.checked)" class="rounded accent-amber-500">
                             <span class="font-bold">Temporada</span>
                         </label>
                         <button onclick="deleteItem(${index})" class="text-rose-400 hover:text-rose-300 p-2 transition"><i class="fa-solid fa-trash text-lg"></i></button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+                }).join('');
+                return `
+                    <section class="rounded-2xl border border-slate-700/80 bg-slate-900/50 p-4">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <div><h4 class="text-sm font-bold text-white">${label}</h4><p class="text-xs text-slate-500 mt-0.5">${entries.length} ${entries.length===1?'artículo':'artículos'}</p></div>
+                            <span class="text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1">${entries.length}</span>
+                        </div>
+                        <div class="space-y-4">${cards}</div>
+                    </section>`;
+            }).join('');
         }
 
         function getAdminImageStyle(item) {
@@ -359,10 +427,21 @@
             renderAdminItems();
         }
         function updateItemField(index, field, value) {
-            db.items[index][field] = value;
-            db.catalogCounts = calculateCatalogCounts(db.items);
-            if (field === 'image') { db.items[index].images = [value, ...(db.items[index].images || []).slice(1)]; }
-            if (field === 'images' && Array.isArray(value) && value.length) { db.items[index].image = value[0]; }
+            const item = db.items[index];
+            if (!item) return;
+            if (field === 'category') {
+                const nextCategory = String(value || 'tour').toLowerCase();
+                const nextPosition = db.items.filter((entry, i) => i !== index && String(entry.category || 'tour').toLowerCase() === nextCategory)
+                    .reduce((max, entry) => Math.max(max, Number(entry.categoryOrder ?? -1)), -1) + 1;
+                item.category = nextCategory;
+                item.categoryOrder = nextPosition;
+                db.catalogCounts = calculateCatalogCounts(db.items);
+                renderAdminItems();
+            } else {
+                item[field] = value;
+            }
+            if (field === 'image') { item.images = [value, ...(item.images || []).slice(1)]; }
+            if (field === 'images' && Array.isArray(value) && value.length) { item.image = value[0]; }
             scheduleAutoPublish();
         }
 
