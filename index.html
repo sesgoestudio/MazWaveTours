@@ -633,20 +633,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function renderSite() {
-            document.getElementById('navBrandName').innerText = db.brand;
-            document.getElementById('splashSlogan').innerText = db.slogan;
-            document.getElementById('heroTitle').innerText = db.heroTitle;
-            document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
-            applyHeroImage();
-
-            // Mostrar siempre un conteo, incluso si falla la lectura de Supabase.
-            // renderCategoryNav usa db.items como respaldo cuando no hay resumen remoto.
+            // Pintar los contadores primero: un elemento de marca eliminado del HTML
+            // no debe interrumpir el renderizado del catálogo ni dejarlos en "Cargando...".
             renderCategoryNav();
             const categoryNav = document.getElementById('categoryNav');
             if (categoryNav) categoryNav.setAttribute('aria-busy', 'false');
-            document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
-            document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
-            document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
+
+            // Estos dos identificadores pertenecían a una versión anterior del encabezado.
+            // Actualizar solo elementos que realmente existan en esta versión del HTML.
+            const heroTitle = document.getElementById('heroTitle');
+            const heroSubtitle = document.getElementById('heroSubtitle');
+            if (heroTitle) heroTitle.textContent = db.heroTitle || '';
+            if (heroSubtitle) heroSubtitle.textContent = db.heroSubtitle || '';
+            applyHeroImage();
+
+            const whatsappUrl = `https://wa.me/${db.phone || ''}`;
+            ['heroWpBtn', 'footerWp', 'mobileWpBar'].forEach(id => {
+                const link = document.getElementById(id);
+                if (link) link.href = whatsappUrl;
+            });
 
             renderSeasonal();
             setCategory('all');
