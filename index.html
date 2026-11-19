@@ -654,7 +654,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
 
             renderSeasonal();
-            setCategory('all');
+            setCategory('all', false);
         }
 
         function renderSeasonal() {
@@ -808,11 +808,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             });
         }
 
-        function setCategory(category) {
+        function setCategory(category, shouldScroll = true) {
             document.getElementById('categoryFilter').value = category;
             updateCategoryNav();
             filterItems();
-            document.getElementById('cardsGrid').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+            // Al iniciar la página, conservar la vista principal; desplazar solo
+            // cuando la persona elige una categoría desde la navegación.
+            if (shouldScroll) {
+                document.getElementById('cardsGrid').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+            }
         }
 
         function filterItems() {
