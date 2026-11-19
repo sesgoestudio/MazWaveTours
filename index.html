@@ -635,13 +635,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
 
-            // Los contadores solo se muestran con datos confirmados desde Supabase.
-            if (catalogLoadedFromSupabase) {
-                renderCategoryNav();
-                const categoryNav = document.getElementById('categoryNav');
-                if (categoryNav) categoryNav.setAttribute('aria-busy', 'false');
-            }
-
+            // Mostrar siempre un conteo, incluso si falla la lectura de Supabase.
+            // renderCategoryNav usa db.items como respaldo cuando no hay resumen remoto.
+            renderCategoryNav();
+            const categoryNav = document.getElementById('categoryNav');
+            if (categoryNav) categoryNav.setAttribute('aria-busy', 'false');
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
             document.getElementById('footerWp').href = `https://wa.me/${db.phone}`;
             document.getElementById('mobileWpBar').href = `https://wa.me/${db.phone}`;
