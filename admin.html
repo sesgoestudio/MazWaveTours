@@ -203,7 +203,7 @@
         function calculateCatalogCounts(items) {
             const counts = { all: Array.isArray(items) ? items.length : 0, trimaran: 0, yate: 0, tour: 0 };
             (Array.isArray(items) ? items : []).forEach(item => {
-                const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+                const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
                     : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
                     : 'tour';
