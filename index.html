@@ -211,6 +211,26 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 }
 @media(max-width:380px){#heroTitle{font-size:1.9rem!important}#categoryNav .category-chip{padding:10px!important}.md\\:hidden.fixed.inset-x-0.bottom-0 nav a{font-size:12px!important}}
 @media(hover:none){.category-chip:hover,#cardsGrid a:hover,#cardsGrid button:hover{transform:none!important}}
+
+        /* Ritmo vertical uniforme y compacto entre secciones principales */
+        .hero-bg { margin-top:0 !important; margin-bottom:12px !important; }
+        .trust-section,
+        #seasonalSection,
+        section[aria-labelledby="bookingGuideTitle"],
+        #catalogo > section[aria-label="Categorías del catálogo"] {
+            margin-top:12px !important;
+            margin-bottom:12px !important;
+        }
+        @media (max-width:640px) {
+            .hero-bg { margin-bottom:10px !important; }
+            .trust-section,
+            #seasonalSection,
+            section[aria-labelledby="bookingGuideTitle"],
+            #catalogo > section[aria-label="Categorías del catálogo"] {
+                margin-top:10px !important;
+                margin-bottom:10px !important;
+            }
+        }
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950 pb-20 md:pb-0">
