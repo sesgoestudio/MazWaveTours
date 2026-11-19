@@ -90,7 +90,22 @@
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
-<!-- General Settings -->
+<!-- Estadísticas propias con Supabase -->
+            <section id="siteMetricsPanel" class="rounded-2xl border border-cyan-500/20 bg-slate-900/70 p-5 sm:p-6 shadow-xl shadow-cyan-950/10">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                    <div><h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-line text-cyan-400"></i> Actividad del sitio</h3><p class="text-xs text-slate-400 mt-1">Visitantes y solicitudes registradas directamente en Supabase</p></div>
+                    <div class="flex items-center gap-2 text-xs text-slate-400"><span id="siteMetricsDot" class="h-2 w-2 rounded-full bg-slate-500"></span><span id="siteMetricsStatus" aria-live="polite">Conectando…</span></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Visitantes activos</p><div class="flex items-end gap-2 mt-2"><strong id="siteActiveVisitors" class="text-4xl leading-none font-extrabold tracking-tight text-cyan-300 tabular-nums">—</strong><span class="text-xs text-slate-500 mb-1">últimos 5 min</span></div></div>
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Formularios completados</p><strong id="siteFormsTotal" class="block text-3xl mt-2 font-extrabold text-white tabular-nums">—</strong><p class="text-xs text-slate-500 mt-1">Total registrado</p></div>
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Formularios de hoy</p><strong id="siteFormsToday" class="block text-3xl mt-2 font-extrabold text-emerald-300 tabular-nums">—</strong><p class="text-xs text-slate-500 mt-1">Hora de Mazatlán</p></div>
+                </div>
+                <div class="mt-4"><div class="flex items-center justify-between gap-3 mb-2"><h4 class="text-xs font-bold text-slate-300">Páginas con visitantes activos</h4><span id="siteMetricsUpdated" class="text-[10px] text-slate-500">—</span></div><div id="siteActivePages" class="space-y-2"><p class="text-xs text-slate-500 py-2">Esperando datos…</p></div></div>
+                <p class="text-[10px] text-slate-600 mt-4">Actualización cada 15 segundos. Una visita se considera activa durante 5 minutos. Los formularios se cuentan al completar los campos y continuar a WhatsApp; no confirma que el mensaje se haya enviado.</p>
+            </section>
+
+            <!-- General Settings -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 class="text-base font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i> Ajustes Generales y WhatsApp</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -256,10 +271,46 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             loadAdminData();
+            startSiteMetrics();
             if (countsNeedSave) await publishSiteChanges();
         }
 
-        function cleanLocationReferences(value) {
+        // Estadísticas protegidas con RPC de Supabase.
+        let siteMetricsTimer = null, siteMetricsBusy = false;
+        async function refreshSiteMetrics() {
+            if (siteMetricsBusy || !supabaseClient) return;
+            siteMetricsBusy = true;
+            const status = document.getElementById('siteMetricsStatus');
+            const dot = document.getElementById('siteMetricsDot');
+            try {
+                const { data, error } = await supabaseClient.rpc('get_admin_site_metrics');
+                if (error) throw error;
+                const m = data || {};
+                document.getElementById('siteActiveVisitors').textContent = Number(m.active_visitors || 0).toLocaleString('es-MX');
+                document.getElementById('siteFormsTotal').textContent = Number(m.forms_total || 0).toLocaleString('es-MX');
+                document.getElementById('siteFormsToday').textContent = Number(m.forms_today || 0).toLocaleString('es-MX');
+                const pages = Array.isArray(m.active_pages) ? m.active_pages : [];
+                document.getElementById('siteActivePages').innerHTML = pages.length ? pages.map(p => {
+                    const path = String(p.path || '/').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+                    return '<div class="flex items-center justify-between gap-3 rounded-lg bg-slate-950/70 border border-slate-800 px-3 py-2"><span class="text-xs text-slate-300 min-w-0 truncate">' + path + '</span><span class="text-xs font-bold text-cyan-300 tabular-nums">' + Number(p.visitors || 0).toLocaleString('es-MX') + '</span></div>';
+                }).join('') : '<p class="text-xs text-slate-500 py-2">No hay visitantes activos en este momento.</p>';
+                document.getElementById('siteMetricsUpdated').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX');
+                status.textContent = 'Conectado · actualiza cada 15 s';
+                dot.className = 'h-2 w-2 rounded-full bg-emerald-400 animate-pulse';
+            } catch (error) {
+                console.error('Estadísticas Supabase:', error);
+                status.textContent = 'Falta configurar Supabase';
+                dot.className = 'h-2 w-2 rounded-full bg-amber-400';
+                document.getElementById('siteActivePages').innerHTML = '<p class="text-xs text-amber-300/80 py-2">Ejecuta primero el SQL de configuración incluido en el proyecto.</p>';
+            } finally { siteMetricsBusy = false; }
+        }
+        function startSiteMetrics() {
+            if (siteMetricsTimer) clearInterval(siteMetricsTimer);
+            refreshSiteMetrics();
+            siteMetricsTimer = setInterval(refreshSiteMetrics, 15000);
+        }
+
+                function cleanLocationReferences(value) {
             if (typeof value === 'string') return value.replace(/Marina\s+Mazatl[aá]n(?:,\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
             if (Array.isArray(value)) return value.map(cleanLocationReferences);
             if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cleanLocationReferences(entry)]));
