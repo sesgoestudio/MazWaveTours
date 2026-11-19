@@ -982,8 +982,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         }
 
+        // Pintar los conteos locales inmediatamente, antes de cualquier petición de red.
+        // renderSite() los sustituirá por los conteos de Supabase cuando termine la carga.
+        renderCategoryNav();
         // Mantener “Todas las experiencias” seleccionada desde el primer render.
-        // Los contadores permanecen en “Cargando...” hasta confirmar la lectura de Supabase.
         updateCategoryNav();
         // Ejecutar directamente: no esperar a load ni DOMContentLoaded desde un script al final del body.
         initializePublicCatalog();
