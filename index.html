@@ -762,9 +762,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function renderCategoryNav() {
-            // Leer el resumen persistido en Supabase: no recorrer el catálogo en cada visita.
-            const counts = db.catalogCounts;
-            if (!counts || typeof counts !== 'object') return;
+            // Usar el resumen persistido; si falta por una migración incompleta,
+            // calcularlo una sola vez con los artículos ya descargados para evitar "Cargando..." permanente.
+            const counts = db.catalogCounts && typeof db.catalogCounts === 'object'
+                ? db.catalogCounts
+                : (() => {
+                    const result = { all: Array.isArray(db.items) ? db.items.length : 0, trimaran: 0, yate: 0, tour: 0 };
+                    (Array.isArray(db.items) ? db.items : []).forEach(item => {
+                        const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '')
+                            .toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+                        const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
+                            : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
+                            : 'tour';
+                        result[category]++;
+                    });
+                    return result;
+                })();
             ['all', 'trimaran', 'yate', 'tour'].forEach(category => {
                 const count = Math.max(0, Number(counts[category]) || 0);
                 const el = document.getElementById('count-' + category);
