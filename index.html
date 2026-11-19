@@ -489,6 +489,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         } catch (clientError) { console.warn('No se pudo iniciar Supabase; se intentará leer la configuración por REST.', clientError); }
         let db = JSON.parse(JSON.stringify(defaultData));
+        let catalogLoadedFromSupabase = false;
         async function findLatestHeroImage() {
             // Compatibilidad con la imagen que ya estaba guardada en site_config.
             // Las nuevas cargas del administrador usarán siempre hero/current.
@@ -529,8 +530,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 }
             }
             if (!remote) {
-                console.error('No se recibió configuración pública; se conserva el catálogo local.');
-                return;
+                console.error('No se recibió configuración pública; se conserva el catálogo local y se mantienen ocultos los contadores.');
+                return false;
             }
             // El administrador guarda la URL exacta en site_config; el index utiliza esa misma URL.
             const heroKey = ['heroImage', 'hero_image', 'imagen_guardada', 'imagenGuardada']
@@ -546,7 +547,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
-            console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null, heroImageDisabled: db.heroImageDisabled === true });
+            catalogLoadedFromSupabase = true;
+            console.info('MazWaveTours: configuración pública leída.', { heroImage: db.heroImage || null, heroImageDisabled: db.heroImageDisabled === true, totalItems: db.items.length });
+            return true;
         }
         function cleanLocationReferences(value) {
             if (typeof value === 'string') return value.replace(/Marina\s+Mazatl[aá]n(?:,\s*Sinaloa)?/gi, 'Mazatlán, Sinaloa');
@@ -631,12 +634,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('heroSubtitle').innerText = db.heroSubtitle;
             applyHeroImage();
 
-            // Mostrar categorías y contadores solo después de cargar la configuración central.
-            renderCategoryNav();
-            const categoryNav = document.getElementById('categoryNav');
-            if (categoryNav) {
-                categoryNav.setAttribute('aria-busy', 'false');
-                categoryNav.querySelectorAll('button').forEach(button => { button.disabled = false; });
+            // Los contadores solo se muestran con datos confirmados desde Supabase.
+            if (catalogLoadedFromSupabase) {
+                renderCategoryNav();
+                const categoryNav = document.getElementById('categoryNav');
+                if (categoryNav) categoryNav.setAttribute('aria-busy', 'false');
             }
 
             document.getElementById('heroWpBtn').href = `https://wa.me/${db.phone}`;
@@ -971,14 +973,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         }
 
-        // El script está al final del documento y todos los elementos del catálogo ya existen.
-        // Pintar primero los datos locales evita dejar la navegación vacía si la petición remota tarda.
-        try {
-            renderCategoryNav();
-            updateCategoryNav();
-        } catch (initialRenderError) {
-            console.error('No se pudieron pintar los datos iniciales del catálogo.', initialRenderError);
-        }
+        // Mantener “Todas las experiencias” seleccionada desde el primer render.
+        // Los contadores permanecen en “Cargando...” hasta confirmar la lectura de Supabase.
+        updateCategoryNav();
         // Ejecutar directamente: no esperar a load ni DOMContentLoaded desde un script al final del body.
         initializePublicCatalog();
     </script>
