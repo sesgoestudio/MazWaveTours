@@ -114,12 +114,21 @@
                                     <span id="cfgHeroImageEmpty" class="text-xs text-slate-500 text-center px-3">Sin imagen principal. Sube una desde aquí.</span>
                                     <span id="cfgHeroDragHint" class="absolute bottom-2 left-2 rounded-lg bg-slate-950/75 text-white text-[10px] px-2 py-1 hidden pointer-events-none">Arrastra para encuadrar</span>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <label for="cfgHeroImageZoom" class="text-xs text-slate-400 whitespace-nowrap">Zoom</label>
-                                    <input id="cfgHeroImageZoom" type="range" min="1" max="2.5" step="0.05" value="1" oninput="updateHeroImageZoom(this.value)" class="w-full accent-cyan-400">
-                                    <span id="cfgHeroImageZoomValue" class="text-xs text-slate-400 w-10 text-right">100%</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                                    <label class="text-xs text-slate-400">Posición horizontal
+                                        <input id="cfgHeroImageX" type="range" min="0" max="100" step="1" value="50" oninput="updateHeroImagePosition('x',this.value)" class="mt-2 w-full accent-cyan-400">
+                                    </label>
+                                    <label class="text-xs text-slate-400">Posición vertical
+                                        <input id="cfgHeroImageY" type="range" min="0" max="100" step="1" value="50" oninput="updateHeroImagePosition('y',this.value)" class="mt-2 w-full accent-cyan-400">
+                                    </label>
+                                    <label class="sm:col-span-2 text-xs text-slate-400">Zoom <span id="cfgHeroImageZoomValue" class="text-cyan-300 font-semibold">100%</span>
+                                        <input id="cfgHeroImageZoom" type="range" min="1" max="2.5" step="0.05" value="1" oninput="updateHeroImageZoom(this.value)" class="mt-2 w-full accent-cyan-400">
+                                    </label>
                                 </div>
-                                <button type="button" onclick="resetHeroImagePosition()" class="text-xs text-cyan-300 hover:text-cyan-200">Restablecer encuadre</button>
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-[11px] text-slate-500">También puedes arrastrar la foto para ajustar el encuadre.</p>
+                                    <button type="button" onclick="resetHeroImagePosition()" class="text-xs text-cyan-300 hover:text-cyan-200 whitespace-nowrap">Restablecer</button>
+                                </div>
                             </div>
                             <div class="flex-1 w-full space-y-2">
                                 <label class="block cursor-pointer text-center bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-4 py-3 rounded-xl">Elegir nueva imagen
@@ -495,8 +504,12 @@
             preview.style.transform = 'scale(' + zoom + ')';
             const slider = document.getElementById('cfgHeroImageZoom');
             const value = document.getElementById('cfgHeroImageZoomValue');
+            const xSlider = document.getElementById('cfgHeroImageX');
+            const ySlider = document.getElementById('cfgHeroImageY');
             if (slider) slider.value = zoom;
             if (value) value.textContent = Math.round(zoom * 100) + '%';
+            if (xSlider) xSlider.value = x;
+            if (ySlider) ySlider.value = y;
         }
         function updateHeroImagePreview(value) {
             const preview = document.getElementById('cfgHeroImagePreview');
@@ -541,6 +554,13 @@
         function endHeroImageDrag(event) {
             if (!heroDragState) return;
             heroDragState = null;
+            scheduleAutoPublish();
+        }
+        function updateHeroImagePosition(axis, value) {
+            const position = Math.max(0, Math.min(100, Number(value) || 0));
+            if (axis === 'x') db.heroImagePositionX = position;
+            if (axis === 'y') db.heroImagePositionY = position;
+            applyHeroImagePreview();
             scheduleAutoPublish();
         }
         function updateHeroImageZoom(value) {
