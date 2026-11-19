@@ -349,11 +349,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Nuestra Flota y Experiencias</h2>
                 <p class="text-slate-400 mt-1 text-sm">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <div class="relative">
-                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-500"></i>
-                    <input type="text" id="searchInput" oninput="filterItems()" placeholder="Buscar yate, trimarán..." class="bg-slate-900 border border-slate-800 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-cyan-500 w-full sm:w-64 transition">
+            <div class="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto">
+                <div class="relative flex-1 md:flex-none">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="search" id="searchInput" oninput="filterItems()" placeholder="Buscar experiencia..." aria-label="Buscar experiencias" class="bg-slate-900/70 border border-slate-800/80 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-cyan-500/70 w-full sm:w-52 transition placeholder:text-slate-500">
                 </div>
+                <select id="sortFilter" onchange="filterItems()" aria-label="Ordenar experiencias" class="bg-slate-900/70 border border-slate-800/80 text-slate-300 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500/70 w-full sm:w-auto">
+                    <option value="price-asc" selected>Precio: menor a mayor</option>
+                    <option value="price-desc">Precio: mayor a menor</option>
+                    <option value="name-asc">Nombre: A–Z</option>
+                    <option value="name-desc">Nombre: Z–A</option>
+                </select>
                 <select id="categoryFilter" onchange="filterItems()" aria-label="Filtrar por categoría" class="sr-only">
                     <option value="all">Todas las categorías</option><option value="trimaran">Trimaranes</option><option value="yate">Yates y Lanchas</option><option value="tour">Tours y Experiencias</option>
                 </select>
@@ -819,22 +825,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         }
 
+        function getCatalogPrice(item) {
+            const raw = String(item.price || '').replace(/[^0-9.,]/g, '').replace(/,/g, '');
+            const value = Number(raw);
+            return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+        }
         function filterItems() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const query = document.getElementById('searchInput').value.trim().toLocaleLowerCase('es');
             const cat = document.getElementById('categoryFilter').value;
-
-            const categoryPriority = { tour: 0, trimaran: 1, yate: 2 };
+            const sort = document.getElementById('sortFilter')?.value || 'price-asc';
             const filtered = db.items.filter(item => {
-                const matchesQuery = String(item.name || '').toLowerCase().includes(query) || String(item.desc || '').toLowerCase().includes(query);
+                const matchesQuery = String(item.name || '').toLocaleLowerCase('es').includes(query) || String(item.desc || '').toLocaleLowerCase('es').includes(query);
                 const matchesCat = cat === 'all' || normalizeCategory(item.category) === cat;
                 return matchesQuery && matchesCat;
             });
-            // En "Todas las experiencias", mostrar primero tours y experiencias,
-            // después trimaranes y al final yates/lancha, sin alterar los datos guardados.
-            if (cat === 'all') {
-                filtered.sort((a, b) => (categoryPriority[normalizeCategory(a.category)] ?? 99) - (categoryPriority[normalizeCategory(b.category)] ?? 99));
-            }
-
+            filtered.sort((a, b) => {
+                if (sort === 'price-asc') return getCatalogPrice(a) - getCatalogPrice(b);
+                if (sort === 'price-desc') return getCatalogPrice(b) - getCatalogPrice(a);
+                const comparison = String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+                return sort === 'name-desc' ? -comparison : comparison;
+            });
             renderCards(filtered);
             updateCategoryNav();
         }
