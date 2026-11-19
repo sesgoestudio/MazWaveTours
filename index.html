@@ -530,7 +530,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 }
             }
             if (!remote) {
-                console.error('No se recibió configuración pública; se conserva el catálogo local y se mantienen ocultos los contadores.');
+                // Supabase es la única fuente del catálogo: no mostrar artículos locales antiguos.
+                db = { ...defaultData, items: [], catalogCounts: null };
+                catalogLoadedFromSupabase = false;
+                console.error('No se recibió configuración pública de Supabase.');
                 return false;
             }
             // El administrador guarda la URL exacta en site_config; el index utiliza esa misma URL.
@@ -545,7 +548,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 catalogCounts: remote.catalogCounts && typeof remote.catalogCounts === 'object' ? remote.catalogCounts : null,
                 heroImageDisabled: heroDisabled,
                 heroImage: heroDisabled ? '' : resolvedHero,
-                items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
+                // Cero artículos en Supabase significa catálogo vacío, no usar artículos de ejemplo.
+                items: (Array.isArray(remote.items) ? remote.items : [])
                     .map((item, index) => ({ ...item, id: item.id ?? index + 1, category: normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name), isSeasonal: item.isSeasonal === false ? false : (/ballena/i.test(String(item.name || '')) || item.isSeasonal === true || item.is_seasonal === true || item.seasonal === true || item.temporada === true || ['true','1','si','sí','temporada'].includes(String(item.isSeasonal ?? item.is_seasonal ?? item.seasonal ?? item.temporada ?? '').toLowerCase())), published: item.published !== false, images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []) }))
             };
             catalogLoadedFromSupabase = true;
@@ -657,12 +661,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 if (explicitlyOff) return false;
                 return explicitlyOn || /ballena/i.test(String(item.name || ""));
             });
-            // Solo mostrar un destacado de respaldo si el catálogo no contiene ningún registro de ballenas.
-            const hasWhaleRecord = db.items.some(item => /ballena/i.test(String(item.name || "")));
-            if (!hasWhaleRecord && seasonalItems.length === 0) {
-                const fallbackWhale = defaultData.items.find(item => /ballena/i.test(String(item.name || "")));
-                if (fallbackWhale) seasonalItems.push(fallbackWhale);
-            }
             seasonalItems.sort((a, b) => (/ballena/i.test(String(a.name || '')) ? 0 : 1) - (/ballena/i.test(String(b.name || '')) ? 0 : 1));
             const section = document.getElementById('seasonalSection');
             const grid = document.getElementById('seasonalGrid');
@@ -760,24 +758,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function renderCategoryNav() {
-            // Usar el resumen persistido; si falta por una migración incompleta,
-            // calcularlo una sola vez con los artículos ya descargados para evitar "Cargando..." permanente.
-            const counts = db.catalogCounts && typeof db.catalogCounts === 'object'
-                ? db.catalogCounts
-                : (() => {
-                    const result = { all: Array.isArray(db.items) ? db.items.length : 0, trimaran: 0, yate: 0, tour: 0 };
-                    (Array.isArray(db.items) ? db.items : []).forEach(item => {
-                        const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '')
-                            .toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-                        const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
-                            : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
-                            : 'tour';
-                        result[category]++;
-                    });
-                    return result;
-                })();
+            // Supabase es la única fuente. No mostrar cantidades provisionales.
+            if (!catalogLoadedFromSupabase) {
+                ['all', 'trimaran', 'yate', 'tour'].forEach(category => {
+                    const el = document.getElementById('count-' + category);
+                    if (el) el.textContent = 'No disponible';
+                });
+                updateCategoryNav();
+                return;
+            }
+            // Calcular una sola vez a partir del mismo catálogo remoto que se muestra.
+            const counts = { all: Array.isArray(db.items) ? db.items.length : 0, trimaran: 0, yate: 0, tour: 0 };
+            (Array.isArray(db.items) ? db.items : []).forEach(item => {
+                const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '')
+                    .toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+                const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
+                    : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
+                    : 'tour';
+                counts[category]++;
+            });
             ['all', 'trimaran', 'yate', 'tour'].forEach(category => {
-                const count = Math.max(0, Number(counts[category]) || 0);
+                const count = counts[category];
                 const el = document.getElementById('count-' + category);
                 if (el) el.textContent = count + (count === 1 ? ' opción' : ' opciones');
             });
