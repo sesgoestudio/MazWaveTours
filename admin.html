@@ -200,6 +200,17 @@
         const SUPABASE_KEY = "sb_publishable_FsIs5klj7rHso_P8o4yOBQ_J_cRu-5D";
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let db = defaultData;
+        function calculateCatalogCounts(items) {
+            const counts = { all: Array.isArray(items) ? items.length : 0, trimaran: 0, yate: 0, tour: 0 };
+            (Array.isArray(items) ? items : []).forEach(item => {
+                const value = String(item.category || item.type || item.tipo || item.category_name || item.name || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+                const category = value.includes('trim') || value.includes('catamaran') ? 'trimaran'
+                    : value.includes('yate') || value.includes('lancha') || value.includes('boat') || value.includes('barco') ? 'yate'
+                    : 'tour';
+                counts[category]++;
+            });
+            return counts;
+        }
 
         async function checkLogin() {
             const email = document.getElementById('adminEmailInput').value.trim();
@@ -342,6 +353,7 @@
         }
         function updateItemField(index, field, value) {
             db.items[index][field] = value;
+            db.catalogCounts = calculateCatalogCounts(db.items);
             if (field === 'image') { db.items[index].images = [value, ...(db.items[index].images || []).slice(1)]; }
             if (field === 'images' && Array.isArray(value) && value.length) { db.items[index].image = value[0]; }
             scheduleAutoPublish();
@@ -496,7 +508,8 @@
                 const oldPath = getHeroStoragePath(db.heroImage);
                 db.heroImage = '';
                 db.heroImageDisabled = true;
-                const snapshot = JSON.parse(JSON.stringify(db));
+                db.catalogCounts = calculateCatalogCounts(db.items);
+            const snapshot = JSON.parse(JSON.stringify(db));
                 const { error } = await supabaseClient.from('site_config')
                     .upsert({ id: 1, data: snapshot, updated_at: new Date().toISOString() }, { onConflict: 'id' });
                 if (error) throw new Error('No se pudo guardar la portada vacía: ' + error.message);
@@ -640,8 +653,11 @@
                     ...row.data,
                     items: row.data.items
                 };
+                db.catalogCounts = calculateCatalogCounts(db.items);
+                const countsSaved = await publishSiteChanges();
+                if (!countsSaved) throw new Error('El artículo se agregó, pero no se pudieron guardar sus contadores.');
                 renderAdminItems();
-                if (status) status.textContent = 'Artículo guardado en Supabase. Total: ' + row.data.items.length;
+                if (status) status.textContent = 'Artículo y contadores guardados en Supabase. Total: ' + row.data.items.length;
             } catch (error) {
                 if (status) status.textContent = 'No se pudo agregar el artículo';
                 alert(error.message || 'Error al guardar el artículo.');
@@ -653,6 +669,7 @@
         function deleteItem(index) {
             if (confirm('¿Eliminar esta embarcación o tour?')) {
                 db.items.splice(index, 1);
+                db.catalogCounts = calculateCatalogCounts(db.items);
                 renderAdminItems();
                 scheduleAutoPublish();
             }
