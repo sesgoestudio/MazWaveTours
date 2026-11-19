@@ -542,6 +542,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             db = {
                 ...defaultData,
                 ...remote,
+                catalogCounts: remote.catalogCounts && typeof remote.catalogCounts === 'object' ? remote.catalogCounts : null,
                 heroImageDisabled: heroDisabled,
                 heroImage: heroDisabled ? '' : resolvedHero,
                 items: (Array.isArray(remote.items) && remote.items.length > 0 ? remote.items : defaultData.items)
@@ -761,14 +762,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function renderCategoryNav() {
-            const visibleItems = Array.isArray(db.items) ? db.items : [];
-            const counts = { all: visibleItems.length, trimaran: 0, yate: 0, tour: 0 };
-            visibleItems.forEach(item => {
-                const category = normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name);
-                item.category = category;
-                if (Object.prototype.hasOwnProperty.call(counts, category)) counts[category] = (counts[category] || 0) + 1;
-            });
-            Object.entries(counts).forEach(([category, count]) => {
+            // Leer el resumen persistido en Supabase: no recorrer el catálogo en cada visita.
+            const counts = db.catalogCounts;
+            if (!counts || typeof counts !== 'object') return;
+            ['all', 'trimaran', 'yate', 'tour'].forEach(category => {
+                const count = Math.max(0, Number(counts[category]) || 0);
                 const el = document.getElementById('count-' + category);
                 if (el) el.textContent = count + (count === 1 ? ' opción' : ' opciones');
             });
