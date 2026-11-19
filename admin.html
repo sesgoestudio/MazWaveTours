@@ -90,7 +90,34 @@
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
-<!-- General Settings -->
+<!-- Google Analytics: actividad en tiempo real -->
+            <section id="ga4RealtimePanel" class="rounded-2xl border border-cyan-500/20 bg-slate-900/70 p-5 sm:p-6 shadow-xl shadow-cyan-950/10">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-line text-cyan-400"></i> Visitantes en tiempo real</h3>
+                        <p class="text-xs text-slate-400 mt-1">Datos de Google Analytics · todos los visitantes</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-400"><span id="ga4LiveDot" class="h-2 w-2 rounded-full bg-slate-500"></span><span id="ga4Status" aria-live="polite">Conectando con Analytics…</span></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                        <p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Usuarios activos</p>
+                        <div class="flex items-end gap-2 mt-2"><strong id="ga4ActiveNow" class="text-4xl leading-none font-extrabold tracking-tight text-cyan-300 tabular-nums">—</strong><span class="text-xs text-slate-500 mb-1">últimos 30 min</span></div>
+                    </div>
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                        <p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Páginas consultadas</p>
+                        <p class="text-sm text-slate-400 mt-2">Actividad por página en los últimos 30 minutos</p>
+                        <strong id="ga4PageCount" class="text-2xl font-bold text-white tabular-nums">—</strong>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center justify-between gap-3 mb-2"><h4 class="text-xs font-bold text-slate-300">Qué están viendo</h4><span id="ga4UpdatedAt" class="text-[10px] text-slate-500">—</span></div>
+                    <div id="ga4PagesList" class="space-y-2"><p class="text-xs text-slate-500 py-2">Esperando datos de Analytics…</p></div>
+                </div>
+                <p class="text-[10px] text-slate-600 mt-4">Se actualiza automáticamente cada 30 segundos. Las páginas reflejan usuarios activos durante la ventana de 30 minutos de GA4.</p>
+            </section>
+
+            <!-- General Settings -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 class="text-base font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i> Ajustes Generales y WhatsApp</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -256,7 +283,52 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             loadAdminData();
+            startGa4Realtime();
             if (countsNeedSave) await publishSiteChanges();
+        }
+
+        // Google Analytics 4 Realtime: la Edge Function valida la sesión y el rol admin.
+        let ga4RealtimeTimer = null;
+        let ga4RealtimeBusy = false;
+        async function refreshGa4Realtime() {
+            if (ga4RealtimeBusy || !supabaseClient) return;
+            ga4RealtimeBusy = true;
+            const status = document.getElementById('ga4Status');
+            const dot = document.getElementById('ga4LiveDot');
+            try {
+                const { data, error } = await supabaseClient.functions.invoke('ga4-realtime');
+                if (error) throw error;
+                if (!data || data.success !== true) throw new Error(data?.error || 'No se recibieron datos de Analytics.');
+                document.getElementById('ga4ActiveNow').textContent = Number(data.activeUsers || 0).toLocaleString('es-MX');
+                const pages = Array.isArray(data.pages) ? data.pages : [];
+                document.getElementById('ga4PageCount').textContent = pages.length.toLocaleString('es-MX');
+                const list = document.getElementById('ga4PagesList');
+                if (!pages.length) {
+                    list.innerHTML = '<p class="text-xs text-slate-500 py-2">Todavía no hay actividad registrada en esta ventana.</p>';
+                } else {
+                    list.innerHTML = pages.map(page => {
+                        const path = String(page.path || '/').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+                        const count = Number(page.activeUsers || 0);
+                        return '<div class="flex items-center justify-between gap-3 rounded-lg bg-slate-950/70 border border-slate-800 px-3 py-2"><span class="text-xs text-slate-300 min-w-0 truncate" title="' + path + '">' + path + '</span><span class="text-xs font-bold text-cyan-300 tabular-nums shrink-0">' + count.toLocaleString('es-MX') + '</span></div>';
+                    }).join('');
+                }
+                document.getElementById('ga4UpdatedAt').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+                status.textContent = 'Conectado · actualiza cada 30 s';
+                dot.className = 'h-2 w-2 rounded-full bg-emerald-400 animate-pulse';
+            } catch (error) {
+                console.error('GA4 Realtime:', error);
+                status.textContent = 'Pendiente de configuración';
+                dot.className = 'h-2 w-2 rounded-full bg-amber-400';
+                const list = document.getElementById('ga4PagesList');
+                if (list) list.innerHTML = '<p class="text-xs text-amber-300/80 py-2">No se pudo consultar Analytics. Configura los secretos de Google en Supabase y vuelve a intentarlo.</p>';
+            } finally {
+                ga4RealtimeBusy = false;
+            }
+        }
+        function startGa4Realtime() {
+            if (ga4RealtimeTimer) clearInterval(ga4RealtimeTimer);
+            refreshGa4Realtime();
+            ga4RealtimeTimer = setInterval(refreshGa4Realtime, 30000);
         }
 
         function cleanLocationReferences(value) {
