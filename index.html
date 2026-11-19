@@ -349,16 +349,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Nuestra Flota y Experiencias</h2>
                 <p class="text-slate-400 mt-1 text-sm">Selecciona la embarcación ideal para tu evento, tour o día de sol.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto">
+            <div class="flex items-center gap-2.5 w-full md:w-auto">
                 <div class="relative flex-1 md:flex-none">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                    <input type="search" id="searchInput" oninput="filterItems()" placeholder="Buscar experiencia..." aria-label="Buscar experiencias" class="bg-slate-900/70 border border-slate-800/80 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-cyan-500/70 w-full sm:w-52 transition placeholder:text-slate-500">
+                    <input type="search" id="searchInput" oninput="filterItems()" placeholder="Buscar experiencia..." aria-label="Buscar experiencias" class="bg-slate-900/70 border border-slate-800/80 text-white text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-cyan-500/70 w-full sm:w-56 transition placeholder:text-slate-500">
                 </div>
-                <select id="sortFilter" onchange="filterItems()" aria-label="Ordenar experiencias" class="bg-slate-900/70 border border-slate-800/80 text-slate-300 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500/70 w-full sm:w-auto">
-                    <option value="price-asc" selected>Precio: menor a mayor</option>
-                    <option value="price-desc">Precio: mayor a menor</option>
-                    <option value="name-asc">Nombre: A–Z</option>
-                    <option value="name-desc">Nombre: Z–A</option>
+                <div class="relative flex-shrink-0" id="catalogSortMenu">
+                    <button type="button" id="sortMenuButton" onclick="toggleSortMenu(event)" aria-label="Abrir opciones de orden" aria-expanded="false" aria-controls="sortMenuPanel" class="h-10 w-10 sm:w-auto sm:px-3.5 rounded-xl border border-slate-800/80 bg-slate-900/70 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 flex items-center justify-center gap-2 transition focus:outline-none focus:border-cyan-500/70">
+                        <i class="fa-solid fa-filter text-sm"></i>
+                        <span class="hidden sm:inline text-sm">Ordenar</span>
+                    </button>
+                    <div id="sortMenuPanel" class="hidden absolute right-0 top-full mt-2 z-40 w-56 rounded-xl border border-slate-700/90 bg-slate-950/95 backdrop-blur-xl shadow-2xl p-1.5">
+                        <p class="px-3 py-2 text-[10px] uppercase tracking-[.16em] text-slate-500 font-semibold">Ordenar experiencias</p>
+                        <button type="button" data-sort="price-asc" onclick="chooseCatalogSort('price-asc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-cyan-300 bg-cyan-500/10"><span>Precio: menor a mayor</span><i class="fa-solid fa-check text-[10px]"></i></button>
+                        <button type="button" data-sort="price-desc" onclick="chooseCatalogSort('price-desc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800"><span>Precio: mayor a menor</span><i class="fa-solid fa-check text-[10px] opacity-0"></i></button>
+                        <button type="button" data-sort="name-asc" onclick="chooseCatalogSort('name-asc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800"><span>Nombre: A–Z</span><i class="fa-solid fa-check text-[10px] opacity-0"></i></button>
+                        <button type="button" data-sort="name-desc" onclick="chooseCatalogSort('name-desc')" class="catalog-sort-option w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800"><span>Nombre: Z–A</span><i class="fa-solid fa-check text-[10px] opacity-0"></i></button>
+                    </div>
+                </div>
+                <select id="sortFilter" onchange="filterItems()" aria-label="Ordenar experiencias" class="hidden">
+                    <option value="price-asc" selected>Precio: menor a mayor</option><option value="price-desc">Precio: mayor a menor</option><option value="name-asc">Nombre: A–Z</option><option value="name-desc">Nombre: Z–A</option>
                 </select>
                 <select id="categoryFilter" onchange="filterItems()" aria-label="Filtrar por categoría" class="sr-only">
                     <option value="all">Todas las categorías</option><option value="trimaran">Trimaranes</option><option value="yate">Yates y Lanchas</option><option value="tour">Tours y Experiencias</option>
@@ -824,6 +834,43 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 document.getElementById('cardsGrid').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
             }
         }
+
+        function toggleSortMenu(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('sortMenuPanel');
+            const button = document.getElementById('sortMenuButton');
+            if (!panel || !button) return;
+            const opening = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !opening);
+            button.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        }
+        function chooseCatalogSort(mode) {
+            const allowed = ['price-asc', 'price-desc', 'name-asc', 'name-desc'];
+            if (!allowed.includes(mode)) return;
+            const select = document.getElementById('sortFilter');
+            if (select) select.value = mode;
+            document.querySelectorAll('.catalog-sort-option').forEach(option => {
+                const active = option.dataset.sort === mode;
+                option.classList.toggle('text-cyan-300', active);
+                option.classList.toggle('bg-cyan-500/10', active);
+                option.classList.toggle('text-slate-300', !active);
+                option.querySelector('i')?.classList.toggle('opacity-0', !active);
+            });
+            const panel = document.getElementById('sortMenuPanel');
+            const button = document.getElementById('sortMenuButton');
+            if (panel) panel.classList.add('hidden');
+            if (button) button.setAttribute('aria-expanded', 'false');
+            filterItems();
+        }
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('catalogSortMenu');
+            const panel = document.getElementById('sortMenuPanel');
+            const button = document.getElementById('sortMenuButton');
+            if (menu && panel && !menu.contains(event.target)) {
+                panel.classList.add('hidden');
+                button?.setAttribute('aria-expanded', 'false');
+            }
+        });
 
         function getCatalogPrice(item) {
             const raw = String(item.price || '').replace(/[^0-9.,]/g, '').replace(/,/g, '');
