@@ -25,7 +25,7 @@ SET data = jsonb_set(
                     WHEN jsonb_typeof(sc.data->'items') = 'array' THEN sc.data->'items'
                     ELSE '[]'::jsonb
                 END
-            ) AS item
+            ) AS items(item)
         ) AS catalog_items
     ),
     true
