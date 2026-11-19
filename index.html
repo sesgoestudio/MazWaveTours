@@ -556,6 +556,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         } catch (clientError) { console.warn('No se pudo iniciar Supabase; se intentará leer la configuración por REST.', clientError); }
         let db = JSON.parse(JSON.stringify(defaultData));
+        // Métricas propias con Supabase: identificador aleatorio temporal, sin datos personales.
+        function getMazwaveVisitorId() {
+            try {
+                let id = localStorage.getItem('mazwave_visitor_id');
+                if (!/^[0-9a-f-]{36}$/i.test(id || '')) {
+                    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() :
+                        'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                            const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+                        });
+                    localStorage.setItem('mazwave_visitor_id', id);
+                }
+                return id;
+            } catch (_) { return null; }
+        }
+        const mazwaveVisitorId = getMazwaveVisitorId();
+        async function trackMazwaveVisit() {
+            if (!supabaseClient || !mazwaveVisitorId || document.visibilityState !== 'visible') return;
+            try {
+                await supabaseClient.rpc('track_site_visitor', {
+                    p_visitor_id: mazwaveVisitorId,
+                    p_page_path: location.pathname.slice(0, 300) || '/'
+                });
+            } catch (error) { console.debug('Métrica de visita no disponible:', error); }
+        }
+        if (mazwaveVisitorId) {
+            trackMazwaveVisit();
+            window.setInterval(trackMazwaveVisit, 30000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') trackMazwaveVisit();
+            });
+        }
+
         let catalogLoadedFromSupabase = false;
         async function findLatestHeroImage() {
             // Compatibilidad con la imagen que ya estaba guardada en site_config.
@@ -1059,6 +1091,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 '',
                 'Quedo pendiente de la información. ¡Gracias!'
             ].join('\n');
+
+            // Contar el formulario validado sin almacenar datos personales.
+            if (supabaseClient && mazwaveVisitorId) {
+                try {
+                    const { error: metricError } = await supabaseClient.rpc('register_site_form_submission', {
+                        p_visitor_id: mazwaveVisitorId,
+                        p_page_path: location.pathname.slice(0, 300) || '/',
+                        p_item_name: String(productName).slice(0, 160)
+                    });
+                    if (metricError) console.warn('No se pudo registrar la métrica del formulario:', metricError);
+                } catch (metricError) { console.warn('Métrica de formulario no disponible:', metricError); }
+            }
 
             // wa.me abre WhatsApp (app o web) y deja el envío final bajo control del cliente.
             window.location.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
