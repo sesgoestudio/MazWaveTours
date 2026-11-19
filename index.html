@@ -764,7 +764,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             visibleItems.forEach(item => {
                 const category = normalizeCategory(item.category || item.type || item.tipo || item.category_name || item.name);
                 item.category = category;
-                counts[category]++;
+                if (Object.prototype.hasOwnProperty.call(counts, category)) counts[category] = (counts[category] || 0) + 1;
             });
             Object.entries(counts).forEach(([category, count]) => {
                 const el = document.getElementById('count-' + category);
@@ -954,10 +954,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         }, 10000);
 
-        window.addEventListener('load', async () => {
-            try { await loadCentralCatalog(); }
-            catch (loadError) { console.error('Error cargando catálogo; se mostrarán datos locales.', loadError); }
-            finally {
+        async function initializePublicCatalog() {
+            try {
+                await loadCentralCatalog();
+            } catch (loadError) {
+                console.error('Error cargando catálogo; se mostrarán los datos locales.', loadError);
+            } finally {
                 db = cleanLocationReferences(db);
                 renderSite();
                 const dateInput = document.getElementById('clientDate');
@@ -967,7 +969,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     dateInput.min = localToday;
                 }
             }
-        }, { once: true });
+        }
+
+        // El script está al final del documento: inicializar ahora evita depender del evento load,
+        // que puede haberse disparado antes en navegadores con caché o restauración de página.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePublicCatalog, { once: true });
+        } else {
+            initializePublicCatalog();
+        }
     </script>
 </body>
 </html>
