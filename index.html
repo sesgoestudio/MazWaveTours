@@ -149,6 +149,49 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         @media (prefers-reduced-motion: reduce) { .scroll-reveal, .scroll-reveal.is-visible { opacity: 1; transform: none; transition: none; } #scrollProgress { display:none; } }
 
     
+        /* Sección de confianza: movimiento sutil, brillo y respuesta táctil */
+        .trust-section { position: relative; isolation: isolate; }
+        .trust-section::before {
+            content: ""; position: absolute; inset: 12% 8%; z-index: -1; pointer-events: none;
+            background: radial-gradient(ellipse at 50% 0%, rgba(6,182,212,.11), transparent 68%);
+            filter: blur(28px);
+        }
+        .trust-card {
+            position: relative; overflow: hidden; transform: translateZ(0);
+            border: 1px solid rgba(100,116,139,.28);
+            background: linear-gradient(145deg, rgba(15,23,42,.94), rgba(8,25,43,.78));
+            transition: transform .35s cubic-bezier(.2,.7,.2,1), border-color .35s ease, box-shadow .35s ease;
+        }
+        .trust-card::after {
+            content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+            background: linear-gradient(115deg, transparent 20%, rgba(103,232,249,.08) 48%, transparent 76%);
+            transform: translateX(-110%); transition: opacity .3s ease;
+        }
+        .trust-card:hover {
+            transform: translateY(-5px); border-color: rgba(34,211,238,.55);
+            box-shadow: 0 18px 45px rgba(2,8,23,.32), 0 0 24px rgba(6,182,212,.08);
+        }
+        .trust-card:hover::after { opacity: 1; animation: trustShimmer .9s ease forwards; }
+        .trust-icon {
+            display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 auto;
+            border: 1px solid rgba(34,211,238,.22); border-radius: 15px;
+            color: #67e8f9; background: rgba(6,182,212,.10);
+            box-shadow: inset 0 0 18px rgba(6,182,212,.06);
+        }
+        .trust-section.is-visible .trust-card { animation: trustCardIn .7s cubic-bezier(.2,.75,.25,1) both; }
+        .trust-section.is-visible .trust-card:nth-child(2) { animation-delay: .10s; }
+        .trust-section.is-visible .trust-card:nth-child(3) { animation-delay: .20s; }
+        @keyframes trustCardIn { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes trustShimmer { to { transform: translateX(110%); } }
+        @media (max-width: 640px) {
+            .trust-card { border-radius: 19px; }
+            .trust-card:hover { transform: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .trust-card, .trust-card::after { transition: none !important; animation: none !important; }
+            .trust-card:hover { transform: none; }
+        }
+
         /* Separación compacta entre secciones en teléfonos */
         @media (max-width: 640px) {
             .hero-bg { min-height: 480px !important; padding: 3rem 1rem !important; display: flex; align-items: center; justify-content: center; }
@@ -242,6 +285,44 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <a id="heroWpBtn" href="https://wa.me/526693285696" target="_blank" rel="noopener noreferrer" class="bg-slate-900/90 hover:bg-slate-800 text-white font-semibold px-7 py-3 sm:px-8 sm:py-4 rounded-2xl border border-slate-700 transition flex items-center justify-center space-x-2">
                     <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
                     <span>Cotizar por WhatsApp</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Confianza MazWaveTours -->
+    <section class="trust-section max-w-7xl mx-auto w-full px-4 py-8 sm:py-10 md:py-14" aria-labelledby="trustTitle">
+        <div class="relative overflow-hidden rounded-[28px] border border-cyan-400/15 bg-slate-900/65 px-4 py-7 sm:px-7 sm:py-9 md:px-10 md:py-11 shadow-2xl shadow-slate-950/30">
+            <div class="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" aria-hidden="true"></div>
+            <div class="relative z-10 mx-auto max-w-3xl text-center mb-7 md:mb-9">
+                <span class="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[.2em] text-cyan-200">
+                    <i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Tu tranquilidad es importante
+                </span>
+                <h2 id="trustTitle" class="mt-4 text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white">Tu experiencia comienza con confianza.</h2>
+                <p class="mx-auto mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-400">Queremos que disfrutes Mazatlán desde el primer contacto. Te ayudamos a encontrar una experiencia que se adapte a tu plan y resolvemos tus dudas antes de reservar.</p>
+            </div>
+            <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                <article class="trust-card rounded-2xl p-4 sm:p-5 md:p-6">
+                    <div class="trust-icon mb-4"><i class="fa-solid fa-comments text-lg" aria-hidden="true"></i></div>
+                    <h3 class="text-base font-bold text-white">Atención directa</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">Habla con nosotros por WhatsApp y recibe orientación para elegir tu experiencia.</p>
+                </article>
+                <article class="trust-card rounded-2xl p-4 sm:p-5 md:p-6">
+                    <div class="trust-icon mb-4"><i class="fa-solid fa-compass text-lg" aria-hidden="true"></i></div>
+                    <h3 class="text-base font-bold text-white">Opciones para tu plan</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">Explora tours y actividades en Mazatlán para disfrutar el mar a tu manera.</p>
+                </article>
+                <article class="trust-card rounded-2xl p-4 sm:p-5 md:p-6">
+                    <div class="trust-icon mb-4"><i class="fa-solid fa-clipboard-check text-lg" aria-hidden="true"></i></div>
+                    <h3 class="text-base font-bold text-white">Claridad al reservar</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">Consulta los detalles y condiciones de tu experiencia antes de confirmar.</p>
+                </article>
+            </div>
+            <div class="relative z-10 mt-6 md:mt-7 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+                <span class="text-xs sm:text-sm text-slate-400"><i class="fa-solid fa-location-dot mr-1.5 text-cyan-300" aria-hidden="true"></i> Mazatlán, Sinaloa, México</span>
+                <span class="hidden sm:inline text-slate-700" aria-hidden="true">·</span>
+                <a href="https://wa.me/526693285696?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20las%20experiencias%20de%20MazWaveTours." target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-cyan-500/15 transition hover:-translate-y-0.5 hover:bg-cyan-300 active:translate-y-0">
+                    <i class="fa-brands fa-whatsapp text-lg" aria-hidden="true"></i> Resolver mis dudas
                 </a>
             </div>
         </div>
