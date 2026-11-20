@@ -530,7 +530,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const defaultData = {
             brand: "MazWaveTours",
             phone: "526693285696",
-            googleReviewUrl: "",
+            googleReviewUrl: "https://maps.app.goo.gl/9CWtZ9K49fBnbM4j9",
             slogan: "Haciendo de Mazatlán tu paraíso marítimo",
             heroTitle: "Vive el Mar de Mazatlán al Máximo",
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
@@ -781,7 +781,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             let validReviewUrl = '';
             try {
                 const parsedReviewUrl = new URL(reviewUrl);
-                if (parsedReviewUrl.protocol === 'https:' && /(^|\\.)google\\.com$|(^|\\.)g\\.page$/.test(parsedReviewUrl.hostname)) validReviewUrl = parsedReviewUrl.href;
+                if (parsedReviewUrl.protocol === 'https:' && /(^|\\.)google\\.com$|(^|\\.)g\\.page$|(^|\\.)app\\.goo\\.gl$/.test(parsedReviewUrl.hostname)) validReviewUrl = parsedReviewUrl.href;
             } catch (_) {}
             if (reviewSection && reviewButton && footerReview) {
                 reviewSection.classList.toggle('hidden', !validReviewUrl);
