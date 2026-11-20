@@ -84,6 +84,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        #googleReviewSection { opacity:0; transform:translateY(12px); transition:opacity .6s ease,transform .6s ease; }
+        #googleReviewSection.is-visible { opacity:1; transform:translateY(0); }
+        @media(prefers-reduced-motion:reduce){#googleReviewSection,#googleReviewSection.is-visible{opacity:1;transform:none;transition:none}}
         html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         section[id], main[id] { scroll-margin-top: 6rem; }
@@ -486,6 +489,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </nav>
     </div>
 
+    <!-- Invitación discreta a reseñar en Google: solo aparece con enlace configurado desde el administrador. -->
+    <section id="googleReviewSection" class="hidden max-w-4xl mx-auto w-full px-4 py-5 sm:py-8" aria-label="Reseña de Google">
+        <div class="rounded-2xl border border-slate-800/80 bg-slate-900/45 px-5 py-5 sm:px-7 sm:py-6 text-center">
+            <div class="flex justify-center items-center gap-1 text-amber-400 text-sm mb-2" aria-label="Cinco estrellas"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+            <h2 class="text-white text-base sm:text-lg font-semibold">¿Ya navegaste con nosotros?</h2>
+            <p class="text-slate-400 text-xs sm:text-sm mt-1">Nos encantaría conocer tu experiencia. Tu opinión nos ayuda a seguir creciendo.</p>
+            <a id="googleReviewButton" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 mt-4 rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 text-xs sm:text-sm text-slate-300 hover:text-white hover:border-cyan-500/50 transition">
+                <i class="fa-brands fa-google text-cyan-300"></i><span>Dejar una reseña en Google</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+            </a>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="bg-slate-900 border-t border-slate-800 py-6 md:py-12 px-4 mt-4 md:mt-20">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
@@ -497,6 +512,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <a href="https://instagram.com/mazwavetours" target="_blank" rel="noopener noreferrer" aria-label="Instagram MazWaveTours" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-instagram"></i></a>
                 <a href="https://www.facebook.com/share/153C3gnRMgA/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook MazWaveTours" class="hover:text-blue-400 text-xl transition"><i class="fa-brands fa-facebook"></i></a>
                 <a id="footerWp" href="https://wa.me/526693285696" target="_blank" class="hover:text-cyan-400 text-xl transition"><i class="fa-brands fa-whatsapp"></i></a>
+                <a id="footerGoogleReview" href="#" target="_blank" rel="noopener noreferrer" class="hidden hover:text-cyan-300 text-xs transition">Dejar una reseña</a>
                 <a href="mailto:mazwavetours@gmail.com" aria-label="Correo electrónico MazWaveTours" class="hover:text-cyan-400 text-sm transition">mazwavetours@gmail.com</a>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400"><a href="terminos.html" class="hover:text-cyan-300">Términos y condiciones</a><span aria-hidden="true">·</span><span class="text-slate-500">© 2026 MazWaveTours. Todos los derechos reservados.</span></div>
@@ -514,6 +530,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const defaultData = {
             brand: "MazWaveTours",
             phone: "526693285696",
+            googleReviewUrl: "",
             slogan: "Haciendo de Mazatlán tu paraíso marítimo",
             heroTitle: "Vive el Mar de Mazatlán al Máximo",
             heroSubtitle: "Renta de yates privados, trimaranes de lujo para grupos, avistamiento de ballenas y experiencias inolvidables en el Pacífico.",
@@ -757,6 +774,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 if (link) link.href = whatsappUrl;
             });
 
+            const reviewUrl = String(db.googleReviewUrl || '').trim();
+            const reviewSection = document.getElementById('googleReviewSection');
+            const reviewButton = document.getElementById('googleReviewButton');
+            const footerReview = document.getElementById('footerGoogleReview');
+            let validReviewUrl = '';
+            try {
+                const parsedReviewUrl = new URL(reviewUrl);
+                if (parsedReviewUrl.protocol === 'https:' && /(^|\\.)google\\.com$|(^|\\.)g\\.page$/.test(parsedReviewUrl.hostname)) validReviewUrl = parsedReviewUrl.href;
+            } catch (_) {}
+            if (reviewSection && reviewButton && footerReview) {
+                reviewSection.classList.toggle('hidden', !validReviewUrl);
+                footerReview.classList.toggle('hidden', !validReviewUrl);
+                if (validReviewUrl) { reviewButton.href = validReviewUrl; footerReview.href = validReviewUrl; }
+            }
             renderSeasonal();
             setCategory('all', false);
         }
