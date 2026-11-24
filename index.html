@@ -10,6 +10,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Avistamiento de Ballenas, Renta de Yates y Trimaranes en Mazatlán | MazWaveTours</title>
     <meta name="description" content="Vive Mazatlán con MazWaveTours: avistamiento de ballenas, renta de yates y trimaranes, y clases de surf. Conoce experiencias, compara opciones y cotiza por WhatsApp.">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -572,7 +575,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         let supabaseClient = null;
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
-                supabaseClient = window.supabase.createClient(SUPABASE_PUBLIC_URL, SUPABASE_PUBLIC_KEY);
+                supabaseClient = window.supabase.createClient(SUPABASE_PUBLIC_URL, SUPABASE_PUBLIC_KEY, { global: { fetch: (input, init = {}) => fetch(input, { ...init, cache: 'no-store' }) } });
             } else {
                 console.warn('SDK de Supabase no disponible; se intentará leer la configuración por REST.');
             }
@@ -749,6 +752,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             try {
                 const parsed = new URL(url, window.location.href);
                 if (parsed.protocol !== 'https:') throw new Error('La imagen principal debe usar HTTPS.');
+                parsed.searchParams.set('mwv', String(Date.now()));
                 image.src = parsed.href;
             } catch (error) {
                 image.removeAttribute('src');
