@@ -941,7 +941,8 @@
 
         // Metas comerciales por salida. Se almacenan en site_config.data.departureGoals.
         function ensureDepartureGoals() {
-            if (!Array.isArray(db.departureGoals)) {
+            const needsSeed = !Array.isArray(db.departureGoals);
+            if (needsSeed) {
                 db.departureGoals = [{
                     id: 'whale-2026-11-29',
                     name: 'Avistamiento de ballenas',
@@ -965,6 +966,7 @@
                 actualCosts: Math.max(0, Number(g.actualCosts) || 0),
                 notes: String(g.notes || '')
             }));
+            return needsSeed;
         }
         function moneyMXN(value) {
             return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(Number(value) || 0);
@@ -975,9 +977,10 @@
         function renderDepartureGoals() {
             const root = document.getElementById('departureGoalsList');
             if (!root) return;
-            ensureDepartureGoals();
+            const seeded = ensureDepartureGoals();
             if (!db.departureGoals.length) {
                 root.innerHTML = '<div class="rounded-xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">Todavía no hay salidas registradas. Usa “Nueva salida” para comenzar.</div>';
+                if (seeded) scheduleAutoPublish();
                 return;
             }
             root.innerHTML = db.departureGoals.map((g, i) => {
@@ -1024,6 +1027,7 @@
                     </div>
                 </article>`;
             }).join('');
+            if (seeded) scheduleAutoPublish();
         }
         function updateDepartureGoal(id, field, value) {
             ensureDepartureGoals();
