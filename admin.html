@@ -105,6 +105,28 @@
                 <p class="text-[10px] text-slate-600 mt-4">Actualización cada 15 segundos. Una visita se considera activa durante 5 minutos. Los formularios se cuentan al completar los campos y continuar a WhatsApp; no confirma que el mensaje se haya enviado.</p>
             </section>
 
+
+            <!-- Control de salidas: se guarda dentro de site_config en Supabase -->
+            <section id="departureGoalsPanel" class="rounded-2xl border border-emerald-500/20 bg-slate-900/70 shadow-xl shadow-emerald-950/10 overflow-hidden">
+                <details>
+                    <summary class="list-none cursor-pointer p-5 sm:p-6 flex items-center justify-between gap-4 select-none">
+                        <div class="min-w-0">
+                            <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-simple text-emerald-400"></i> Control de salidas y metas</h3>
+                            <p class="text-xs text-slate-400 mt-1">Reservaciones, ocupación, ingresos y utilidad por salida</p>
+                        </div>
+                        <span class="shrink-0 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-emerald-300"><i class="fa-solid fa-chevron-down"></i> Desplegar</span>
+                    </summary>
+                    <div class="px-5 pb-5 sm:px-6 sm:pb-6 border-t border-slate-800">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4">
+                            <p class="text-xs text-slate-400">Administra cada fecha. Los cálculos se actualizan al modificar los datos y se guardan en Supabase.</p>
+                            <button type="button" onclick="addDepartureGoal()" class="shrink-0 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-4 py-3"><i class="fa-solid fa-plus mr-1"></i> Nueva salida</button>
+                        </div>
+                        <div id="departureGoalsList" class="space-y-4"></div>
+                        <p class="text-[10px] text-slate-500 mt-4">Los reservados son un total manual de personas, no un conteo automático de formularios. Registra únicamente reservaciones confirmadas. Los ingresos son proyecciones antes de gastos.</p>
+                    </div>
+                </details>
+            </section>
+
             <!-- General Settings -->
             <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                 <h3 class="text-base font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i> Ajustes Generales y WhatsApp</h3>
@@ -353,6 +375,7 @@
             document.getElementById('cfgHeroImageZoomValue').textContent = Math.round(db.heroImageZoom * 100) + '%';
             document.getElementById('cfgHeroDragHint').classList.toggle('hidden', !currentHeroImage);
             renderAdminItems();
+            renderDepartureGoals();
         }
 
         const adminCategoryLabels = { trimaran: 'Trimaranes', yate: 'Yates y lanchas', tour: 'Tours y experiencias' };
@@ -915,6 +938,119 @@
             }
         }
         function updateGeneralField(field, value) { db[field] = value; scheduleAutoPublish(); }
+
+        // Metas comerciales por salida. Se almacenan en site_config.data.departureGoals.
+        function ensureDepartureGoals() {
+            if (!Array.isArray(db.departureGoals)) {
+                db.departureGoals = [{
+                    id: 'whale-2026-11-29',
+                    name: 'Avistamiento de ballenas',
+                    date: '2026-11-29',
+                    capacity: 18,
+                    price: 650,
+                    reserved: 4,
+                    estimatedCosts: 0,
+                    actualCosts: 0,
+                    notes: 'Precio especial'
+                }];
+            }
+            db.departureGoals = db.departureGoals.map((g, i) => ({
+                id: g.id || ('departure-' + i + '-' + Date.now()),
+                name: String(g.name || 'Nueva salida'),
+                date: String(g.date || ''),
+                capacity: Math.max(1, Number(g.capacity) || 1),
+                price: Math.max(0, Number(g.price) || 0),
+                reserved: Math.max(0, Number(g.reserved) || 0),
+                estimatedCosts: Math.max(0, Number(g.estimatedCosts) || 0),
+                actualCosts: Math.max(0, Number(g.actualCosts) || 0),
+                notes: String(g.notes || '')
+            }));
+        }
+        function moneyMXN(value) {
+            return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(Number(value) || 0);
+        }
+        function safeGoalText(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+        function renderDepartureGoals() {
+            const root = document.getElementById('departureGoalsList');
+            if (!root) return;
+            ensureDepartureGoals();
+            if (!db.departureGoals.length) {
+                root.innerHTML = '<div class="rounded-xl border border-dashed border-slate-700 p-6 text-center text-sm text-slate-500">Todavía no hay salidas registradas. Usa “Nueva salida” para comenzar.</div>';
+                return;
+            }
+            root.innerHTML = db.departureGoals.map((g, i) => {
+                const reserved = Math.min(g.reserved, g.capacity);
+                const available = Math.max(0, g.capacity - g.reserved);
+                const percent = Math.min(100, Math.round((g.reserved / g.capacity) * 100));
+                const expected = g.capacity * g.price;
+                const current = g.reserved * g.price;
+                const estimatedProfit = current - g.estimatedCosts;
+                const actualProfit = current - g.actualCosts;
+                return `
+                <article class="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 sm:p-5" data-goal-id="${safeGoalText(g.id)}">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] uppercase tracking-wider font-bold text-emerald-400 mb-1">Salida ${i + 1}</p>
+                            <h4 class="text-sm font-bold text-white truncate">${safeGoalText(g.name)}</h4>
+                            <p class="text-xs text-slate-500 mt-1">${g.date ? new Date(g.date + 'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) : 'Fecha pendiente'}</p>
+                        </div>
+                        <button type="button" onclick="removeDepartureGoal('${safeGoalText(g.id)}')" class="text-xs text-slate-500 hover:text-rose-400 p-2" aria-label="Eliminar salida"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                        <div class="rounded-xl bg-slate-900 p-3"><p class="text-[10px] text-slate-500 uppercase">Reservados</p><strong class="block text-2xl text-emerald-300 tabular-nums">${reserved}<span class="text-sm text-slate-500"> / ${g.capacity}</span></strong></div>
+                        <div class="rounded-xl bg-slate-900 p-3"><p class="text-[10px] text-slate-500 uppercase">Disponibles</p><strong class="block text-2xl text-white tabular-nums">${available}</strong></div>
+                        <div class="rounded-xl bg-slate-900 p-3"><p class="text-[10px] text-slate-500 uppercase">Ingreso actual</p><strong class="block text-lg text-cyan-300 tabular-nums">${moneyMXN(current)}</strong></div>
+                        <div class="rounded-xl bg-slate-900 p-3"><p class="text-[10px] text-slate-500 uppercase">Meta llena</p><strong class="block text-lg text-white tabular-nums">${moneyMXN(expected)}</strong></div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-2"><span>Ocupación de la salida</span><strong class="text-emerald-300">${percent}%</strong></div>
+                        <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full bg-emerald-400 transition-all" style="width:${percent}%"></div></div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <label class="text-[11px] text-slate-400">Nombre de la salida<input value="${safeGoalText(g.name)}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','name',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400">Fecha<input type="date" value="${safeGoalText(g.date)}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','date',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400">Capacidad (personas)<input type="number" min="1" step="1" value="${g.capacity}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','capacity',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400">Precio por persona (MXN)<input type="number" min="0" step="50" value="${g.price}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','price',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400">Personas reservadas<input type="number" min="0" step="1" value="${g.reserved}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','reserved',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400">Costo estimado total (MXN)<input type="number" min="0" step="100" value="${g.estimatedCosts}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','estimatedCosts',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400">Gasto real total (MXN)<input type="number" min="0" step="100" value="${g.actualCosts}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','actualCosts',this.value)" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                        <label class="text-[11px] text-slate-400 sm:col-span-2">Notas<input value="${safeGoalText(g.notes)}" onchange="updateDepartureGoal('${safeGoalText(g.id)}','notes',this.value)" placeholder="Ej. precio especial, anticipo..." class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white"></label>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                        <div class="rounded-lg border border-slate-800 px-3 py-2"><p class="text-[10px] text-slate-500">Utilidad estimada con reservaciones actuales</p><strong class="text-sm ${estimatedProfit >= 0 ? 'text-emerald-300' : 'text-rose-300'}">${moneyMXN(estimatedProfit)}</strong></div>
+                        <div class="rounded-lg border border-slate-800 px-3 py-2"><p class="text-[10px] text-slate-500">Utilidad con gasto real registrado</p><strong class="text-sm ${actualProfit >= 0 ? 'text-emerald-300' : 'text-rose-300'}">${moneyMXN(actualProfit)}</strong></div>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+        function updateDepartureGoal(id, field, value) {
+            ensureDepartureGoals();
+            const goal = db.departureGoals.find(g => g.id === id);
+            if (!goal) return;
+            const numeric = ['capacity','price','reserved','estimatedCosts','actualCosts'];
+            goal[field] = numeric.includes(field) ? Math.max(field === 'capacity' ? 1 : 0, Number(value) || 0) : value;
+            renderDepartureGoals();
+            scheduleAutoPublish();
+        }
+        function addDepartureGoal() {
+            ensureDepartureGoals();
+            const next = new Date();
+            next.setDate(next.getDate() + 7);
+            const date = [next.getFullYear(), String(next.getMonth()+1).padStart(2,'0'), String(next.getDate()).padStart(2,'0')].join('-');
+            db.departureGoals.push({ id: 'departure-' + Date.now(), name: 'Nueva salida', date, capacity: 18, price: 650, reserved: 0, estimatedCosts: 0, actualCosts: 0, notes: '' });
+            renderDepartureGoals();
+            scheduleAutoPublish();
+        }
+        function removeDepartureGoal(id) {
+            if (!confirm('¿Eliminar esta salida y sus datos de seguimiento?')) return;
+            ensureDepartureGoals();
+            db.departureGoals = db.departureGoals.filter(g => g.id !== id);
+            renderDepartureGoals();
+            scheduleAutoPublish();
+        }
+
         document.getElementById('adminPassInput').addEventListener('keydown', function(event) { if (event.key === 'Enter') checkLogin(); });
         document.getElementById('adminEmailInput').addEventListener('keydown', function(event) { if (event.key === 'Enter') checkLogin(); });
     </script>
